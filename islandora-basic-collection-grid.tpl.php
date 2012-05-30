@@ -21,10 +21,10 @@
  * along with the program.  If not, see <http ://www.gnu.org/licenses/>.
  */
 ?>
-<?php drupal_set_title($islandora_object->label); ?>
+<?php drupal_set_title('grid_view'); ?>
 
 <div class="islandora-basic-collection-wrapper">
-<div class="islandora-basic-collection clearfix">
+  <div class="islandora-basic-collection clearfix">
   <?php print($variables['pager']); ?>
   <?php foreach($associated_objects_array as $key => $value): ?>
     <dl class="islandora-basic-collection-object <?php print $value['class']; ?>">
