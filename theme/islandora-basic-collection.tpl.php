@@ -1,24 +1,11 @@
 <?php
 
-/*
+/**
+ * @file
  * islandora-basic-collection.tpl.php
- * 
  *
- * 
- * This file is part of Islandora.
- * 
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with the program.  If not, see <http ://www.gnu.org/licenses/>.
+ * @TODO: needs documentation about file and variables
+ * @TODO: don't set drupal_set_title() here.
  */
 ?>
 
@@ -29,7 +16,7 @@
 <div class="islandora islandora-basic-collection">
     <?php $row_field = 0; ?>
     <?php foreach($associated_objects_array as $associated_object): ?>
-      <div class="islandora-basic-collection-object islandora-basic-collection-list-item clearfix"> 
+      <div class="islandora-basic-collection-object islandora-basic-collection-list-item clearfix">
         <dl class="<?php print $associated_object['class']; ?>">
             <dt>
               <?php if (isset($associated_object['thumb_link'])): ?>
