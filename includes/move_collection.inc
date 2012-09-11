@@ -7,7 +7,7 @@
 
 /**
  * Create object migration form for the collection manager
- * 
+ *
  * @param array $form_state
  * @param string $pid
  *
@@ -29,7 +29,7 @@ function islandora_collection_migrate_form($form, &$form_state, $object) {
   $form['migrate']['titlebox'] = array(
     '#type' => 'item',
     '#title' => t("Move objects from @collection_pid", array('@collection_pid' => $object->id)),
-  );  
+  );
 
   $form['migrate']['new_collection'] = array(
     '#title' => t('New collection'),
@@ -59,9 +59,9 @@ function islandora_collection_migrate_form($form, &$form_state, $object) {
 
 /**
  * Submit handler for object migration form
- * 
+ *
  * @param array $form
- * @param array $form_state 
+ * @param array $form_state
  */
 function islandora_collection_migrate_form_submit($form, &$form_state) {
   $pids = array_filter($form_state['values']['table']);
