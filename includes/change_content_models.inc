@@ -19,7 +19,7 @@ function islandora_change_content_models_form($form, &$form_state, $collection_o
     }
   }
 
-  $namespace = substr($collection_pid, 0, strpos($collection_pid, ":"));
+  $namespace = drupal_substr($collection_pid, 0, strpos($collection_pid, ":"));
 
   $collection_policy_dsid = variable_get('Islandora_Collection_Policy_DSID', 'COLLECTION_POLICY');
   $collection_policy_datastream = $collection_object->getDatastream($collection_policy_dsid);
@@ -29,7 +29,7 @@ function islandora_change_content_models_form($form, &$form_state, $collection_o
     $collection_policy = new CollectionPolicy($collection_policy_datastream->content);
     $supported_collection_models = $collection_policy->getContentModels();
   }
-  $collection_namespace = substr($collection_pid, 0, strpos($collection_pid, ":"));
+  $collection_namespace = drupal_substr($collection_pid, 0, strpos($collection_pid, ":"));
 
   $collection_name = $collection_object->label;
   $new_content_models = get_content_models_as_option_array();
@@ -75,7 +75,7 @@ function islandora_change_content_models_form($form, &$form_state, $collection_o
 }
 
 function islandora_change_content_models_form_validate($form, &$form_state) {
-  
+
 }
 
 function islandora_change_content_models_form_submit($form, &$form_state) {
@@ -84,16 +84,16 @@ function islandora_change_content_models_form_submit($form, &$form_state) {
   $current_content_model = $form_state['values']['current_content_model'];
   $new_content_model = $form_state['values']['new_content_model'];
   $collection_pid = $form_state['values']['collection_pid'];
-  
+
   $current_content_model_object = islandora_object_load($current_content_model);
   $collection_object = islandora_object_load($form_state['values']['collection_pid']);
 
   $collection_policy_datastream = $collection_object->getDatastream(variable_get('Islandora_Collection_Policy_DSID', 'COLLECTION_POLICY'));
   $policy = new CollectionPolicy($collection_policy_datastream->content);
-  
+
   $collection_policy_xml = new DOMDocument();
   $collection_policy_xml->loadXML($collection_policy_datastream->content);
-  
+
   $add_to_policy = TRUE;
   $policy_content_models = $policy->getContentModels();
   foreach ($policy_content_models as $policy_content_model) {
@@ -122,15 +122,15 @@ function islandora_change_content_models_form_submit($form, &$form_state) {
     $new_collection_policy_datastream->label = 'COLLECTION_POLICY';
     $collection_object->ingestDatastream($new_collection_policy_datastream);
   }
-  
+
   $query = "select \$object  from <#ri>
     where (\$object <info:fedora/fedora-system:def/model#hasModel> <info:fedora/$current_content_model>
       and (\$object <info:fedora/fedora-system:def/relations-external#isMemberOfCollection> <info:fedora/$collection_pid>
            or \$object <info:fedora/fedora-system:def/relations-external#isMemberOf> <info:fedora/$collection_pid>)
       and \$object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)";
-  
+
   $objects = $collection_object->repository->ri->itqlQuery($query, 'unlimited', '0');
-  
+
   $count = 0;
   foreach ($objects as $object) {
     if (!$object['object']['value']) {

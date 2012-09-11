@@ -5,22 +5,6 @@
  * islandora_basic_collection.module
  *
  * an Islandora module to handle basic image cmodels
- *
- *
- * This file is part of Islandora.
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with the program.  If not, see <http ://www.gnu.org/licenses/>.
  */
 
 /**
@@ -228,7 +212,7 @@ function islandora_basic_collection_islandora_view_object($object, $user) {
   $models = $object->models;
   foreach ($object->models as $model) {
     if (isset($cmodel_list[$model][ISLANDORA_VIEW_HOOK]) && $cmodel_list[$model][ISLANDORA_VIEW_HOOK] == TRUE) {
-      $output = theme('islandora_basic_collection_wrapper', array('islandora_object' => $object,));
+      $output = theme('islandora_basic_collection_wrapper', array('islandora_object' => $object));
       return array('Collection View' => $output);
     }
   }
@@ -239,7 +223,7 @@ function islandora_basic_collection_islandora_view_object($object, $user) {
  * a wrappert to retrieve an object from Fedora
  * @global object $user
  * @param string $object_id
- * @return null|\FedoraObject 
+ * @return null|\FedoraObject
  */
 function islandora_basic_collection_get_object($object_id) {
   return islandora_object_load($object_id);
@@ -247,7 +231,7 @@ function islandora_basic_collection_get_object($object_id) {
 
 /**
  * gets objects associated with this object with teh isMemberOf or isMemberOfCollection
- * 
+ *
  * @global object $user
  * @param object $object
  * @param string $page_number
@@ -269,7 +253,7 @@ function islandora_basic_collection_get_objects($object, $page_number = 1, $page
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
   } catch (Exception $e) {
     drupal_set_message(t('Islandora Error getting related objects for %s', array('%s' => $object->id)), 'error');
-    return"";
+    return '';
   }
   return $results;
 }
@@ -284,13 +268,16 @@ function islandora_basic_collection_islandora_ingest_get_information($models, $o
       $return['relationship'] = $policy->getRelationship();
 
       return $return;
-    } catch (Exception $e) {}
+    }
+    catch (Exception $e) {
+
+    }
   }
 }
 
 function islandora_basic_collection_islandora_undeletable_datastreams($models) {
-  if(in_array('islandora:collectionCModel', $models)) {
-    if(variable_get('islandora_basic_collection_disable_collection_policy_delete', TRUE)) {
+  if (in_array('islandora:collectionCModel', $models)) {
+    if (variable_get('islandora_basic_collection_disable_collection_policy_delete', TRUE)) {
       return array('COLLECTION_POLICY');
     }
   }

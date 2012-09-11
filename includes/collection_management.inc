@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @file 
+ * @file
  * CollectionManagement.inc
  * A set of useful functions to help with collection management
  */
@@ -27,7 +27,9 @@ where (\$object <info:fedora/fedora-system:def/relations-external#isMemberOf> <i
         $content_model_title = $fedora_object->label;
         $represented_models[$model_pid['model']['value']] = $model_pid['model']['value'] . ' ~ ' . $content_model_title;
       }
-      catch (RepositoryException $e) {}
+      catch (RepositoryException $e) {
+
+      }
     }
   }
   return $represented_models;
@@ -116,7 +118,7 @@ function get_related_items_as_array($collection_object, $relationship = array('i
  * @global type $user
  * @param type $op
  * @param type $pid
- * @return type 
+ * @return type
  */
 function fedora_repository_access($permission, $pid) {
   global $user;
@@ -153,7 +155,7 @@ function fedora_repository_access($permission, $pid) {
  * this now returns an array of pids as in Fedora 3 we can have more then one Cmodel for an object
  * @param type $pid
  * @param type $include_fedora_system_content_models
- * @return array 
+ * @return array
  */
 function get_content_models_list($object, $include_fedora_system_content_models = FALSE) {
 
@@ -172,7 +174,7 @@ function get_content_models_list($object, $include_fedora_system_content_models 
     if (strpos($content_model['object']['uri'], 'fedora-system:FedoraObject-3.0') != FALSE && $include_fedora_system_content_models == FALSE) {
       continue;
     }
-    $cmodels[] = substr(strstr($content_model['object']['uri'], '/'), 1);
+    $cmodels[] = drupal_substr(strstr($content_model['object']['uri'], '/'), 1);
   }
 
   return $cmodels;

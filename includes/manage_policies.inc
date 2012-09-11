@@ -7,7 +7,7 @@
 
 /**
  * Create form to collection policy management feature
- * 
+ *
  * @param array $form
  * @param array $form_state
  * @param string $collection_pid
@@ -28,12 +28,12 @@ function islandora_manage_policies_form($form, &$form_state, $collection_object)
         $cm_name = $item->Label;
         $cm_options[$content_model] = $cm_name;
       } catch (RepositoryException $e) {
-        
+
       }
     }
   }
 
-  $namespace = substr($collection_object->id, 0, strpos($collection_object->id, ":"));
+  $namespace = drupal_substr($collection_object->id, 0, strpos($collection_object->id, ":"));
 
   $collection_policy_dsid = variable_get('Islandora_Collection_Policy_DSID', 'COLLECTION_POLICY');
   $collection_policy_string = $collection_object->getDatastream($collection_policy_dsid);
@@ -44,7 +44,7 @@ function islandora_manage_policies_form($form, &$form_state, $collection_object)
     $supported_collection_models = $collection_policy->getContentModels();
   }
 
-  $collection_namespace = substr($collection_object->id, 0, strpos($collection_object->id, ":"));
+  $collection_namespace = drupal_substr($collection_object->id, 0, strpos($collection_object->id, ":"));
 
   $represented_content_models = get_represented_content_models($collection_object);
   $collection_name = $collection_object->label;
@@ -135,14 +135,14 @@ function islandora_manage_policies_form($form, &$form_state, $collection_object)
 }
 
 function islandora_manage_policies_form_validate($form, &$form_state) {
-  
+
 }
 
 /**
  * Submit handler for collection policy management form
- * 
+ *
  * @param array $form
- * @param array $form_state 
+ * @param array $form_state
  */
 function islandora_manage_policies_form_submit($form, &$form_state) {
   module_load_include('module', 'islandora', 'islandora');

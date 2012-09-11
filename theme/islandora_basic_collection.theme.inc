@@ -1,9 +1,14 @@
 <?php
 
 /**
+ * @file
+ * This file contains all theme and preprocess functions
+ */
+
+/**
  * list view preprocess
  * currently just calls normal view preprocess as variables are the same
- * @param type $variables 
+ * @param type $variables
  */
 function islandora_basic_collection_preprocess_islandora_basic_collection_grid(&$variables) {
   islandora_basic_collection_preprocess_islandora_basic_collection($variables);
@@ -23,10 +28,16 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
   global $base_url;
   if ($display == 'grid') {
     $query_params['display'] = 'list';
-     $list_link = array('title' => 'List view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => 'islandora-view-list'),
-    'query' => $query_params);
-     unset($query_params['display']);
-     $query_params['display'] = 'grid';
+    $list_link = array(
+      'title' => 'List view',
+      'href' => $base_url . '/islandora/object/' . $islandora_object->id,
+      'attributes' => array(
+        'class' => 'islandora-view-list'
+      ),
+      'query' => $query_params
+    );
+    unset($query_params['display']);
+    $query_params['display'] = 'grid';
     $grid_link = array('title' => 'Grid view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => array('islandora-view-grid', 'active')),
     'query' => $query_params);
     $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
@@ -41,13 +52,13 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
     'query' => $query_params);
     $collection_content = theme('islandora_basic_collection', array('islandora_object' => $islandora_object, 'collection_results' => $results));
   }
-  $variables['view_links'] = array($grid_link,$list_link);
+  $variables['view_links'] = array($grid_link, $list_link);
   //$variables['grid_link'] = $grid_link;
   $variables['collection_content'] = $collection_content;
 }
 
 /**
- * 
+ *
  * @global type $base_url
  * @param array $variables
  *   an array of variables that will be passed to the theme function
@@ -115,7 +126,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     $associated_objects_array[$pid]['pid'] = $pid;
     $associated_objects_array[$pid]['path'] = $object_url;
     $associated_objects_array[$pid]['title'] = $title;
-    $associated_objects_array[$pid]['class'] = strtolower(preg_replace('/[^A-Za-z0-9]/', '-', $pid));
+    $associated_objects_array[$pid]['class'] = drupal_strtolower(preg_replace('/[^A-Za-z0-9]/', '-', $pid));
     if (isset($fc_object['TN'])) {
       $thumbnail_img = '<img src="' . $base_path . $object_url . '/datastream/TN/view"' . '/>';
     }
@@ -129,5 +140,3 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
   }
   $variables['associated_objects_array'] = $associated_objects_array;
 }
-
-?>

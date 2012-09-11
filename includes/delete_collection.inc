@@ -59,10 +59,10 @@ function islandora_collection_deletion_form($form, &$form_state, $object) {
 
 /**
  * Submit handler for object deletion form in the collection manager.
- * 
+ *
  * @global type $user
  * @param array $form
- * @param array $form_state 
+ * @param array $form_state
  */
 function islandora_collection_deletion_form_submit($form, &$form_state) {
 
@@ -109,7 +109,7 @@ function islandora_collection_deletion_form_submit($form, &$form_state) {
 
 /**
  * Deletes the collection object
- * 
+ *
  * @param string $pid
  */
 function delete_root_collection($object) {
