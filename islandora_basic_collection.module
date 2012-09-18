@@ -51,6 +51,40 @@ function islandora_basic_collection_init() {
   }
 }
 
+
+/**
+ * Implements hook_islandora_required_objects().
+ */
+function islandora_basic_collection_islandora_required_objects() {
+
+  // module path
+  $module_path = drupal_get_path('module', 'islandora_basic_collection');
+  
+  return array(
+    'islandora_basic_collection' => array(
+      'module' => 'islandora_basic_collection',
+      'title' => 'Islandora basic collection',
+      'objects' => array(
+        array(
+          'pid' => 'islandora:collectionCModel',
+          'label' => 'Islandora collection content model',
+          'cmodel' => 'fedora-system:ContentModel-3.0',
+          'dsversion' => 2,
+          'datastreams' => array(
+            array(
+              'dsid' => 'ISLANDORACM',
+              'label' => 'Islandora content model',
+              'mimetype' => 'text/xml',
+              'control_group' => 'X',
+              'datastream_file' => "$module_path/xml/islandora_basic_collection_content_model.xml",              
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 /**
  * This function is where we create the view for the related menu item
  * @param type $object_id
