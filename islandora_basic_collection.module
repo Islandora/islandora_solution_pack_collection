@@ -78,6 +78,13 @@ function islandora_basic_collection_islandora_required_objects() {
               'control_group' => 'X',
               'datastream_file' => "$module_path/xml/islandora_basic_collection_content_model.xml",              
             ),
+            array(
+              'dsid' => 'DS-COMPOSITE-MODEL',
+              'label' => 'DS-COMPOSITE-MODEL',
+              'mimetype' => 'text/xml',
+              'control_group' => 'X',
+              'datastream_file' => "$module_path/xml/islandora_basic_collection_ds_composite_model.xml",              
+            ),
           ),
         ),
       ),
