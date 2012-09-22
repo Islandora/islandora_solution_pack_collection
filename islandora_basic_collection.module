@@ -62,7 +62,6 @@ function islandora_basic_collection_islandora_required_objects() {
   
   return array(
     'islandora_basic_collection' => array(
-      'module' => 'islandora_basic_collection',
       'title' => 'Islandora basic collection',
       'objects' => array(
         array(
