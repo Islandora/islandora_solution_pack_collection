@@ -59,10 +59,9 @@ function islandora_basic_collection_islandora_required_objects() {
 
   // module path
   $module_path = drupal_get_path('module', 'islandora_basic_collection');
-  
+
   return array(
     'islandora_basic_collection' => array(
-      'module' => 'islandora_basic_collection',
       'title' => 'Islandora basic collection',
       'objects' => array(
         array(
@@ -76,14 +75,14 @@ function islandora_basic_collection_islandora_required_objects() {
               'label' => 'Islandora content model',
               'mimetype' => 'text/xml',
               'control_group' => 'X',
-              'datastream_file' => "$module_path/xml/islandora_basic_collection_content_model.xml",              
+              'datastream_file' => "$module_path/xml/islandora_basic_collection_content_model.xml",
             ),
             array(
               'dsid' => 'DS-COMPOSITE-MODEL',
               'label' => 'DS-COMPOSITE-MODEL',
               'mimetype' => 'text/xml',
               'control_group' => 'X',
-              'datastream_file' => "$module_path/xml/islandora_basic_collection_ds_composite_model.xml",              
+              'datastream_file' => "$module_path/xml/islandora_basic_collection_ds_composite_model.xml",
             ),
           ),
         ),
