@@ -1,4 +1,4 @@
-name = "Islandora Basic Collection"
+name = "Islandora basic collection"
 description = "A default Islandora Repository module to handle simple collections"
 dependencies[] = islandora
 package = Islandora
