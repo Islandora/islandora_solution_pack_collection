@@ -24,7 +24,7 @@ function islandora_basic_collection_requirements($phase) {
 /**
  * Implements hook_install().
  *
- * @see islandora_basic_collection_islandora_required_objects().
+ * @see islandora_basic_collection_islandora_required_objects()
  */
 function islandora_basic_collection_install() {
   module_load_include('inc', 'islandora', 'includes/solution_packs');
