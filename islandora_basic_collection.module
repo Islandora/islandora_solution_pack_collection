@@ -11,6 +11,12 @@
  * Implements hook_menu().
  * we need some standard entry points so we can have consistent urls for different Object actions
  */
+define('CREATE_CHILD_COLLECTION', 'create child collection');
+define('MANAGE_COLLECTION_POLICY', 'manage collection policy');
+define('MANAGE_CONTENT_MODEL_ASSOCIATION', 'manage content model association');
+define('MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
+
+
 function islandora_basic_collection_menu() {
   $items = array();
   $items['islandora/object/%islandora_object/manage/collection'] = array(
@@ -114,46 +120,56 @@ function islandora_basic_collection_manage_object($object) {
     '#prefix' => '',
   );
 
-  $form['collection_manager']['create_child_collection'] = array(
-    '#title' => t('Create child collection'),
-    '#type' => 'fieldset',
-  );
+  if (user_access(CREATE_CHILD_COLLECTION)) {
+    $form['collection_manager']['create_child_collection'] = array(
+      '#title' => t('Create child collection'),
+      '#type' => 'fieldset',
+    );
 
-  $form['collection_manager']['create_child_collection']['form'] = drupal_get_form('islandora_create_child_collection_form', $object);
+    $form['collection_manager']['create_child_collection']['form'] = drupal_get_form('islandora_create_child_collection_form', $object);
+  }
 
-  $form['collection_manager']['manage_policies'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Manage collection policies'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
+  if (user_access(MANAGE_COLLECTION_POLICY)) {
+    $form['collection_manager']['manage_policies'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Manage collection policies'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
 
-  $form['collection_manager']['manage_policies']['form'] = drupal_get_form('islandora_manage_policies_form', $object);
+    $form['collection_manager']['manage_policies']['form'] = drupal_get_form('islandora_manage_policies_form', $object);
+  }
 
-  $form['collection_manager']['change_content_models'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Change content models'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
+  if (user_access(MANAGE_CONTENT_MODEL_ASSOCIATION)) {
+    $form['collection_manager']['change_content_models'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Change content models'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
 
-  $form['collection_manager']['change_content_models']['form'] = drupal_get_form('islandora_change_content_models_form', $object);
+    $form['collection_manager']['change_content_models']['form'] = drupal_get_form('islandora_change_content_models_form', $object);
+  }
 
-  $form['collection_manager']['migrate_members'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Migrate members'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
+  if (user_access(MIGRATE_COLLECTION_MEMBERS)) {
+    $form['collection_manager']['migrate_members'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Migrate members'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
 
-  $form['collection_manager']['migrate_members']['form'] = drupal_get_form('islandora_collection_migrate_form', $object);
+    $form['collection_manager']['migrate_members']['form'] = drupal_get_form('islandora_collection_migrate_form', $object);
+  }
 
-  $form['collection_manager']['delete_members'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Delete members of this collection'),
-    '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
-  );
+  if (user_access(FEDORA_PURGE)) {
+    $form['collection_manager']['delete_members'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Delete members of this collection'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+    );
+  }
 
   $form['collection_manager']['delete_members']['form'] = drupal_get_form('islandora_collection_deletion_form', $object);
 
@@ -308,8 +324,7 @@ function islandora_basic_collection_islandora_ingest_get_information($models, $o
       $return['relationship'] = $policy->getRelationship();
 
       return $return;
-    }
-    catch (Exception $e) {
+    } catch (Exception $e) {
 
     }
   }
@@ -321,4 +336,32 @@ function islandora_basic_collection_islandora_undeletable_datastreams($models) {
       return array('COLLECTION_POLICY');
     }
   }
+}
+
+/**
+ * drupal hook_permissions function
+ * @return array
+ */
+function islandora_basic_collection_permission() {
+ 
+  return array(
+    CREATE_CHILD_COLLECTION => array(
+      'title' => t('Create Child Collections'),
+      'description' => t('Allows users to create collections within a collection.')
+    ),
+    MANAGE_COLLECTION_POLICY => array(
+      'title' => t('Manage Collection Policy'),
+      'description' => t('Allows users to add Content Models to Collection Pollicies and define their namespace.')
+    ),
+    MANAGE_CONTENT_MODEL_ASSOCIATION => array(
+      'title' => t('Manage Content Model Association'),
+      'description' => t('Allows users to change content models for objects within a collection.')
+    ),
+    MIGRATE_COLLECTION_MEMBERS => array(
+      'title' => t('Migrate Collection Members'),
+      'description' => t('Allows user to move objects from one collection to another.')
+    ),
+
+
+  );
 }
