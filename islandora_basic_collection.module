@@ -186,9 +186,19 @@ function islandora_basic_collection_manage_object($object) {
  * @return boolean
  */
 function islandora_basic_collection_access($fedora_object) {
-  if (!isset($fedora_object)) {
+  global $user;
+  $access = FALSE;
+  if(user_access(CREATE_CHILD_COLLECTION)||
+      user_access(MANAGE_COLLECTION_POLICY)||
+      user_access(MANAGE_CONTENT_MODEL_ASSOCIATION)||
+      user_access(MIGRATE_COLLECTION_MEMBERS)){
+    $access = TRUE;
+  }
+
+  if (!isset($fedora_object) || !$access) {
     return FALSE;
   }
+
   $models = $fedora_object->models;
   $cmodel_list = islandora_basic_collection_islandora_get_types();
   foreach ($fedora_object->models as $model) {
