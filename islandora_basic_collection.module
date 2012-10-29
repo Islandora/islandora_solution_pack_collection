@@ -149,13 +149,24 @@ function islandora_basic_collection_access($fedora_object) {
   if (!isset($fedora_object)) {
     return FALSE;
   }
-  $models = $fedora_object->models;
-  $cmodel_list = islandora_basic_collection_islandora_get_types();
-  foreach ($fedora_object->models as $model) {
-    if (isset($cmodel_list[$model])) {
-      return user_access(FEDORA_MANAGE);
+  $manage = user_access(FEDORA_MANAGE);
+
+  // Allow something of an early exit, if the user does not have management
+  //   permissions.
+  if ($manage) {
+    $models = $fedora_object->models;
+
+    $types = islandora_types();
+    foreach (array_intersect_key($types, drupal_map_assoc($models)) as $model => $info) {
+      // XXX:  If one of the content models of the given object makes an
+      //   assertion about this module let's make the assumption that we should
+      //   allow use of the collection manager.
+      if (isset($info['islandora_basic_collection'])) {
+        return TRUE;
+      }
     }
   }
+
   return FALSE;
 }
 
@@ -167,9 +178,12 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
     'islandora_basic_collection' => array(
       'file' => 'theme/islandora_basic_collection.theme.inc',
       'template' => 'theme/islandora-basic-collection',
-      'pattern' => 'islandora_basic_collection__', //we can add pids to the end of this pattern in our preprocess function
-// and templates will be able to have have a pid appended to the template name to overide a template on a per object basis
-//an example template would be named islandora-basic-image--islandora-27.tpl.phps
+      // We can add PIDs to the end of this pattern in our preprocess function
+      //   and templates will be able to have have a pid appended to the
+      //   template name to overide a template on a per object basis.
+      // An example template might be named
+      //   "islandora-basic-collection--islandora-27.tpl.php".
+      'pattern' => 'islandora_basic_collection__', 
       'variables' => array('islandora_object' => NULL),
     ),
     'islandora_basic_collection_grid' => array(
@@ -192,9 +206,9 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implements hook_islandora_get_types().
+ * Implements hook_islandora_type_info().
  */
-function islandora_basic_collection_islandora_get_types() {
+function islandora_basic_collection_islandora_type_info() {
   $types = array(
     'islandora:collectionCModel' => array(
       'islandora_basic_collection' => array(
@@ -206,7 +220,7 @@ function islandora_basic_collection_islandora_get_types() {
 }
 
 /**
- * Implements hook_HOOK_NAME() for ISLANDORA_VIEW_HOOK.
+ * Implements hook_islandora_view_object().
  */
 function islandora_basic_collection_islandora_view_object($object, $user) {
   $output = theme('islandora_basic_collection_wrapper', array(
@@ -216,8 +230,7 @@ function islandora_basic_collection_islandora_view_object($object, $user) {
 }
 
 /**
- * a wrappert to retrieve an object from Fedora
- * @global object $user
+ * A wrapper to retrieve an object from Fedora.
  * @param string $object_id
  * @return null|\FedoraObject 
  */
@@ -226,10 +239,12 @@ function islandora_basic_collection_get_object($object_id) {
 }
 
 /**
- * gets objects associated with this object with teh isMemberOf or isMemberOfCollection
+ * Get objects associated with this object.
+ *
+ * Currently, we are only concerned with the with isMemberOf and
+ * isMemberOfCollection relationships.
  * 
- * @global object $user
- * @param object $object
+ * @param FedoraObject $object
  * @param string $page_number
  * @param string $page_size
  * @return array
@@ -243,7 +258,13 @@ function islandora_basic_collection_get_objects($object, $page_number = 1, $page
              and $object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)
              minus $content <mulgara:is> <info:fedora/fedora-system:FedoraObject-3.0>
              order by $title';
-  $query_array = array('query' => $query, 'type' => 'itql', 'pid' => $object->id, 'page_size' => $page_size, 'page_number' => $page_number);
+  $query_array = array(
+    'query' => $query,
+    'type' => 'itql',
+    'pid' => $object->id,
+    'page_size' => $page_size,
+    'page_number' => $page_number
+  );
   drupal_alter('islandora_basic_collection_query', $query_array);
   try {
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
