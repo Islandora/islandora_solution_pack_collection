@@ -160,11 +160,7 @@ function islandora_basic_collection_access($fedora_object) {
 }
 
 /**
- * Theme registry function
- * We supply a pattern so we can overide templates at the theme level if needed.
- * we can append a pid to a template and the new template file will be called (the pids
- * colon should be replaced with a dash)
- * @return array
+ * Implements hook_theme().
  */
 function islandora_basic_collection_theme($existing, $type, $theme, $path) {
   return array(
@@ -196,43 +192,27 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * tells the main module what types of objects we support.  This is used to determine whether or not
- * this module should attempt to respond.
- * If ISLANDORA_VIEW_HOOK = TRUE this function will populate the default tab.  This should be configurable
- * in the modules admin section, otherwise two modules can populate one tab.
- * @return array
- *   array of content model pids that this module supports
+ * Implements hook_islandora_get_types().
  */
 function islandora_basic_collection_islandora_get_types() {
-  $types = array();
-  $types['islandora:collectionCModel'][ISLANDORA_VIEW_HOOK] = variable_get('islandora_basic_collection_use_for_default_tab', TRUE);
-//$types['islandora:collectionCModel'][ISLANDORA_EDIT_HOOK] = FALSE;
+  $types = array(
+    'islandora:collectionCModel' => array(
+      'islandora_basic_collection' => array(
+        ISLANDORA_VIEW_HOOK => variable_get('islandora_basic_collection_use_for_default_tab', TRUE),
+      ),
+    ),
+  );
   return $types;
 }
 
 /**
- * this modules implentation of view_object hook will handle objects of type islandora:basicImageCModel and  info:fedora/islandora:sp_basic_image
- * as registered in its return types
- * Other modules would handle objects of other types.
- * @param Object $object
- *    a tuque fedora object
- * @param object $user
- * @param string $page_number
- * @param string $page_size
- * @return string
- *    themed html
+ * Implements hook_HOOK_NAME() for ISLANDORA_VIEW_HOOK.
  */
 function islandora_basic_collection_islandora_view_object($object, $user) {
-//global $user;
-  $cmodel_list = islandora_basic_collection_islandora_get_types();
-  $models = $object->models;
-  foreach ($object->models as $model) {
-    if (isset($cmodel_list[$model][ISLANDORA_VIEW_HOOK]) && $cmodel_list[$model][ISLANDORA_VIEW_HOOK] == TRUE) {
-      $output = theme('islandora_basic_collection_wrapper', array('islandora_object' => $object,));
-      return array('Collection View' => $output);
-    }
-  }
-  return NULL;
+  $output = theme('islandora_basic_collection_wrapper', array(
+    'islandora_object' => $object,
+  ));
+  return array('Collection View' => $output);
 }
 
 /**
