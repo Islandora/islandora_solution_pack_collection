@@ -149,25 +149,9 @@ function islandora_basic_collection_access($fedora_object) {
   if (!isset($fedora_object)) {
     return FALSE;
   }
-  $manage = user_access(FEDORA_MANAGE);
 
-  // Allow something of an early exit, if the user does not have management
-  //   permissions.
-  if ($manage) {
-    $models = $fedora_object->models;
-
-    $types = islandora_types();
-    foreach (array_intersect_key($types, drupal_map_assoc($models)) as $model => $info) {
-      // XXX:  If one of the content models of the given object makes an
-      //   assertion about this module let's make the assumption that we should
-      //   allow use of the collection manager.
-      if (isset($info['islandora_basic_collection'])) {
-        return TRUE;
-      }
-    }
-  }
-
-  return FALSE;
+  // The user is allowed to manage, and the object has our content model.
+  return user_access(FEDORA_MANAGE) && in_array('islandora:collectionCModel', $fedora_object->models);
 }
 
 /**
@@ -206,23 +190,9 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
 }
 
 /**
- * Implements hook_islandora_type_info().
+ * Implements hook_CMODEL_PID_islandora_view_object().
  */
-function islandora_basic_collection_islandora_type_info() {
-  $types = array(
-    'islandora:collectionCModel' => array(
-      'islandora_basic_collection' => array(
-        ISLANDORA_VIEW_HOOK => variable_get('islandora_basic_collection_use_for_default_tab', TRUE),
-      ),
-    ),
-  );
-  return $types;
-}
-
-/**
- * Implements hook_islandora_view_object().
- */
-function islandora_basic_collection_islandora_view_object($object, $user) {
+function islandora_basic_collection_islandora_collectionCModel_islandora_view_object($object, $user) {
   $output = theme('islandora_basic_collection_wrapper', array(
     'islandora_object' => $object,
   ));
