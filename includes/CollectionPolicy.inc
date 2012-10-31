@@ -64,13 +64,13 @@ class CollectionPolicy {
   function getContentModels() {
     $ret = array();
     $content_models = $this->xml->getElementsByTagName('content_models')->item(0)->getElementsByTagName('content_model');
-    for ($i = 0; $i < $content_models->length; $i++) {
+    foreach ($content_models as $cmodel) {
       $cm = array();
-      $cm['pid'] = $content_models->item($i)->getAttribute('pid');
-      $cm['namespace'] = $content_models->item($i)->getAttribute('namespace');
-      $cm['name'] = $content_models->item($i)->getAttribute('name');
+      $cm['pid'] = $cmodel->getAttribute('pid');
+      $cm['namespace'] = $cmodel->getAttribute('namespace');
+      $cm['name'] = $cmodel->getAttribute('name');
       if ($cm !== FALSE) {
-        $ret[] = $cm;
+        $ret[$cm['pid']] = $cm;
       }
     }
     return $ret;
