@@ -200,7 +200,6 @@ function islandora_manage_policies_form_submit($form, &$form_state) {
   if ($form_state['clicked_button']['#id'] == 'remove_cm') {
     $candidates = $form_state['values']['content_models_to_remove'];
     $count = 0;
-    $s = '';
     foreach ($candidates as $candidate) {
       if (is_string($candidate)) {
         $content_models_element = $collection_policy_xml->getElementsByTagName('content_models');
@@ -224,10 +223,7 @@ function islandora_manage_policies_form_submit($form, &$form_state) {
       $new_collection_policy_datastream->setContentFromString($collection_policy_xml->saveXML());
       $new_collection_policy_datastream->label = 'COLLECTION_POLICY';
       $collection_object->ingestDatastream($new_collection_policy_datastream);
-      if ($count > 1) {
-        $s = 's';
-      }
-      drupal_set_message(t("$count collection model@s removed", array('@s' => $s)));
+      drupal_set_message(format_plural($count, "1 model removed from the collection policy.", "@count models removed from the collection policy."));
     }
   }
 }

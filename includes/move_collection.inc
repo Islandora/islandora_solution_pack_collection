@@ -47,7 +47,7 @@ function islandora_collection_migrate_form($form, &$form_state, $object) {
 
   $form['migrate']['message'] = array(
     '#type' => 'item',
-    '#value' => t(""),
+    '#value' => '',
   );
 
   $form['migrate']['submit'] = array(
