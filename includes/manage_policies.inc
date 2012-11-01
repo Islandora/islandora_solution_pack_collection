@@ -227,7 +227,7 @@ function islandora_manage_policies_form_submit($form, &$form_state) {
       if ($count > 1) {
         $s = 's';
       }
-      drupal_set_message(t("$count collection model@s removed", array('@s' => $s)));
+      drupal_set_message(format_plural($count, "1 model removed from the collection policy.", "@count models removed from the collection policy."));
     }
   }
 }
