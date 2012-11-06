@@ -240,7 +240,7 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
 /**
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
-function islandora_basic_collection_islandora_collectionCModel_islandora_view_object($object, $user) {
+function islandora_basic_collection_islandora_collectionCModel_islandora_view_object($object) {
   $output = theme('islandora_basic_collection_wrapper', array(
     'islandora_object' => $object,
   ));
@@ -348,7 +348,5 @@ function islandora_basic_collection_permission() {
       'title' => t('Migrate Collection Members'),
       'description' => t('Allows user to move objects from one collection to another.')
     ),
-
-
   );
 }
