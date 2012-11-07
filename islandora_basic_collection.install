@@ -39,4 +39,5 @@ function islandora_basic_collection_uninstall() {
   module_load_include('inc', 'islandora', 'includes/solution_packs');
   // uninstall callback
   islandora_install_solution_pack('islandora_basic_collection', 'uninstall');
+  // @TODO remove drupal variables here
 }
