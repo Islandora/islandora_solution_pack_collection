@@ -122,7 +122,7 @@ function islandora_create_child_collection_form_validate($form, &$form_state) {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $new_collection_pid = $form_state['values']['new_collection_pid'];
   if ($new_collection_pid) {
-    $valid = islandora_validate_pid($new_collection_pid);
+    $valid = islandora_is_valid_pid($new_collection_pid);
     if (!$valid) {
       form_set_error('new_collection_pid', 'Collection PID is Invalid.');
     }
@@ -144,7 +144,6 @@ function islandora_create_child_collection_form_validate($form, &$form_state) {
  */
 function islandora_create_child_collection_form_submit($form, &$form_state) {
   global $base_url;
-  module_load_include('inc', 'islandora', '/includes/islandora.ingest');
   $thumbnail = $base_url . '/' . drupal_get_path('module', 'islandora_basic_collection') . '/Crystal_Clear_filesystem_folder_grey.png';
   $new_collection_pid = $form_state['values']['new_collection_pid'];
   $this_collection_pid = $form_state['values']['current'];
@@ -185,7 +184,17 @@ function islandora_create_child_collection_form_submit($form, &$form_state) {
       $content_models_element->item(0)->appendChild($content_model_element);
     }
   }
-  $fedora_object = islandora_ingest_get_object($collection_content_models, $form_state['values']['current'], $relationship, $new_collection_pid);
+  $models = array();
+  foreach ($colleciton_content_models as $relation) {
+    $models[] = $relation['pid'];
+  }
+
+  $fedora_object = islandora_prepare_new_object($new_collection_pid, NULL, array(), $models, array(
+    array(
+      'pid' => $form_state['values']['current'],
+      'relationship' => $relationship,
+    ),
+  ), $form_state['values']['current']);
   $fedora_object->label = $new_collection_label;
   $thumbnail_datastream = $fedora_object->constructDatastream('TN');
   $thumbnail_datastream->setContentFromUrl($thumbnail);
@@ -196,7 +205,7 @@ function islandora_create_child_collection_form_submit($form, &$form_state) {
   $policy_datastream->setContentFromString($collection_policy_xml->saveXML());
   $policy_datastream->label = 'Collection policy';
   $fedora_object->ingestDatastream($policy_datastream);
-  $new_fedora_object = islandora_ingest_add_object($fedora_object);
+  $new_fedora_object = islandora_add_object($fedora_object);
 
   drupal_goto('/islandora/object/' . $fedora_object->id);
 }

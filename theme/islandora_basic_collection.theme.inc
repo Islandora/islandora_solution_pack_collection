@@ -64,15 +64,13 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
  *   an array of variables that will be passed to the theme function
  */
 function islandora_basic_collection_preprocess_islandora_basic_collection(&$variables) {
-// base url
   global $base_url;
-// base path
   global $base_path;
   $islandora_object = $variables['islandora_object'];
-  module_load_include('inc', 'islandora', 'includes/islandora_dublin_core');
+
   try {
     $dc = $islandora_object['DC']->content;
-    $dc_object = Dublin_Core::import_from_xml_string($dc);
+    $dc_object = DublinCore::import_from_xml_string($dc);
   } catch (Exception $e) {
     drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
   }
@@ -115,7 +113,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     $associated_objects_array[$pid]['object'] = $fc_object;
     try {
       $dc = $fc_object['DC']->content;
-      $dc_object = Dublin_Core::import_from_xml_string($dc);
+      $dc_object = DublinCore::import_from_xml_string($dc);
       $associated_objects_array[$pid]['dc_array'] = $dc_object->as_formatted_array();
     } catch (Exception $e) {
       drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
