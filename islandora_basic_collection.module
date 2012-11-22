@@ -445,5 +445,4 @@ function islandora_basic_collection_metatdata_form_submit(array $form, array &$f
     $namespace = islandora_get_namespace($model['namespace']);
     $object->id = $object->repository->api->m->getNextPid($namespace);
   }
-  dsm(print_r($object, TRUE));
 }
