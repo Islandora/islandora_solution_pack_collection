@@ -215,7 +215,7 @@ function islandora_basic_collection_access($object = NULL) {
  *   Collection object to check if ingestion is possible.
  */
 function islandora_basic_collection_ingest_access($object = NULL) {
-  if (!isset($object) || !user_access(FEDORA_INGEST)) {
+  if (!is_object($object) || !user_access(FEDORA_INGEST)) {
     return FALSE; // No ingest for you!
   }
   static $checked_objects = array(); // Reduce need to validate to once per object, as this if often called more than once per request.
