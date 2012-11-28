@@ -86,4 +86,59 @@ class CollectionPolicy {
     return $ret;
   }
 
+  /**
+   * Add an entry for the given content model to the collection policy.
+   */
+  function addContentModel($pid, $name, $namespace) {
+    $content_models_element = $this->xml->getElementsByTagName('content_models');
+    $content_model_element = $content_models_element->item(0)->getElementsByTagName('content_model');
+
+    $content_model_element = $this->xml->createElement('content_model');
+    $content_model_element->setAttribute('name', $name);
+    $content_model_element->setAttribute('dsid', variable_get('Islandora_Content_Model_DSID', 'ISLANDORACM'));
+    $content_model_element->setAttribute('namespace', $namespace);
+    $content_model_element->setAttribute('pid', $pid);
+    $content_models_element->item(0)->appendChild($content_model_element);
+  }
+
+  /**
+   * Remove matching content model entries.
+   *
+   * @param string|array $candidates
+   *   Either a single string containing a content model PID or an array of
+   *   content model PIDs to remove.
+   *
+   * @return int
+   *   The number of entries which have been removed.
+   */
+  function removeContentModel($candidates) {
+    $count = 0;
+    foreach ((array)$candidates as $candidate) {
+      if (is_string($candidate)) {
+        $content_models_element = $this->xml->getElementsByTagName('content_models');
+        $models = $content_models_element->item(0)->getElementsByTagName('content_model');
+        $found = FALSE;
+        for ($i = 0; $found === FALSE && $i < $models->length; $i++) {
+          if ($models->item($i)->getAttribute('pid') == $candidate) {
+            $found = $models->item($i);
+          }
+        }
+
+        if ($found !== FALSE && $models->length > 0) {
+          $content_models_element->item(0)->removeChild($found);
+          $ret = TRUE;
+        }
+        $count++;
+      }
+    }
+
+    return $count;
+  }
+
+  /**
+   * Dump out the XML for this collection policy.
+   */
+  function getXML() {
+    return $this->xml->saveXML();
+  }
 }
