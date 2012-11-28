@@ -173,7 +173,7 @@ function islandora_manage_policies_form_submit($form, &$form_state) {
     $cp_namespace = $form_state['values']['new_cp_namespace'];
     $cp_content_model = $form_state['values']['content_model_to_add'];
 
-    $content_model_object = islandora_get_object_by_id($cp_content_model);
+    $content_model_object = islandora_object_load($cp_content_model);
     $content_model_datastream = $content_model_object->getDatastream(variable_get('Islandora_Content_Model_DSID', 'ISLANDORACM'));
 
     $collection_policy = new CollectionPolicy($policy->content);
