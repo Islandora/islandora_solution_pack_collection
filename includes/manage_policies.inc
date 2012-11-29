@@ -161,9 +161,6 @@ function islandora_manage_policies_form_submit($form, &$form_state) {
     <relationship>isMemberOfCollection</relationship>
 </collection_policy>';
 
-  $collection_policy_xml = new DOMDocument();
-  $collection_policy_xml->loadXML($policy->content);
-
   if ($form_state['clicked_button']['#id'] == 'add_cm') {
     if (empty($policy->content)) {
       $collection_policy_datastream = $collection_object->constructDatastream('COLLECTION_POLICY', 'X');
@@ -179,18 +176,15 @@ function islandora_manage_policies_form_submit($form, &$form_state) {
     $content_model_object = islandora_object_load($cp_content_model);
     $content_model_datastream = $content_model_object->getDatastream(variable_get('Islandora_Content_Model_DSID', 'ISLANDORACM'));
 
-    $content_models_element = $collection_policy_xml->getElementsByTagName('content_models');
-    $content_model_element = $content_models_element->item(0)->getElementsByTagName('content_model');
-
-    $content_model_element = $collection_policy_xml->createElement('content_model');
-    $content_model_element->setAttribute('name', $content_model_object->label);
-    $content_model_element->setAttribute('dsid', variable_get('Islandora_Content_Model_DSID', 'ISLANDORACM'));
-    $content_model_element->setAttribute('namespace', $cp_namespace);
-    $content_model_element->setAttribute('pid', $content_model_object->id);
-    $content_models_element->item(0)->appendChild($content_model_element);
+    $collection_policy = new CollectionPolicy($policy->content);
+    $collection_policy->addContentModel(
+      $content_model_object->id,
+      $content_model_object->label,
+      $cp_namespace
+    );
 
     $new_collection_policy_datastream = $collection_object->getDatastream('COLLECTION_POLICY');
-    $new_collection_policy_datastream->setContentFromString($collection_policy_xml->saveXML());
+    $new_collection_policy_datastream->setContentFromString($collection_policy->getXML());
     $new_collection_policy_datastream->label = 'COLLECTION_POLICY';
     $collection_object->ingestDatastream($new_collection_policy_datastream);
     drupal_set_message(t("Collection model @model successfully added", array('@model' => $content_model_object->label)));
@@ -199,28 +193,11 @@ function islandora_manage_policies_form_submit($form, &$form_state) {
   //remove content model from collection policy
   if ($form_state['clicked_button']['#id'] == 'remove_cm') {
     $candidates = $form_state['values']['content_models_to_remove'];
-    $count = 0;
-    foreach ($candidates as $candidate) {
-      if (is_string($candidate)) {
-        $content_models_element = $collection_policy_xml->getElementsByTagName('content_models');
-        $models = $content_models_element->item(0)->getElementsByTagName('content_model');
-        $found = FALSE;
-        for ($i = 0; $found === FALSE && $i < $models->length; $i++) {
-          if ($models->item($i)->getAttribute('pid') == $candidate) {
-            $found = $models->item($i);
-          }
-        }
-
-        if ($found !== FALSE && $models->length > 0) {
-          $content_models_element->item(0)->removeChild($found);
-          $ret = TRUE;
-        }
-        $count++;
-      }
-    }
+    $collection_policy = new CollectionPolicy($policy->content);
+    $count = $collection_policy->removeContentModel($candidates);
     if ($count > 0) {
-      $new_collection_policy_datastream = $collection_object->getDatastream('COLLECTION_POLICY');
-      $new_collection_policy_datastream->setContentFromString($collection_policy_xml->saveXML());
+      $new_collection_policy_datastream = $policy;
+      $new_collection_policy_datastream->setContentFromString($collection_policy->getXML());
       $new_collection_policy_datastream->label = 'COLLECTION_POLICY';
       $collection_object->ingestDatastream($new_collection_policy_datastream);
       drupal_set_message(format_plural($count, "1 model removed from the collection policy.", "@count models removed from the collection policy."));

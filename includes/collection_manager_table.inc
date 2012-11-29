@@ -84,8 +84,6 @@ function theme_islandora_basic_collection_management_form_table(array $element) 
 }
 
 function get_collections_as_option_array() {
-  module_load_include('inc', 'islandora', 'includes/tuque');
-
   $restricted = variable_get('islandora_namespace_restriction_enforced', FALSE);
   $allowed_string = variable_get('islandora_pids_allowed', 'default: demo: changeme: islandora:');
   $namespaces = explode(':', $allowed_string);

@@ -2,12 +2,15 @@
 
 /**
  * @file
- * islandora_basic_collection.admin.inc
+ *
+ * Handles the display and submission of this modules admin form.
  */
 
 /**
+ * Handles the display of this modules admin form.
  *
- * @return type
+ * @return array
+ *   A Drupal form definition.
  */
 function islandora_basic_collection_admin() {
   $form = array();

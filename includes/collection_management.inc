@@ -188,7 +188,6 @@ function get_content_models_list($object, $include_fedora_system_content_models 
  * @return array
  */
 function get_content_models_as_option_array() {
-  module_load_include('inc', 'islandora', 'includes/tuque');
   $rest_connection = new IslandoraTuque();
 
   $restricted = variable_get('islandora_namespace_restriction_enforced', FALSE);
