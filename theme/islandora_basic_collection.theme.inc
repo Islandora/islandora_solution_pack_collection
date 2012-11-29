@@ -2,18 +2,20 @@
 
 /**
  * @file
+ *
  * This file contains all theme and preprocess functions
  */
 
 /**
- * list view preprocess
- * currently just calls normal view preprocess as variables are the same
- * @param type $variables
+ * Implements template_preprocess_HOOK().
  */
 function islandora_basic_collection_preprocess_islandora_basic_collection_grid(&$variables) {
   islandora_basic_collection_preprocess_islandora_basic_collection($variables);
 }
 
+/**
+ * Implements template_preprocess_HOOK().
+ */
 function islandora_basic_collection_preprocess_islandora_basic_collection_wrapper(&$variables) {
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
   $page_size = (empty($_GET['pagesize'])) ? variable_get('islandora_basic_collection_page_size', '10') : $_GET['pagesize'];
@@ -58,10 +60,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
 }
 
 /**
- *
- * @global type $base_url
- * @param array $variables
- *   an array of variables that will be passed to the theme function
+ * Implements template_preprocess_HOOK().
  */
 function islandora_basic_collection_preprocess_islandora_basic_collection(&$variables) {
   global $base_url;
@@ -76,7 +75,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
   }
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
   $page_size = (empty($_GET['pagesize'])) ? variable_get('islandora_basic_collection_page_size', '10') : $_GET['pagesize'];
-  $results = $variables['collection_results']; //islandora_basic_collection_get_objects($islandora_object, $page_number, $page_size);
+  $results = $variables['collection_results'];
   $total_count = count($results);
   $variables['islandora_dublin_core'] = isset($dc_object) ? $dc_object : array();
   $variables['islandora_object_label'] = $islandora_object->label;
@@ -106,7 +105,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
 
   for ($i = $start; $i < $end; $i++) {
     $pid = $results[$i]['object']['value'];
-    $fc_object = islandora_basic_collection_get_object($pid);
+    $fc_object = islandora_object_load($pid);
     if (!isset($fc_object)) {
       continue; //null object so don't show in collection view;
     }

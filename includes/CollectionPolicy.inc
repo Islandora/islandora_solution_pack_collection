@@ -55,10 +55,12 @@ class CollectionPolicy {
   }
 
   /**
-   * Gets a list of ContentModel objects supported by this collection along with any other defaults used during ingestion.
+   * Gets a list of ContentModel objects supported by this collection along
+   * with any other defaults used during ingestion.
    *
    * @return array
-   *   An array describing each content model allowed in this collection each populated by key value pairs.
+   *   An array describing each content model allowed in this collection each
+   *   populated by key value pairs.
    *
    * @code
    *  array(
