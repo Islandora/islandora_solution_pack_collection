@@ -143,6 +143,7 @@ function islandora_create_child_collection_form_validate($form, &$form_state) {
  * @param array $form_state
  */
 function islandora_create_child_collection_form_submit($form, &$form_state) {
+  module_load_include('inc', 'islandora', 'includes/utilities');
   global $base_url;
   $thumbnail = $base_url . '/' . drupal_get_path('module', 'islandora_basic_collection') . '/Crystal_Clear_filesystem_folder_grey.png';
   $new_collection_pid = $form_state['values']['new_collection_pid'];

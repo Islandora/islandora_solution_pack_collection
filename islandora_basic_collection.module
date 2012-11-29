@@ -436,7 +436,7 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
   $object = islandora_ingest_form_get_object($form_state); // Only support 1 for now.
   if (!isset($object->id)) {
     module_load_include('inc', 'islandora', 'includes/utilities');
-    $collection_object = islandora_get_object_by_id($collection_id);
+    $collection_object = islandora_object_load($collection_id);
     $policy = new CollectionPolicy($collection_object['COLLECTION_POLICY']->content);
     $models = $policy->getContentModels();
     $step_info = islandora_ingest_form_get_step_info($form_state);
