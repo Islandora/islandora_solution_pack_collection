@@ -10,7 +10,7 @@
  */
 function islandora_basic_collection_requirements($phase) {
   if ($phase == 'install') {
-    module_load_include('inc', 'islandora', 'includes/tuque');
+    module_load_include('inc', 'islandora', 'includes/IslandoraTuque');
     if (!IslandoraTuque::exists()) {
       return array(array(
           'title' => 'Tuque',
@@ -28,7 +28,6 @@ function islandora_basic_collection_requirements($phase) {
  */
 function islandora_basic_collection_install() {
   module_load_include('inc', 'islandora', 'includes/solution_packs');
-  // install solution pack object(s)
   islandora_install_solution_pack('islandora_basic_collection');
 }
 
@@ -37,7 +36,6 @@ function islandora_basic_collection_install() {
  */
 function islandora_basic_collection_uninstall() {
   module_load_include('inc', 'islandora', 'includes/solution_packs');
-  // uninstall callback
   islandora_install_solution_pack('islandora_basic_collection', 'uninstall');
   // @TODO remove drupal variables here
 }

@@ -84,19 +84,20 @@ function theme_islandora_basic_collection_management_form_table(array $element) 
 }
 
 function get_collections_as_option_array() {
-  module_load_include('inc', 'islandora', 'includes/tuque');
-
   $restricted = variable_get('islandora_namespace_restriction_enforced', FALSE);
   $allowed_string = variable_get('islandora_pids_allowed', 'default: demo: changeme: islandora:');
   $namespaces = explode(':', $allowed_string);
 
-  $rest_connection = new IslandoraTuque();
+  $connection = islandora_get_tuque_connection();
+  if (!$connection) {
+    return array();
+  }
   $query = 'select $object $title from <#ri>
                             where ($object <fedora-model:label> $title
                               and $object <info:fedora/fedora-system:def/model#hasModel> <info:fedora/islandora:collectionCModel>
                               and $object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)
                             order by $title';
-  $results = $rest_connection->repository->ri->itqlQuery($query, 'unlimited', '0');
+  $results = $connection->repository->ri->itqlQuery($query, 'unlimited', '0');
   foreach ($namespaces as $namespace) {
     $trimmed_names[] = trim($namespace);
   }

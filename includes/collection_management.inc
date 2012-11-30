@@ -188,9 +188,7 @@ function get_content_models_list($object, $include_fedora_system_content_models 
  * @return array
  */
 function get_content_models_as_option_array() {
-  module_load_include('inc', 'islandora', 'includes/tuque');
-  $rest_connection = new IslandoraTuque();
-
+  $connection = islandora_get_tuque_connection();
   $restricted = variable_get('islandora_namespace_restriction_enforced', FALSE);
   $allowed_string = variable_get('islandora_pids_allowed', 'default: demo: changeme: islandora:');
   $namespaces = explode(':', $allowed_string);
@@ -206,7 +204,7 @@ function get_content_models_as_option_array() {
           and $object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)
           order by $title';
 
-  $list = $rest_connection->repository->ri->itqlQuery($query, 'unlimited', '0');
+  $list = $connection->repository->ri->itqlQuery($query, 'unlimited', '0');
   $options = array();
   foreach ($list as $item) {   //removes  blanks
     if ($item) {
