@@ -2,153 +2,145 @@
 
 /**
  * @file
- * This file contains the classes for parsing the collection policy infomration.
+ *
+ * This file defines a class for parsing the COLLECTION_POLICY xml document.
+ * As defined here http://syn.lib.umanitoba.ca/collection_policy.xsd.
  */
 
 /**
- * Collection Policy class
+ * Collection Policy
  */
 class CollectionPolicy {
 
   /**
-   * Constructor
-   * NOTE: Use the static constructor methods whenever possible.
+   * The Collection Policy xml file.
    *
-   * @param string $xmlStr
-   *   The COLLECTION_POLICY in string form
-   *
-   * @return CollectionPolicy
-   *   The parsed collection policy.
+   * @var DOMDocument
    */
-  public function __construct($xml_string) {
+  protected $xml;
+
+  /**
+   * Creates a new CollectionPolicy object.
+   *
+   * @param string $xml
+   *   The COLLECTION_POLICY xml in string form.
+   */
+  public function __construct($xml) {
     $this->xml = new DOMDocument();
-    $this->xml->loadXML($xml_string);
-    $this->name = 'Collection Policy';
+    $this->xml->loadXML($xml);
+    $path = drupal_get_path('module', 'islandora_basic_collection');
+    if (!$this->xml->schemaValidate("$path/xml/collection_policy.xsd")) {
+      throw new InvalidArgumentException('The given Collection Policy is not valid');
+    }
   }
 
   /**
-   * Gets the name of the relationship to use
-   * for members of this collection.
-   * Returns FALSE on failure.
+   * Gets the name of the Collection Policy.
    *
-   * @return string $relationship
+   * @return string
+   *   The name of this Collection Policy.
+   */
+  function getName() {
+    return $this->xml->getElementsByTagName('collection_policy')->item(0)->getAttribute('name');
+  }
+
+  /**
+   * Gets the name of the relationship to use for members of this collection.
+   *
+   * @return string
+   *   Gets the value of relationship if present, FALSE otherwise.
    */
   public function getRelationship() {
-    $ret = trim($this->xml->getElementsByTagName('relationship')->item(0)->nodeValue);
-    return $ret;
+    return $this->xml->getElementsByTagName('relationship')->item(0)->nodeValue;
   }
 
   /**
-   * Sets the name of the relationship to use
-   * for members of this collection.
-   * Returns FALSE on failure.
+   * Gets a list of ContentModel objects supported by this collection along
+   * with any other defaults used during ingestion.
    *
-   * @param string $relationship
-   * @return boolean $ret
-   */
-  public function setRelationship($relationship) {
-    $ret = FALSE;
-    if ($this->validate()) {
-      $relationshipEl = $this->xml->getElementsByTagName('relationship')->item(0);
-      $relationshipEl->nodeValue = trim($relationship);
-      $ret = TRUE;
-    }
-    return $ret;
-  }
-
-  /**
-   * Gets a list of ContentModel objects supported by this collection.
+   * @return array
+   *   An array describing each content model allowed in this collection each
+   *   populated by key value pairs.
    *
-   * @return ContentModel[] $models
+   * @code
+   *  array(
+   *    'islandora:imageCModel' => array(
+   *      'pid' => 'islandora:imageCModel',
+   *      'name' => 'New Image',
+   *      'namespace' => 'islandora'
+   *    )
+   *   )
+   * @endcode
    */
   function getContentModels() {
     $ret = array();
-    $content_models = $this->xml->getElementsByTagName('content_models')->item(0)->getElementsByTagName('content_model');
-    foreach ($content_models as $cmodel) {
-      $cm = array();
-      $cm['pid'] = $cmodel->getAttribute('pid');
-      $cm['namespace'] = $cmodel->getAttribute('namespace');
-      $cm['name'] = $cmodel->getAttribute('name');
-      if ($cm !== FALSE) {
-        $ret[$cm['pid']] = $cm;
-      }
+    $models = $this->xml->getElementsByTagName('content_models')->item(0)->getElementsByTagName('content_model');
+    foreach ($models as $model) {
+      $pid = $model->getAttribute('pid');
+      $matches = array();
+      preg_match('/^([^:]*)/', $model->getAttribute('namespace'), $matches); // Clean up the namespace attribute as its wrong in most existing COLLECTION_POLICY datastreams.
+      $ret[$pid] = array(
+        'pid' => $pid,
+        'name' => $model->getAttribute('name'),
+        'namespace' => $matches[0]
+      );
     }
     return $ret;
   }
 
   /**
-   * Removes the specified content model from the collection policy.  This will only
-   * prevent future ingests of the removed model to the collection.  $cm should be
-   * a valid ContentModel object.  Returns FALSE on failure or when the CM was not found in
-   * the collection policy.
+   * Add an entry for the given content model to the collection policy.
+   */
+  function addContentModel($pid, $name, $namespace) {
+    $content_models_element = $this->xml->getElementsByTagName('content_models');
+    $content_model_element = $content_models_element->item(0)->getElementsByTagName('content_model');
+
+    $content_model_element = $this->xml->createElement('content_model');
+    $content_model_element->setAttribute('name', $name);
+    $content_model_element->setAttribute('dsid', variable_get('Islandora_Content_Model_DSID', 'ISLANDORACM'));
+    $content_model_element->setAttribute('namespace', $namespace);
+    $content_model_element->setAttribute('pid', $pid);
+    $content_models_element->item(0)->appendChild($content_model_element);
+  }
+
+  /**
+   * Remove matching content model entries.
    *
-   * @param ContentModel $cm
-   * @return boolean $valid
+   * @param string|array $candidates
+   *   Either a single string containing a content model PID or an array of
+   *   content model PIDs to remove.
+   *
+   * @return int
+   *   The number of entries which have been removed.
    */
-  function removeModel($cm) {
-    $ret = FALSE;
-    if ($this->validate() && $cm->validate()) {
-      $contentmodelsEl = $this->xml->getElementsByTagName('content_models');
-      $models = $contentmodelsEl->item(0)->getElementsByTagName('content_model');
-      $found = FALSE;
-      for ($i = 0; $found === FALSE && $i < $models->length; $i++) {
-        if ($models->item($i)->getAttribute('pid') == $cm->pid) {
-          $found = $models->item($i);
+  function removeContentModel($candidates) {
+    $count = 0;
+    foreach ((array)$candidates as $candidate) {
+      if (is_string($candidate)) {
+        $content_models_element = $this->xml->getElementsByTagName('content_models');
+        $models = $content_models_element->item(0)->getElementsByTagName('content_model');
+        $found = FALSE;
+        for ($i = 0; $found === FALSE && $i < $models->length; $i++) {
+          if ($models->item($i)->getAttribute('pid') == $candidate) {
+            $found = $models->item($i);
+          }
         }
-      }
 
-      if ($found !== FALSE && $models->length > 1) {
-        $contentmodelsEl->item(0)->removeChild($found);
-        $ret = TRUE;
+        if ($found !== FALSE && $models->length > 0) {
+          $content_models_element->item(0)->removeChild($found);
+          $ret = TRUE;
+        }
+        $count++;
       }
     }
-    return $ret;
+
+    return $count;
   }
 
   /**
-   * addModel ??
-   * @param ContentModel $cm
-   * @param type $namespace
-   * @return type
+   * Dump out the XML for this collection policy.
    */
-  function addModel($cm, $namespace) {
-    $ret = FALSE;
-//    var_dump(self::valid_pid($namespace));
-//    var_dump($this->validate());
-//    var_dump($cm->validate());
-//    if (self::valid_pid($namespace) && $this->validate() && $cm->validate()) {
-      $contentmodelsEl = $this->xml->getElementsByTagName('content_models');
-      $models = $contentmodelsEl->item(0)->getElementsByTagName('content_model');
-      $found = FALSE;
-//      for ($i = 0; !$found && $i < $models->length; $i++) {
-//        if ($models->item($i)->getAttribute('pid') == $cm->pid)
-//          $found = TRUE;
-//      }
-
-//      if (!$found) {
-        $cmEl = $this->xml->createElement('content_model');
-        $cmEl->setAttribute('name', $cm->name);
-        $cmEl->setAttribute('dsid', $cm->dsid);
-        $cmEl->setAttribute('namespace', $namespace);
-        $cmEl->setAttribute('pid', $cm->pid);
-        $contentmodelsEl->item(0)->appendChild($cmEl);
-//      }
-
-      $ret = !$found;
-//    }
-    return $ret;
+  function getXML() {
+    return $this->xml->saveXML();
   }
-
-  /**
-   * getName ??
-   * @return type
-   */
-  function getName() {
-    $ret = FALSE;
-    if ($this->validate()) {
-      $ret = $this->xml->getElementsByTagName('collection_policy')->item(0)->getAttribute('name');
-    }
-    return $ret;
-  }
-
 }
