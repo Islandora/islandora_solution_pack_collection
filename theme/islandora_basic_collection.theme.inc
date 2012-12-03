@@ -129,7 +129,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     }
     else {
       $image_path = drupal_get_path('module', 'islandora');
-      $thumbnail_img = '<img src="' . $base_path . $image_path . '/images/Crystal_Clear_action_filenew.png"/>';
+      $thumbnail_img = '<img src="' . $base_path . $image_path . '/images/folder.png"/>';
     }
     $associated_objects_array[$pid]['thumbnail'] = $thumbnail_img;
     $associated_objects_array[$pid]['title_link'] = l($title, $object_url, array('html' => TRUE, 'attributes' => array('title' => $title)));
