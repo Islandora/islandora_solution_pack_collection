@@ -145,7 +145,7 @@ function islandora_create_child_collection_form_validate($form, &$form_state) {
 function islandora_create_child_collection_form_submit($form, &$form_state) {
   module_load_include('inc', 'islandora', 'includes/utilities');
   global $base_url;
-  $thumbnail = $base_url . '/' . drupal_get_path('module', 'islandora_basic_collection') . '/Crystal_Clear_filesystem_folder_grey.png';
+  $thumbnail = $base_url . '/' . drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png';
   $new_collection_pid = $form_state['values']['new_collection_pid'];
   $this_collection_pid = $form_state['values']['current'];
   if (empty($new_collection_pid)) {
@@ -186,7 +186,7 @@ function islandora_create_child_collection_form_submit($form, &$form_state) {
     }
   }
   $models = array();
-  foreach ($colleciton_content_models as $relation) {
+  foreach ($collection_content_models as $relation) {
     $models[] = $relation['pid'];
   }
 
