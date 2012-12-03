@@ -128,7 +128,7 @@ function islandora_create_child_collection_form_validate($form, &$form_state) {
     }
     else {
       $object = islandora_object_load($new_collection_pid);
-      if ($object !== NULL) {
+      if ($object) {
         form_set_error('new_collection_pid', 'Collection PID already exists.');
       }
     }
