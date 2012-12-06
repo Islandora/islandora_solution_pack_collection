@@ -58,36 +58,32 @@ function islandora_basic_collection_init() {
 /**
  * Implements hook_islandora_required_objects().
  */
-function islandora_basic_collection_islandora_required_objects() {
+function islandora_basic_collection_islandora_required_objects(IslandoraTuque $connection) {
   $module_path = drupal_get_path('module', 'islandora_basic_collection');
+  // Collection Content Model
+  $collection_content_model = $connection->repository->constructObject('islandora:collectionCModel');
+  $collection_content_model->owner = 'fedoraAdmin';
+  $collection_content_model->label = 'Islandora Collection Content Model';
+  $collection_content_model->models = 'fedora-system:ContentModel-3.0';
+  // ISLANDORACM Datastream
+  $datastream = $collection_content_model->constructDatastream('ISLANDORACM', 'X');
+  $datastream->label = 'Islandora content model';
+  $datastream->mimetype = 'text/xml';
+  $datastream->setContentFromFile("$module_path/xml/islandora_basic_collection_content_model.xml", FALSE);
+  $collection_content_model->ingestDatastream($datastream);
+  // DS-COMPOSITE-MODEL Datastream
+  $datastream = $collection_content_model->constructDatastream('DS-COMPOSITE-MODEL', 'X');
+  $datastream->label = 'DS-COMPOSITE-MODEL';
+  $datastream->mimetype = 'text/xml';
+  $datastream->setContentFromFile("$module_path/xml/islandora_basic_collection_ds_composite_model.xml", FALSE);
+  $collection_content_model->ingestDatastream($datastream);
   return array(
     'islandora_basic_collection' => array(
       'title' => 'Islandora basic collection',
       'objects' => array(
-        array(
-          'pid' => 'islandora:collectionCModel',
-          'label' => 'Islandora collection content model',
-          'cmodel' => 'fedora-system:ContentModel-3.0',
-          'dsversion' => 2,
-          'datastreams' => array(
-            array(
-              'dsid' => 'ISLANDORACM',
-              'label' => 'Islandora content model',
-              'mimetype' => 'text/xml',
-              'control_group' => 'X',
-              'datastream_file' => "$module_path/xml/islandora_basic_collection_content_model.xml",
-            ),
-            array(
-              'dsid' => 'DS-COMPOSITE-MODEL',
-              'label' => 'DS-COMPOSITE-MODEL',
-              'mimetype' => 'text/xml',
-              'control_group' => 'X',
-              'datastream_file' => "$module_path/xml/islandora_basic_collection_ds_composite_model.xml",
-            ),
-          ),
-        ),
-      ),
-    ),
+        $collection_content_model
+      )
+    )
   );
 }
 
@@ -427,7 +423,7 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
     $collection_object = islandora_object_load($collection_id);
     $policy = new CollectionPolicy($collection_object['COLLECTION_POLICY']->content);
     $models = $policy->getContentModels();
-    
+
     $association_step_storage = islandora_ingest_form_get_step_storage($form_state, 'xml_form_builder_association_step');
     $association = $association_step_storage['association'];
 
