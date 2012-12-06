@@ -217,7 +217,7 @@ function islandora_basic_collection_ingest_access($object = NULL) {
     $checked_objects[$object->id] = FALSE;
     $configuration = islandora_basic_collection_get_ingest_configuration($object);
     if ($configuration) {
-      $steps = islandora_ingest_get_steps($configuration);
+      $steps = islandora_ingest_get_approximate_steps($configuration);
       // Only if one or more steps are defined should we ingest.
       $checked_objects[$object->id] = count($steps) > 0;
     }
@@ -427,9 +427,12 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
     $collection_object = islandora_object_load($collection_id);
     $policy = new CollectionPolicy($collection_object['COLLECTION_POLICY']->content);
     $models = $policy->getContentModels();
-    $step_info = islandora_ingest_form_get_step_info($form_state);
+    
+    $association_step_storage = islandora_ingest_form_get_step_storage($form_state, 'xml_form_builder_association_step');
+    $association = $association_step_storage['association'];
+
     // Get the form association's content model.
-    $model = $step_info['args'][0]['content_model'];
+    $model = $association['content_model'];
     $model = $models[$model];
     $namespace = islandora_get_namespace($model['namespace']);
     $object->id = $object->repository->api->m->getNextPid($namespace);
