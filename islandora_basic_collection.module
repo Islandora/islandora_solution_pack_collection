@@ -162,9 +162,9 @@ function islandora_basic_collection_manage_object(FedoraObject $object) {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
+  
+    $form['collection_manager']['delete_members']['form'] = drupal_get_form('islandora_collection_deletion_form', $object);
   }
-
-  $form['collection_manager']['delete_members']['form'] = drupal_get_form('islandora_collection_deletion_form', $object);
 
   // Pass the form around any modules that are interested so that they can add their own collection management functions.
   module_invoke_all('islandora_collection_manager', $form);
