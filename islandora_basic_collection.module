@@ -162,9 +162,9 @@ function islandora_basic_collection_manage_object(FedoraObject $object) {
       '#collapsible' => TRUE,
       '#collapsed' => TRUE,
     );
+  
+    $form['collection_manager']['delete_members']['form'] = drupal_get_form('islandora_collection_deletion_form', $object);
   }
-
-  $form['collection_manager']['delete_members']['form'] = drupal_get_form('islandora_collection_deletion_form', $object);
 
   // Pass the form around any modules that are interested so that they can add their own collection management functions.
   module_invoke_all('islandora_collection_manager', $form);
@@ -320,20 +320,20 @@ function islandora_basic_collection_islandora_undeletable_datastreams($models) {
 function islandora_basic_collection_permission() {
   return array(
     CREATE_CHILD_COLLECTION => array(
-      'title' => t('Create Child Collections'),
-      'description' => t('Allows users to create collections within a collection.')
+      'title' => t('Create child collections'),
+      'description' => t('Create new collections within an existing collection.')
     ),
     MANAGE_COLLECTION_POLICY => array(
-      'title' => t('Manage Collection Policy'),
-      'description' => t('Allows users to add Content Models to Collection Pollicies and define their namespace.')
+      'title' => t('Manage collection policies'),
+      'description' => t('Define which content models are available for each collection.')
     ),
     MANAGE_CONTENT_MODEL_ASSOCIATION => array(
-      'title' => t('Manage Content Model Association'),
-      'description' => t('Allows users to change content models for objects within a collection.')
+      'title' => t('Manage content model associations'),
+      'description' => t('Change content models for objects within a collection.')
     ),
     MIGRATE_COLLECTION_MEMBERS => array(
-      'title' => t('Migrate Collection Members'),
-      'description' => t('Allows user to move objects from one collection to another.')
+      'title' => t('Migrate collection members'),
+      'description' => t('Move objects from one collection to another.')
     ),
   );
 }
