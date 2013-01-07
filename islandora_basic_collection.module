@@ -191,7 +191,7 @@ function islandora_basic_collection_access($object = NULL) {
     user_access(MIGRATE_COLLECTION_MEMBERS) ||
     islandora_basic_collection_ingest_access($object);
   // The user is allowed to manage, and the object has our content model.
-  return  user_access(FEDORA_MANAGE) && $access && in_array('islandora:collectionCModel', $object->models);
+  return  (user_access(FEDORA_VIEW_OBJECTS) || user_access(FEDORA_VIEW_DATASTREAMS)) && $access && in_array('islandora:collectionCModel', $object->models);
 }
 
 /**
