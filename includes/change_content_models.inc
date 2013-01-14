@@ -13,7 +13,7 @@ function islandora_change_content_models_form($form, &$form_state, $collection_o
   $name_mappings = array();
   foreach ($content_models as $content_model) {
     if ($content_model != "islandora:collectionCModel") {
-      $item = new FedoraObject($content_model, $rest_connection->repository);
+      $item = $collection_object->repository->getObject($content_model);
       $cm_name = $item->Label;
       $cm_options[$content_model] = $cm_name;
     }
