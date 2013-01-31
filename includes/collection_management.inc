@@ -18,7 +18,7 @@ where (\$object <info:fedora/fedora-system:def/relations-external#isMemberOf> <i
        and \$object <info:fedora/fedora-system:def/model#hasModel> \$model
        and \$object <dc:title> \$title";
 
-  $model_pids = $object->repository->ri->itqlQuery($query, 'unlimited', '0');
+  $model_pids = $object->repository->ri->itqlQuery($query, 'unlimited');
   $represented_models = array();
   foreach ($model_pids as $model_pid) {
     if ($model_pid['model']['value'] && $model_pid['model']['value'] != 'fedora-system:FedoraObject-3.0') {
@@ -42,7 +42,7 @@ function get_child_collections($object) {
     and \$object  <info:fedora/fedora-system:def/relations-external#isMemberOfCollection> <info:fedora/$object->id>
 EOD;
 
-  $lines = $object->repository->ri->itqlQuery($query, 'unlimited', '0');
+  $lines = $object->repository->ri->itqlQuery($query, 'unlimited');
   $collection_pids = array_values(array_filter($lines));
   return $collection_pids;
 }
@@ -54,7 +54,7 @@ function islandora_collections_get_collection_from_pid($object) {
 		and $object <dc:identifier> \'' . $object->id . '\'
 		order by $object';
 
-  $object_pids = $object->repository->ri->itqlQuery($query, 'unlimited', '0');
+  $object_pids = $object->repository->ri->itqlQuery($query, 'unlimited');
   $object_pids = array_values(array_filter($object_pids));
   return $object_pids;
 }
@@ -107,7 +107,7 @@ function get_related_items_as_array($collection_object, $relationship = array('i
                     minus $content <mulgara:is> <info:fedora/fedora-system:FedoraObject-3.0>
                     order by ' . $orderby;
 
-  $results = $collection_object->repository->ri->itqlQuery($query_string, $limit, $offset);
+  $results = $collection_object->repository->ri->itqlQuery($query_string, $limit);
 
   return $results;
 }
@@ -163,7 +163,7 @@ function get_content_models_list($object, $include_fedora_system_content_models 
   $query = 'select $object from <#ri>
             where <info:fedora/' . $object->id . '> <fedora-model:hasModel> $object
             and $object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>';
-  $content_models = $object->repository->ri->itqlQuery($query, 'unlimited', '0');
+  $content_models = $object->repository->ri->itqlQuery($query, 'unlimited');
 
   if (empty($content_models)) {
     return $pids;
@@ -204,7 +204,7 @@ function get_content_models_as_option_array() {
           and $object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)
           order by $title';
 
-  $list = $connection->repository->ri->itqlQuery($query, 'unlimited', '0');
+  $list = $connection->repository->ri->itqlQuery($query, 'unlimited');
   $options = array();
   foreach ($list as $item) {   //removes  blanks
     if ($item) {

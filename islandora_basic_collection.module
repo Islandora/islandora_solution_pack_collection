@@ -18,14 +18,7 @@ define('MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
  */
 function islandora_basic_collection_menu() {
   $items = array();
-  $items['islandora/object/%islandora_object/manage/collection'] = array(
-    'title' => 'Collection',
-    'page callback' => 'islandora_basic_collection_manage_object',
-    'page arguments' => array(2),
-    'type' => MENU_LOCAL_TASK,
-    'access callback' => 'islandora_basic_collection_access',
-    'access arguments' => array(2),
-  );
+
   $items['islandora/object/%islandora_object/manage/collection/ingest'] = array(
     'title' => 'Add an object to this Collection',
     'page callback' => 'islandora_basic_collection_ingest_action',
@@ -42,6 +35,23 @@ function islandora_basic_collection_menu() {
     'page arguments' => array('islandora_basic_collection_admin'),
     'file' => 'admin/islandora_basic_collection.admin.inc',
     'type' => MENU_NORMAL_ITEM,
+  );
+// newpage - experimental
+  $items['islandora/object/%islandora_object/manage/collections'] = array(
+    'title' => 'Collection',
+    'page callback' => 'islandora_basic_collection_manager_object',
+    'page arguments' => array(2),
+    'type' => MENU_LOCAL_TASK,
+    'access callback' => 'islandora_basic_collection_access',
+    'access arguments' => array(2),
+  );
+
+  $items['admin/islandora/collection/management'] = array(
+    'title' => 'Collection Management',
+    'page callback' => 'islandora_collection_management_wrapper',
+    'type' => MENU_LOCAL_TASK,
+    'access arguments' => array('administer site configuration'),
+    'page arguments' => array('islandora_basic_collection_admin'),
   );
   return $items;
 }
@@ -88,91 +98,6 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
 }
 
 /**
- * This function is where we create the view for the related menu item.
- *
- * @param FedoraObject $object
- *   The collection object in which the view is built for.
- *
- * @return array
- *   Renderable array to display the manage view.
- */
-function islandora_basic_collection_manage_object(FedoraObject $object) {
-  module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/collection_manager_table');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/delete_collection');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/move_collection');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/child_collection');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/manage_policies');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/change_content_models');
-
-  $form = array();
-
-  $form['collection_manager'] = array(
-    '#type' => 'vertical_tabs',
-    '#weight' => 0,
-    '#prefix' => '',
-  );
-
-  if (user_access(CREATE_CHILD_COLLECTION)) {
-    $form['collection_manager']['create_child_collection'] = array(
-      '#title' => t('Create child collection'),
-      '#type' => 'fieldset',
-    );
-
-    $form['collection_manager']['create_child_collection']['form'] = drupal_get_form('islandora_create_child_collection_form', $object);
-  }
-
-  if (user_access(MANAGE_COLLECTION_POLICY)) {
-    $form['collection_manager']['manage_policies'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Manage collection policies'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-
-    $form['collection_manager']['manage_policies']['form'] = drupal_get_form('islandora_manage_policies_form', $object);
-  }
-
-  if (user_access(MANAGE_CONTENT_MODEL_ASSOCIATION)) {
-    $form['collection_manager']['change_content_models'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Change content models'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-
-    $form['collection_manager']['change_content_models']['form'] = drupal_get_form('islandora_change_content_models_form', $object);
-  }
-
-  if (user_access(MIGRATE_COLLECTION_MEMBERS)) {
-    $form['collection_manager']['migrate_members'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Migrate members'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-
-    $form['collection_manager']['migrate_members']['form'] = drupal_get_form('islandora_collection_migrate_form', $object);
-  }
-
-  if (user_access(FEDORA_PURGE)) {
-    $form['collection_manager']['delete_members'] = array(
-      '#type' => 'fieldset',
-      '#title' => t('Delete members of this collection'),
-      '#collapsible' => TRUE,
-      '#collapsed' => TRUE,
-    );
-  
-    $form['collection_manager']['delete_members']['form'] = drupal_get_form('islandora_collection_deletion_form', $object);
-  }
-
-  // Pass the form around any modules that are interested so that they can add their own collection management functions.
-  module_invoke_all('islandora_collection_manager', $form);
-
-  return $form;
-}
-
-/**
  * Determine whether or not to show this modules manage tab.
  *
  * @param FedoraObject $fedora_object
@@ -186,10 +111,10 @@ function islandora_basic_collection_access($object = NULL) {
     return FALSE;
   }
   $access = user_access(CREATE_CHILD_COLLECTION) ||
-    user_access(MANAGE_COLLECTION_POLICY) ||
-    user_access(MANAGE_CONTENT_MODEL_ASSOCIATION) ||
-    user_access(MIGRATE_COLLECTION_MEMBERS) ||
-    islandora_basic_collection_ingest_access($object);
+      user_access(MANAGE_COLLECTION_POLICY) ||
+      user_access(MANAGE_CONTENT_MODEL_ASSOCIATION) ||
+      user_access(MIGRATE_COLLECTION_MEMBERS) ||
+      islandora_basic_collection_ingest_access($object);
 
   // The user is allowed to manage, and the object has our content model.
   return $access && islandora_object_manage_access_callback(array(FEDORA_MANAGE_DATASTREAMS, FEDORA_MANAGE_PROPERTIES, FEDORA_ADD_DS), $object) && in_array('islandora:collectionCModel', $object->models);
@@ -244,10 +169,9 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
       'template' => 'theme/islandora-basic-collection-wrapper',
       'variables' => array('islandora_object' => NULL),
     ),
-    'islandora_basic_collection_management_form_table' => array(
-      'file' => 'theme/islandora_basic_collection.theme.inc',
-      'arguments' => array('element' => NULL),
-      'file' => 'includes/collection_manager_table.inc',
+    'islandora_collection_policy_table' => array(
+      'file' => 'includes/collection_policy_management.inc',
+       'render element' => 'form',
     ),
   );
 }
@@ -257,8 +181,8 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_view_object(FedoraObject $object) {
   $output = theme('islandora_basic_collection_wrapper', array(
-    'islandora_object' => $object,
-  ));
+        'islandora_object' => $object,
+      ));
   return array('Collection View' => $output);
 }
 
@@ -434,4 +358,82 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
     $namespace = islandora_get_namespace($model['namespace']);
     $object->id = $object->repository->api->m->getNextPid($namespace);
   }
+}
+
+/**
+ * Responds to Islandora callback
+ *
+ * @param FedoraObject $object
+ * @return array
+ */
+function islandora_basic_collection_manager_object(FedoraObject $object) {
+  $pid = $object->id;
+  $url_stub = 'admin/islandora/collection/management';
+  $list = array();
+  if (user_access(CREATE_CHILD_COLLECTION)) {
+    $list[] = l(t('Create Child Collection'), "$url_stub/new collection/$pid");
+  }
+  if (user_access(MANAGE_COLLECTION_POLICY)) {
+    $list[] = l(t('Manage Collection Policy'), "$url_stub/collection policy/$pid");
+  }
+  if (user_access(MIGRATE_COLLECTION_MEMBERS)) {
+    $list[] = l(t('Migrate Members of this Collection'), "$url_stub/migrate/$pid");
+  }
+  $list[] = l(t('Change Content Models'), "$url_stub/change content model/$pid");
+  if (user_access(FEDORA_PURGE)) {
+    $list[] = l(t('Delete Members of this collection'), "$url_stub/delete/$pid");
+  }
+  $extras = module_invoke_all('islandora_collection_mangement', $pid);
+  foreach ($extras as $extra) {
+    $list[] = $extra;
+  }
+
+  $variables = array(
+    'items' => $list,
+    'title' => NULL,
+    'type' => 'ul',
+    'attributes' => array('class' => 'items')
+  );
+  $content = theme_item_list($variables);
+  $form = array();
+
+  $form['collection_policy_link'] = array(
+    '#markup' => $content,
+  );
+
+  return $form;
+}
+
+/**
+ * Wraps  all mamagement functions to direct user to file page
+ * @global url $base_url
+ * @param url $address
+ * @param string $function
+ * @param string $pid
+ * @return array
+ */
+
+function islandora_collection_management_wrapper($address, $function, $pid) {
+  global $base_url;
+  $overlay = '#overlay=islandora/object/islandora%253Aroot/manage/collections';
+  $url = $base_url . "/islandora/object/$pid" . $overlay;
+  module_load_include('inc', 'islandora', 'api/tuque');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/collection_manager_table');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/delete_collection');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/move_collection');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/child_collection');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/manage_policies');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/change_content_models');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/collection_policy_management');
+  $mappings = array(
+    'new collection' => 'islandora_create_child_collection_form',
+    'collection policy' => 'collection_policy_management',
+    'migrate' => 'islandora_collection_migrate_form',
+    'change content model' => 'islandora_change_content_models_form',
+    'delete' => 'islandora_collection_deletion_form'
+  );
+  $object = islandora_object_load($pid);
+  $form = drupal_get_form($mappings[$function], $object, $url);
+  return $form;
 }

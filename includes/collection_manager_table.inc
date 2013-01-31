@@ -11,12 +11,21 @@
  * @param string $collection_pid
  * @return array
  */
-function islandora_collection_table($object) {
+function islandora_collection_table($object, $page) {
+  // The offset parameter in the itql query doesn't work - not sure why.
+  // I'm putting the offset in the query itself, where it does work.
+
+  $offset = $page * 50;
   $query = 'select $object $title from <#ri>
               where  ($object <info:fedora/fedora-system:def/relations-external#isMemberOf> <info:fedora/' . $object->id . '>
               or $object <info:fedora/fedora-system:def/relations-external#isMemberOfCollection> <info:fedora/' . $object->id . '>)
-              and $object <dc:title> $title';
-  $results = $object->repository->ri->itqlQuery($query, 'unlimited', '0');
+              and $object <dc:title> $title
+              order by $title
+              offset ' . $offset;
+
+
+  $offset = 10 * $offset;
+  $results = $object->repository->ri->itqlQuery($query, 50);
   $keys = array();
   $objects = array();
   foreach ($results as $result) {
@@ -24,6 +33,7 @@ function islandora_collection_table($object) {
     $keys[] = $result['object']['value'];
   }
   $rows = array();
+  
   foreach ($objects as $key => $object) {
     $rows[$key] = array(
       '#pid' => $key,
@@ -33,14 +43,14 @@ function islandora_collection_table($object) {
           '#type' => 'link',
           '#title' => $object,
           '#href' => 'islandora/object/' . $key,
-          ),
         ),
+      ),
     );
   }
 
   $header = array(
     'title' => array('data' => t('Title')),
-    );
+  );
 
   if (!$rows) {
     return;
@@ -53,35 +63,9 @@ function islandora_collection_table($object) {
   );
 
   return $table;
-
 }
 
-/**
- * themes the form table.
- *
- * @param array $element Drupal Form Element.
- * @return string
- */
-function theme_islandora_basic_collection_management_form_table(array $element) {
-  $rows = array();
-  foreach (element_children($element['rows']) as $child) {
-    $setting = $element['rows'][$child];
-    $pid = $setting['#pid'];
-    $fields = array(
-      drupal_render($element['selections'][$pid]) // First field is a checkbox
-    );
-    foreach (element_children($setting) as $property) {
-      $field = $setting[$property];
-      $fields[] = drupal_render($field);
-    }
-    $rows[] = array(
-      'data' => $fields,
-      'class' => isset($setting['#attributes']['class']) ? $setting['#attributes']['class'] : NULL
-    );
-  }
-  $attributes = isset($element['#id']) ? array('id' => $element['#id']) : NULL;
-  return theme_table($element['#header'], $rows, $attributes);
-}
+
 
 function get_collections_as_option_array() {
   $restricted = variable_get('islandora_namespace_restriction_enforced', FALSE);
