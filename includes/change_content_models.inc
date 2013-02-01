@@ -5,7 +5,7 @@
  * ChangeContentModels.inc
  */
 
-function islandora_change_content_models_form($form, &$form_state, $collection_object) {
+function islandora_change_content_models_form($form, &$form_state, $collection_object, $url) {
   module_load_include('inc', 'islandora_basic_collection', 'includes/CollectionPolicy');
   $collection_pid = $collection_object->id;
   $content_models = get_content_models_list($collection_object);
@@ -41,6 +41,11 @@ function islandora_change_content_models_form($form, &$form_state, $collection_o
     }
   }
 
+  $form['change_cmodel']['link'] = array(
+    '#type' => 'item',
+    '#markup' => l(t("Return to Collection Manager"), $url),
+  );
+  
   $form['change_cmodel']['titlebox'] = array(
     '#type' => 'item',
     '#title' => t("Change content models within @collection_name", array('@collection_name' => $collection_object->label)),
@@ -129,7 +134,7 @@ function islandora_change_content_models_form_submit($form, &$form_state) {
            or \$object <info:fedora/fedora-system:def/relations-external#isMemberOf> <info:fedora/$collection_pid>)
       and \$object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)";
 
-  $objects = $collection_object->repository->ri->itqlQuery($query, 'unlimited', '0');
+  $objects = $collection_object->repository->ri->itqlQuery($query, 'unlimited');
 
   $count = 0;
   foreach ($objects as $object) {
