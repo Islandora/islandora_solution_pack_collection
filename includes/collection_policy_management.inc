@@ -154,7 +154,7 @@ function islandora_collection_policy_table($pid) {
       continue;
     }
 
-    $namespace = isset($current_vals[$pid]['namespace']) ? $current_vals[$pid]['namespace'] : substr($pid, 0, strpos($pid, ":"));
+    $namespace = isset($current_vals[$pid]['namespace']) ? $current_vals[$pid]['namespace'] : $default_namespace;
     $prompt = isset($current_vals[$pid]['prompt']) ? $current_vals[$pid]['prompt'] : t("New") . " $string";
     $cells = array();
     global $base_url;
