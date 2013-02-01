@@ -5,13 +5,8 @@
  * islandora-basic-collection.tpl.php
  *
  * @TODO: needs documentation about file and variables
- * @TODO: don't set drupal_set_title() here.
  */
 ?>
-
-<?php if(isset($islandora_object_label)): ?>
-  <?php drupal_set_title("$islandora_object_label"); ?>
-<?php endif; ?>
 
 <div class="islandora islandora-basic-collection">
     <?php $row_field = 0; ?>
