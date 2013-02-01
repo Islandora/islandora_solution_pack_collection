@@ -12,15 +12,33 @@
  *
  * @return string
  */
-function islandora_collection_deletion_form($form, &$form_state, $object) {
+function islandora_collection_deletion_form($form, &$form_state, $object, $url) {
   module_load_include('inc', 'islandora_basic_collection', 'collection_manager_table');
   $pid = $object->id;
   $potential_collections = get_collections_as_option_array();
-  $table = islandora_collection_table($object);
+
+  $results = islandora_basic_collection_get_objects($object, 1, 25);
+  $total_count = count($results);
+
+  $offset = (empty($_GET['page'])) ? 0 : $_GET['page'];
+  pager_default_initialize($total_count, 25);
+  $pager = theme('pager', array('quantity' => 10));
+  $potential_collections = get_collections_as_option_array();
+  $table = islandora_collection_table($object, $offset);
+
   $deletion_message = ($table) ? "Delete Members of this Collection" : "Delete Collection";
   $submit_text_message = ($table) ? "Delete selected objects" : "Delete collection";
 
   $form = array();
+  $form['collection_delete']['link'] = array(
+    '#type' => 'item',
+    '#markup' => l(t("Return to Collection Manager"), $url),
+  );
+  
+  $form['collection_delete']['pager'] = array(
+    '#type' => 'item',
+    '#markup' => $pager,
+  );
 
   $form['collection_delete']['titlebox'] = array(
     '#type' => 'item',

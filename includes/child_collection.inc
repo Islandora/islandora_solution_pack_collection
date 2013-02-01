@@ -13,7 +13,7 @@
  * @param string $this_collection_pid
  * @return array
  */
-function islandora_create_child_collection_form($form, &$form_state, $collection_object) {
+function islandora_create_child_collection_form($form, &$form_state, $collection_object, $url) {
   module_load_include('inc', 'islandora_basic_collection', 'includes/CollectionPolicy');
 
   $policy_datastream = $collection_object->getDatastream(variable_get('Islandora_Collection_Policy_DSID', 'COLLECTION_POLICY'));
@@ -58,6 +58,12 @@ function islandora_create_child_collection_form($form, &$form_state, $collection
 
   $content_models = get_content_models_as_option_array();
   unset($content_models['islandora:collectionCModel']);
+
+
+  $form['child_creation']['link'] = array(
+    '#type' => 'item',
+    '#markup' => l(t("Return to Collection Manager"), $url),
+  );
 
   $form['child_creation']['titlebox'] = array(
     '#type' => 'item',
@@ -191,11 +197,11 @@ function islandora_create_child_collection_form_submit($form, &$form_state) {
   }
 
   $fedora_object = islandora_prepare_new_object($new_collection_pid, NULL, array(), $models, array(
-    array(
-      'pid' => $form_state['values']['current'],
-      'relationship' => $relationship,
-    ),
-  ), $form_state['values']['current']);
+        array(
+          'pid' => $form_state['values']['current'],
+          'relationship' => $relationship,
+        ),
+          ), $form_state['values']['current']);
   $fedora_object->label = $new_collection_label;
   $thumbnail_datastream = $fedora_object->constructDatastream('TN');
   $thumbnail_datastream->setContentFromUrl($thumbnail);
