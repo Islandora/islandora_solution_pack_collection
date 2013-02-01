@@ -25,7 +25,7 @@ function islandora_collection_table($object, $page) {
 
 
   $offset = 10 * $offset;
-  $results = $object->repository->ri->itqlQuery($query, 50);
+  $results = $object->repository->ri->itqlQuery($query, 50,0);
   $keys = array();
   $objects = array();
   foreach ($results as $result) {
