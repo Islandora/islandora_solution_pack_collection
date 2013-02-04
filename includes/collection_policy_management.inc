@@ -30,9 +30,14 @@ function collection_policy_management($form, &$form_state, $collection_object, $
     '#markup' => l(t("Return to Collection Manager"), $url),
   );
 
+  $form['page_title'] = array(
+    '#type' => 'item',
+    '#markup' => '<h1>' . t('Manage Collection Policy') . '</h1>',
+  );
 
   $form['help_link'] = array(
-    '#value' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA112/How+to+Manage+Collection+Policies', $alink_options),
+    '#type' => 'item',
+    '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA112/How+to+Manage+Collection+Policies', $alink_options),
   );
   $form['pid'] = array(
     '#type' => 'hidden',

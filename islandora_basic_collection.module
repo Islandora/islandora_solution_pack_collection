@@ -150,6 +150,7 @@ function islandora_basic_collection_ingest_access($object = NULL) {
 /**
  * Implements hook_theme().
  */
+
 function islandora_basic_collection_theme($existing, $type, $theme, $path) {
   return array(
     'islandora_basic_collection' => array(
@@ -371,17 +372,17 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
   $url_stub = 'admin/islandora/collection/management';
   $list = array();
   if (user_access(CREATE_CHILD_COLLECTION)) {
-    $list[] = l(t('Create Child Collection'), "$url_stub/new collection/$pid");
+    $list[] = l(t('Create child collection'), "$url_stub/new collection/$pid");
   }
   if (user_access(MANAGE_COLLECTION_POLICY)) {
-    $list[] = l(t('Manage Collection Policy'), "$url_stub/collection policy/$pid");
+    $list[] = l(t('Manage collection policy'), "$url_stub/collection policy/$pid");
   }
   if (user_access(MIGRATE_COLLECTION_MEMBERS)) {
-    $list[] = l(t('Migrate Members of this Collection'), "$url_stub/migrate/$pid");
+    $list[] = l(t('Manage collection membership'), "$url_stub/migrate/$pid");
   }
-  $list[] = l(t('Change Content Models'), "$url_stub/change content model/$pid");
+  $list[] = l(t('Change content models'), "$url_stub/change content model/$pid");
   if (user_access(FEDORA_PURGE)) {
-    $list[] = l(t('Delete Members of this collection'), "$url_stub/delete/$pid");
+    $list[] = l(t('Delete members of this collection'), "$url_stub/delete/$pid");
   }
   $extras = module_invoke_all('islandora_collection_mangement', $pid);
   foreach ($extras as $extra) {
