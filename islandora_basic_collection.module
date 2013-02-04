@@ -57,6 +57,29 @@ function islandora_basic_collection_menu() {
 }
 
 /**
+ * Implements hook_menu_alter().
+ *
+ */
+function islandora_basic_collection_menu_alter(&$items) {
+  
+  //we want to add more permissions to the access arguments for the manage tab.
+  $current_access_arguments = $items['islandora/object/%islandora_object/manage']['access arguments'][0];
+  $new_access_arguments = array(CREATE_CHILD_COLLECTION,MANAGE_COLLECTION_POLICY, MANAGE_CONTENT_MODEL_ASSOCIATION, MIGRATE_COLLECTION_MEMBERS);
+  $new_access_arguments = array_merge($current_access_arguments, $new_access_arguments);
+  $items['islandora/object/%islandora_object/manage']['access arguments'] = array($new_access_arguments,2);
+  
+  $items['islandora/object/%islandora_object/manage/overview/ingest'] = array(
+    'title' => 'Add an object to this Collection',
+    'page callback' => 'islandora_basic_collection_ingest_action',
+    'page arguments' => array(2),
+    'type' => MENU_LOCAL_ACTION,
+    'access callback' => 'islandora_basic_collection_ingest_access',
+    'access arguments' => array(2),
+  );
+}
+
+
+/**
  * Implements hook_init().
  */
 function islandora_basic_collection_init() {
@@ -117,7 +140,7 @@ function islandora_basic_collection_access($object = NULL) {
       islandora_basic_collection_ingest_access($object);
 
   // The user is allowed to manage, and the object has our content model.
-  return $access && islandora_object_manage_access_callback(array(FEDORA_MANAGE_DATASTREAMS, FEDORA_MANAGE_PROPERTIES, FEDORA_ADD_DS), $object) && in_array('islandora:collectionCModel', $object->models);
+  return $access && in_array('islandora:collectionCModel', $object->models);
 }
 
 /**
