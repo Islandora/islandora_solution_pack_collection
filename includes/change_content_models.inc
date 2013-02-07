@@ -6,7 +6,6 @@
  */
 
 function islandora_change_content_models_form($form, &$form_state, $collection_object, $url) {
-  module_load_include('inc', 'islandora_basic_collection', 'includes/CollectionPolicy');
   $collection_pid = $collection_object->id;
   $content_models = get_content_models_list($collection_object);
   $cm_options = array();
@@ -45,7 +44,7 @@ function islandora_change_content_models_form($form, &$form_state, $collection_o
     '#type' => 'item',
     '#markup' => l(t("Return to Collection Manager"), $url),
   );
-  
+
   $form['change_cmodel']['titlebox'] = array(
     '#type' => 'item',
     '#title' => t("Change content models within @collection_name", array('@collection_name' => $collection_object->label)),
@@ -84,8 +83,6 @@ function islandora_change_content_models_form_validate($form, &$form_state) {
 }
 
 function islandora_change_content_models_form_submit($form, &$form_state) {
-  module_load_include('inc', 'islandora_basic_collection', 'includes/CollectionPolicy');
-
   $current_content_model = $form_state['values']['current_content_model'];
   $new_content_model = $form_state['values']['new_content_model'];
   $collection_pid = $form_state['values']['collection_pid'];

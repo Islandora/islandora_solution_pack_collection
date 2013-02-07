@@ -14,8 +14,6 @@
  * @return array
  */
 function islandora_create_child_collection_form($form, &$form_state, $collection_object, $url) {
-  module_load_include('inc', 'islandora_basic_collection', 'includes/CollectionPolicy');
-
   $policy_datastream = $collection_object->getDatastream(variable_get('Islandora_Collection_Policy_DSID', 'COLLECTION_POLICY'));
   if (!$policy_datastream) {
     $form['no_policy'] = array(
