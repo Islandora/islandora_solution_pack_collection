@@ -140,7 +140,7 @@ function islandora_collection_policy_table($pid) {
   }
 
   $table = array(
-    '#header' => array(theme('table_select_header_cell'), t('Content Model Pid'), 'Namespace', t('Prompt')),
+    '#header' => array(theme('table_select_header_cell'), t('Content Model Pid'), 'Namespace'),
     '#theme' => 'islandora_collection_policy_table',
     '#tree' => TRUE,
     'rows' => array(),
@@ -173,7 +173,7 @@ function islandora_collection_policy_table($pid) {
     else {
       $cells['namespace'] = array('#type' => 'textfield', '#default_value' => $namespace);
     }
-    $cells['prompt'] = array('#type' => 'textfield', '#default_value' => $prompt);
+  
     $cells['identifier'] = array('#type' => 'hidden', '#value' => $pid);
     $rows[] = $cells;
   }

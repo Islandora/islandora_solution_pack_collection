@@ -53,6 +53,15 @@ function islandora_basic_collection_menu() {
     'access arguments' => array('administer site configuration'),
     'page arguments' => array('islandora_basic_collection_admin'),
   );
+
+  $items['admin/islandora/collection/test'] = array(
+    'title' => 'Collection Management',
+    'page callback' => 'islandora_collection_management_wrapper',
+    'type' => MENU_NORMAL_ITEM,
+    'access arguments' => array('administer site configuration'),
+    'page arguments' => array('islandora_basic_collection_admin'),
+  );
+
   return $items;
 }
 
@@ -150,7 +159,6 @@ function islandora_basic_collection_ingest_access($object = NULL) {
 /**
  * Implements hook_theme().
  */
-
 function islandora_basic_collection_theme($existing, $type, $theme, $path) {
   return array(
     'islandora_basic_collection' => array(
@@ -172,7 +180,7 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
     ),
     'islandora_collection_policy_table' => array(
       'file' => 'includes/collection_policy_management.inc',
-       'render element' => 'form',
+      'render element' => 'form',
     ),
   );
 }
@@ -413,7 +421,6 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
  * @param string $pid
  * @return array
  */
-
 function islandora_collection_management_wrapper($address, $function, $pid) {
   global $base_url;
   $overlay = '#overlay=islandora/object/islandora%253Aroot/manage/collections';
