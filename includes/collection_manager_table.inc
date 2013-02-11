@@ -25,7 +25,7 @@ function islandora_collection_table($object, $page) {
 
 
   $offset = 10 * $offset;
-  $results = $object->repository->ri->itqlQuery($query, 50,0);
+  $results = $object->repository->ri->itqlQuery($query, 50, 0);
   $keys = array();
   $objects = array();
   foreach ($results as $result) {
@@ -33,7 +33,7 @@ function islandora_collection_table($object, $page) {
     $keys[] = $result['object']['value'];
   }
   $rows = array();
-  
+
   foreach ($objects as $key => $object) {
     $rows[$key] = array(
       '#pid' => $key,
@@ -64,8 +64,6 @@ function islandora_collection_table($object, $page) {
 
   return $table;
 }
-
-
 
 function get_collections_as_option_array() {
   $restricted = variable_get('islandora_namespace_restriction_enforced', FALSE);
