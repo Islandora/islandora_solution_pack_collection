@@ -57,6 +57,10 @@ function islandora_create_child_collection_form($form, &$form_state, $collection
   $content_models = get_content_models_as_option_array();
   unset($content_models['islandora:collectionCModel']);
 
+  $form['page_title'] = array(
+    '#type' => 'item',
+    '#markup' => '<h1>' . t('Create Child Collection') . '</h1>',
+  );
 
   $form['child_creation']['link'] = array(
     '#type' => 'item',

@@ -33,6 +33,11 @@ function islandora_collection_migrate_form($form, &$form_state, $object, $url) {
   }
   $form = array();
 
+  $form['page_title'] = array(
+    '#type' => 'item',
+    '#markup' => '<h1>' . t('Manage Membership of Objects') . '</h1>',
+  );
+
   $form['migrate']['link'] = array(
     '#type' => 'item',
     '#markup' => l(t("Return to Collection Manager"), $url),

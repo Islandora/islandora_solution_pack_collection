@@ -53,6 +53,15 @@ function islandora_basic_collection_menu() {
     'access arguments' => array('administer site configuration'),
     'page arguments' => array('islandora_basic_collection_admin'),
   );
+
+  $items['admin/islandora/collection/test'] = array(
+    'title' => 'Collection Management',
+    'page callback' => 'islandora_collection_management_wrapper',
+    'type' => MENU_NORMAL_ITEM,
+    'access arguments' => array('administer site configuration'),
+    'page arguments' => array('islandora_basic_collection_admin'),
+  );
+
   return $items;
 }
 
@@ -162,7 +171,7 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
     ),
     'islandora_collection_policy_table' => array(
       'file' => 'includes/collection_policy_management.inc',
-       'render element' => 'form',
+      'render element' => 'form',
     ),
   );
 }
@@ -362,17 +371,17 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
   $url_stub = 'admin/islandora/collection/management';
   $list = array();
   if (user_access(CREATE_CHILD_COLLECTION)) {
-    $list[] = l(t('Create Child Collection'), "$url_stub/new collection/$pid");
+    $list[] = l(t('Create child collection'), "$url_stub/new collection/$pid");
   }
   if (user_access(MANAGE_COLLECTION_POLICY)) {
-    $list[] = l(t('Manage Collection Policy'), "$url_stub/collection policy/$pid");
+    $list[] = l(t('Manage collection policy'), "$url_stub/collection policy/$pid");
   }
   if (user_access(MIGRATE_COLLECTION_MEMBERS)) {
-    $list[] = l(t('Migrate Members of this Collection'), "$url_stub/migrate/$pid");
+    $list[] = l(t('Manage collection membership'), "$url_stub/migrate/$pid");
   }
-  $list[] = l(t('Change Content Models'), "$url_stub/change content model/$pid");
+  $list[] = l(t('Change content models'), "$url_stub/change content model/$pid");
   if (user_access(FEDORA_PURGE)) {
-    $list[] = l(t('Delete Members of this collection'), "$url_stub/delete/$pid");
+    $list[] = l(t('Delete members of this collection'), "$url_stub/delete/$pid");
   }
   $extras = module_invoke_all('islandora_collection_mangement', $pid);
   foreach ($extras as $extra) {
@@ -403,7 +412,6 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
  * @param string $pid
  * @return array
  */
-
 function islandora_collection_management_wrapper($address, $function, $pid) {
   global $base_url;
   $overlay = '#overlay=islandora/object/islandora%253Aroot/manage/collections';
