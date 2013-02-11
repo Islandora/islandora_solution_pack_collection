@@ -3,12 +3,10 @@
 /**
  * @file
  * islandora-basic-collection-wrapper.tpl.php
- * 
+ *
  * @TODO: needs documentation about file and variables
- * @TODO: don't set drupal_set_title() here.
  */
 ?>
-<?php drupal_set_title($islandora_object->label); ?>
 
 <div class="islandora-basic-collection-wrapper">
   <div class="islandora-basic-collection clearfix">

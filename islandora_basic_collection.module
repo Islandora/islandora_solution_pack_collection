@@ -33,7 +33,7 @@ function islandora_basic_collection_menu() {
     'page callback' => 'drupal_get_form',
     'access arguments' => array('administer site configuration'),
     'page arguments' => array('islandora_basic_collection_admin'),
-    'file' => 'admin/islandora_basic_collection.admin.inc',
+    'file' => 'includes/admin.form.inc',
     'type' => MENU_NORMAL_ITEM,
   );
 // newpage - experimental
@@ -63,15 +63,6 @@ function islandora_basic_collection_menu() {
   );
 
   return $items;
-}
-
-/**
- * Implements hook_init().
- */
-function islandora_basic_collection_init() {
-  if (path_is_admin(current_path())) {
-    drupal_add_css(drupal_get_path('module', 'islandora_basic_collection') . '/css/islandora_basic_collection.admin.css');
-  }
 }
 
 /**
