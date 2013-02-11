@@ -34,7 +34,7 @@ function islandora_basic_collection_menu() {
     'page callback' => 'drupal_get_form',
     'access arguments' => array('administer site configuration'),
     'page arguments' => array('islandora_basic_collection_admin'),
-    'file' => 'admin/islandora_basic_collection.admin.inc',
+    'file' => 'includes/admin.form.inc',
     'type' => MENU_NORMAL_ITEM,
   );
 // newpage - experimental
