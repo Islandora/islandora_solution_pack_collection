@@ -416,7 +416,6 @@ function islandora_collection_management_wrapper($address, $function, $pid) {
   global $base_url;
   $overlay = '#overlay=islandora/object/islandora%253Aroot/manage/collections';
   $url = $base_url . "/islandora/object/$pid" . $overlay;
-  module_load_include('inc', 'islandora', 'api/tuque');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_manager_table');
   module_load_include('inc', 'islandora_basic_collection', 'includes/delete_collection');
