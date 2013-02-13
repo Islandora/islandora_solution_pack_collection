@@ -51,7 +51,7 @@ function islandora_basic_collection_menu() {
     'page callback' => 'islandora_collection_management_wrapper',
     'type' => MENU_LOCAL_TASK,
     'access arguments' => array('administer site configuration'),
-    'page arguments' => array('islandora_basic_collection_admin'),
+    'page arguments' => array(current_path()),
   );
 
   $items['admin/islandora/collection/test'] = array(
@@ -405,7 +405,7 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
 }
 
 /**
- * Wraps  all mamagement functions to direct user to file page
+ * Wraps  all management functions to direct user to file page
  * @global url $base_url
  * @param url $address
  * @param string $function
