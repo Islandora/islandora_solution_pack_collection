@@ -37,7 +37,7 @@ function islandora_basic_collection_menu() {
     'type' => MENU_NORMAL_ITEM,
   );
 // newpage - experimental
-  $items['islandora/object/%islandora_object/manage/collections'] = array(
+  $items['islandora/object/%islandora_object/manage/collection'] = array(
     'title' => 'Collection',
     'page callback' => 'islandora_basic_collection_manager_object',
     'page arguments' => array(2),
@@ -414,7 +414,7 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
  */
 function islandora_collection_management_wrapper($address, $function, $pid) {
   global $base_url;
-  $overlay = '#overlay=islandora/object/islandora%253Aroot/manage/collections';
+  $overlay = '#overlay=islandora/object/islandora%253Aroot/manage/collection';
   $url = $base_url . "/islandora/object/$pid" . $overlay;
   module_load_include('inc', 'islandora', 'api/tuque');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');

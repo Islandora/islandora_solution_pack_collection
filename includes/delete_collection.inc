@@ -93,7 +93,7 @@ function islandora_collection_deletion_form_submit($form, &$form_state) {
   $fedora_object = islandora_object_load($collection_pid);
 
   $parents = $fedora_object->relationships->get(NULL, 'isMemberOfCollection');
-  $parents = islandora_collections_get_collection_from_pid($fedora_object);
+  
   $collection_pid = $form_state['values']['current'];
   if (isset($form_state['values']['delete_root']) && $form_state['values']['delete_root'] == 1) {
     delete_root_collection($fedora_object);
