@@ -82,7 +82,6 @@ function collection_policy_management_submit($form, &$form_state) {
  * @return array
  */
 function islandora_collection_policy_table($pid) {
-  module_load_include('inc', 'islandora', 'api/tuque');
   $object = islandora_object_load($pid);
   $collection_policy = $object['COLLECTION_POLICY'];
   $content = $collection_policy->content;
