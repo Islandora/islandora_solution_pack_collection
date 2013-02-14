@@ -153,19 +153,19 @@ function islandora_basic_collection_ingest_access($object = NULL) {
 function islandora_basic_collection_theme($existing, $type, $theme, $path) {
   return array(
     'islandora_basic_collection' => array(
-      'file' => 'theme/islandora_basic_collection.theme.inc',
+      'file' => 'theme/theme.inc',
       'template' => 'theme/islandora-basic-collection',
       'pattern' => 'islandora_basic_collection__',
       'variables' => array('islandora_object' => NULL),
     ),
     'islandora_basic_collection_grid' => array(
-      'file' => 'theme/islandora_basic_collection.theme.inc',
+      'file' => 'theme/theme.inc',
       'template' => 'theme/islandora-basic-collection-grid',
       'pattern' => 'islandora_basic_collection_grid__',
       'variables' => array('islandora_object' => NULL, 'collection_results' => NULL),
     ),
     'islandora_basic_collection_wrapper' => array(
-      'file' => 'theme/islandora_basic_collection.theme.inc',
+      'file' => 'theme/theme.inc',
       'template' => 'theme/islandora-basic-collection-wrapper',
       'variables' => array('islandora_object' => NULL),
     ),
@@ -416,7 +416,6 @@ function islandora_collection_management_wrapper($address, $function, $pid) {
   global $base_url;
   $overlay = '#overlay=islandora/object/islandora%253Aroot/manage/collection';
   $url = $base_url . "/islandora/object/$pid" . $overlay;
-  module_load_include('inc', 'islandora', 'api/tuque');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_manager_table');
   module_load_include('inc', 'islandora_basic_collection', 'includes/delete_collection');
