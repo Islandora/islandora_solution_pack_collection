@@ -7,15 +7,13 @@
 
 /**
  * Create the child collection creation form
- * 
+ *
  * @param array $form
  * @param array $form_state
  * @param string $this_collection_pid
  * @return array
  */
-function islandora_create_child_collection_form($form, &$form_state, $collection_object) {
-  module_load_include('inc', 'islandora_basic_collection', 'includes/CollectionPolicy');
-
+function islandora_create_child_collection_form($form, &$form_state, $collection_object, $url) {
   $policy_datastream = $collection_object->getDatastream(variable_get('Islandora_Collection_Policy_DSID', 'COLLECTION_POLICY'));
   if (!$policy_datastream) {
     $form['no_policy'] = array(
@@ -27,15 +25,15 @@ function islandora_create_child_collection_form($form, &$form_state, $collection
   $collection_policy = new CollectionPolicy($policy_datastream->content);
 
   $current_content_models = $collection_policy->getContentModels();
-  
+
   $collection_content_model_exists = FALSE;
-  
+
   foreach ($current_content_models as $current_content_model) {
     if ($current_content_model['pid'] == 'islandora:collectionCModel') {
       $collection_content_model_exists = TRUE;
     }
   }
-  
+
   if (!$collection_content_model_exists) {
     $form['not_collection'] = array(
       '#type' => 'item',
@@ -54,10 +52,20 @@ function islandora_create_child_collection_form($form, &$form_state, $collection
       }
     }
   }
-  $collection_namespace = substr($collection_object->id, 0, strpos($collection_object->id, ":"));
+  $collection_namespace = drupal_substr($collection_object->id, 0, strpos($collection_object->id, ":"));
 
   $content_models = get_content_models_as_option_array();
   unset($content_models['islandora:collectionCModel']);
+
+  $form['page_title'] = array(
+    '#type' => 'item',
+    '#markup' => '<h1>' . t('Create Child Collection') . '</h1>',
+  );
+
+  $form['child_creation']['link'] = array(
+    '#type' => 'item',
+    '#markup' => l(t("Return to Collection Manager"), $url),
+  );
 
   $form['child_creation']['titlebox'] = array(
     '#type' => 'item',
@@ -121,14 +129,14 @@ function islandora_create_child_collection_form($form, &$form_state, $collection
 function islandora_create_child_collection_form_validate($form, &$form_state) {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $new_collection_pid = $form_state['values']['new_collection_pid'];
-  if($new_collection_pid) {
-    $valid = islandora_validate_pid($new_collection_pid);
-    if(!$valid) {
+  if ($new_collection_pid) {
+    $valid = islandora_is_valid_pid($new_collection_pid);
+    if (!$valid) {
       form_set_error('new_collection_pid', 'Collection PID is Invalid.');
     }
     else {
       $object = islandora_object_load($new_collection_pid);
-      if($object !== NULL) {
+      if ($object) {
         form_set_error('new_collection_pid', 'Collection PID already exists.');
       }
     }
@@ -137,19 +145,19 @@ function islandora_create_child_collection_form_validate($form, &$form_state) {
 
 /**
  * Submit handler for child collection creation form
- * 
+ *
  * @global type $base_url
  * @param array $form
- * @param array $form_state 
+ * @param array $form_state
  */
 function islandora_create_child_collection_form_submit($form, &$form_state) {
+  module_load_include('inc', 'islandora', 'includes/utilities');
   global $base_url;
-  module_load_include('inc', 'islandora', '/includes/islandora.ingest');
-  $thumbnail = $base_url . '/' . drupal_get_path('module', 'islandora_basic_collection') . '/Crystal_Clear_filesystem_folder_grey.png';
+  $thumbnail = $base_url . '/' . drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png';
   $new_collection_pid = $form_state['values']['new_collection_pid'];
   $this_collection_pid = $form_state['values']['current'];
-  if(empty($new_collection_pid)) {
-    $new_collection_pid = substr($this_collection_pid, 0, strpos($this_collection_pid, ":"));
+  if (empty($new_collection_pid)) {
+    $new_collection_pid = drupal_substr($this_collection_pid, 0, strpos($this_collection_pid, ":"));
   }
   $new_collection_label = $form_state['values']['collection_name'];
   $namespace = $form_state['values']['collection_namespace'];
@@ -172,7 +180,7 @@ function islandora_create_child_collection_form_submit($form, &$form_state) {
 
   $collection_policy_xml = new DOMDocument();
   $collection_policy_xml->loadXML($collection_policy);
-  
+
   $content_models_element = $collection_policy_xml->getElementsByTagName('content_models');
   $content_model_element = $content_models_element->item(0)->getElementsByTagName('content_model');
   foreach ($content_models as $content_model) {
@@ -185,7 +193,17 @@ function islandora_create_child_collection_form_submit($form, &$form_state) {
       $content_models_element->item(0)->appendChild($content_model_element);
     }
   }
-  $fedora_object = islandora_ingest_get_object($collection_content_models, $form_state['values']['current'], $relationship, $new_collection_pid);
+  $models = array();
+  foreach ($collection_content_models as $relation) {
+    $models[] = $relation['pid'];
+  }
+
+  $fedora_object = islandora_prepare_new_object($new_collection_pid, NULL, array(), $models, array(
+        array(
+          'pid' => $form_state['values']['current'],
+          'relationship' => $relationship,
+        ),
+          ), $form_state['values']['current']);
   $fedora_object->label = $new_collection_label;
   $thumbnail_datastream = $fedora_object->constructDatastream('TN');
   $thumbnail_datastream->setContentFromUrl($thumbnail);
@@ -196,7 +214,7 @@ function islandora_create_child_collection_form_submit($form, &$form_state) {
   $policy_datastream->setContentFromString($collection_policy_xml->saveXML());
   $policy_datastream->label = 'Collection policy';
   $fedora_object->ingestDatastream($policy_datastream);
-  $new_fedora_object = islandora_ingest_add_object($fedora_object);
+  $new_fedora_object = islandora_add_object($fedora_object);
 
   drupal_goto('/islandora/object/' . $fedora_object->id);
 }

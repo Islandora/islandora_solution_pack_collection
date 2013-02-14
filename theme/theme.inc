@@ -1,14 +1,21 @@
 <?php
 
 /**
- * list view preprocess
- * currently just calls normal view preprocess as variables are the same
- * @param type $variables 
+ * @file
+ *
+ * This file contains all theme and preprocess functions
+ */
+
+/**
+ * Implements template_preprocess_HOOK().
  */
 function islandora_basic_collection_preprocess_islandora_basic_collection_grid(&$variables) {
   islandora_basic_collection_preprocess_islandora_basic_collection($variables);
 }
 
+/**
+ * Implements template_preprocess_HOOK().
+ */
 function islandora_basic_collection_preprocess_islandora_basic_collection_wrapper(&$variables) {
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
   $page_size = (empty($_GET['pagesize'])) ? variable_get('islandora_basic_collection_page_size', '10') : $_GET['pagesize'];
@@ -23,10 +30,16 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
   global $base_url;
   if ($display == 'grid') {
     $query_params['display'] = 'list';
-     $list_link = array('title' => 'List view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => 'islandora-view-list'),
-    'query' => $query_params);
-     unset($query_params['display']);
-     $query_params['display'] = 'grid';
+    $list_link = array(
+      'title' => 'List view',
+      'href' => $base_url . '/islandora/object/' . $islandora_object->id,
+      'attributes' => array(
+        'class' => 'islandora-view-list'
+      ),
+      'query' => $query_params
+    );
+    unset($query_params['display']);
+    $query_params['display'] = 'grid';
     $grid_link = array('title' => 'Grid view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => array('islandora-view-grid', 'active')),
     'query' => $query_params);
     $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
@@ -41,33 +54,28 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
     'query' => $query_params);
     $collection_content = theme('islandora_basic_collection', array('islandora_object' => $islandora_object, 'collection_results' => $results));
   }
-  $variables['view_links'] = array($grid_link,$list_link);
+  $variables['view_links'] = array($grid_link, $list_link);
   //$variables['grid_link'] = $grid_link;
   $variables['collection_content'] = $collection_content;
 }
 
 /**
- * 
- * @global type $base_url
- * @param array $variables
- *   an array of variables that will be passed to the theme function
+ * Implements template_preprocess_HOOK().
  */
 function islandora_basic_collection_preprocess_islandora_basic_collection(&$variables) {
-// base url
   global $base_url;
-// base path
   global $base_path;
   $islandora_object = $variables['islandora_object'];
-  module_load_include('inc', 'islandora', 'includes/islandora_dublin_core');
+
   try {
     $dc = $islandora_object['DC']->content;
-    $dc_object = Dublin_Core::import_from_xml_string($dc);
+    $dc_object = DublinCore::importFromXMLString($dc);
   } catch (Exception $e) {
     drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
   }
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
   $page_size = (empty($_GET['pagesize'])) ? variable_get('islandora_basic_collection_page_size', '10') : $_GET['pagesize'];
-  $results = $variables['collection_results']; //islandora_basic_collection_get_objects($islandora_object, $page_number, $page_size);
+  $results = $variables['collection_results'];
   $total_count = count($results);
   $variables['islandora_dublin_core'] = isset($dc_object) ? $dc_object : array();
   $variables['islandora_object_label'] = $islandora_object->label;
@@ -97,15 +105,15 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
 
   for ($i = $start; $i < $end; $i++) {
     $pid = $results[$i]['object']['value'];
-    $fc_object = islandora_basic_collection_get_object($pid);
+    $fc_object = islandora_object_load($pid);
     if (!isset($fc_object)) {
       continue; //null object so don't show in collection view;
     }
     $associated_objects_array[$pid]['object'] = $fc_object;
     try {
       $dc = $fc_object['DC']->content;
-      $dc_object = Dublin_Core::import_from_xml_string($dc);
-      $associated_objects_array[$pid]['dc_array'] = $dc_object->as_formatted_array();
+      $dc_object = DublinCore::importFromXMLString($dc);
+      $associated_objects_array[$pid]['dc_array'] = $dc_object->asArray();
     } catch (Exception $e) {
       drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
     }
@@ -115,13 +123,13 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     $associated_objects_array[$pid]['pid'] = $pid;
     $associated_objects_array[$pid]['path'] = $object_url;
     $associated_objects_array[$pid]['title'] = $title;
-    $associated_objects_array[$pid]['class'] = strtolower(preg_replace('/[^A-Za-z0-9]/', '-', $pid));
+    $associated_objects_array[$pid]['class'] = drupal_strtolower(preg_replace('/[^A-Za-z0-9]/', '-', $pid));
     if (isset($fc_object['TN'])) {
       $thumbnail_img = '<img src="' . $base_path . $object_url . '/datastream/TN/view"' . '/>';
     }
     else {
       $image_path = drupal_get_path('module', 'islandora');
-      $thumbnail_img = '<img src="' . $base_path . $image_path . '/images/Crystal_Clear_action_filenew.png"/>';
+      $thumbnail_img = '<img src="' . $base_path . $image_path . '/images/folder.png"/>';
     }
     $associated_objects_array[$pid]['thumbnail'] = $thumbnail_img;
     $associated_objects_array[$pid]['title_link'] = l($title, $object_url, array('html' => TRUE, 'attributes' => array('title' => $title)));
@@ -129,5 +137,3 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
   }
   $variables['associated_objects_array'] = $associated_objects_array;
 }
-
-?>
