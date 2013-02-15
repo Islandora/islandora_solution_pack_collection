@@ -36,7 +36,7 @@ function islandora_basic_collection_menu() {
     'file' => 'includes/admin.form.inc',
     'type' => MENU_NORMAL_ITEM,
   );
-// newpage - experimental
+
   $items['islandora/object/%islandora_object/manage/collection'] = array(
     'title' => 'Collection',
     'page callback' => 'islandora_basic_collection_manager_object',
@@ -52,14 +52,6 @@ function islandora_basic_collection_menu() {
     'type' => MENU_LOCAL_TASK,
     'access arguments' => array('administer site configuration'),
     'page arguments' => array(current_path()),
-  );
-
-  $items['admin/islandora/collection/test'] = array(
-    'title' => 'Collection Management',
-    'page callback' => 'islandora_collection_management_wrapper',
-    'type' => MENU_NORMAL_ITEM,
-    'access arguments' => array('administer site configuration'),
-    'page arguments' => array('islandora_basic_collection_admin'),
   );
 
   return $items;
@@ -117,6 +109,8 @@ function islandora_basic_collection_access($object = NULL) {
       islandora_basic_collection_ingest_access($object);
 
   // The user is allowed to manage, and the object has our content model.
+  $result = $access && islandora_object_manage_access_callback(array(FEDORA_MANAGE_DATASTREAMS, FEDORA_MANAGE_PROPERTIES, FEDORA_ADD_DS), $object) && in_array('islandora:collectionCModel', $object->models);
+
   return $access && islandora_object_manage_access_callback(array(FEDORA_MANAGE_DATASTREAMS, FEDORA_MANAGE_PROPERTIES, FEDORA_ADD_DS), $object) && in_array('islandora:collectionCModel', $object->models);
 }
 
@@ -414,7 +408,7 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
  */
 function islandora_collection_management_wrapper($address, $function, $pid) {
   global $base_url;
-  $overlay = '#overlay=islandora/object/islandora%253Aroot/manage/collection';
+  $overlay = "#overlay=islandora/object/$pid/manage/collection";
   $url = $base_url . "/islandora/object/$pid" . $overlay;
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_manager_table');
