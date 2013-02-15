@@ -69,7 +69,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
 
   try {
     $dc = $islandora_object['DC']->content;
-    $dc_object = DublinCore::import_from_xml_string($dc);
+    $dc_object = DublinCore::importFromXMLString($dc);
   } catch (Exception $e) {
     drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
   }
@@ -112,8 +112,8 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     $associated_objects_array[$pid]['object'] = $fc_object;
     try {
       $dc = $fc_object['DC']->content;
-      $dc_object = DublinCore::import_from_xml_string($dc);
-      $associated_objects_array[$pid]['dc_array'] = $dc_object->as_formatted_array();
+      $dc_object = DublinCore::importFromXMLString($dc);
+      $associated_objects_array[$pid]['dc_array'] = $dc_object->asArray();
     } catch (Exception $e) {
       drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
     }

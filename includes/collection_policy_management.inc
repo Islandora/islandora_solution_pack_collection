@@ -6,7 +6,6 @@
  * All collection policy management functionality.
  */
 
-
 /**
  *
  * @param array $form
@@ -15,7 +14,6 @@
  * @param url $url
  * @return array
  */
-
 function collection_policy_management($form, &$form_state, $collection_object, $url) {
   $pid = $collection_object->id;
   $table = islandora_collection_policy_table($pid);
@@ -30,9 +28,14 @@ function collection_policy_management($form, &$form_state, $collection_object, $
     '#markup' => l(t("Return to Collection Manager"), $url),
   );
 
+  $form['page_title'] = array(
+    '#type' => 'item',
+    '#markup' => '<h1>' . t('Manage Collection Policy') . '</h1>',
+  );
 
   $form['help_link'] = array(
-    '#value' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA112/How+to+Manage+Collection+Policies', $alink_options),
+    '#type' => 'item',
+    '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA112/How+to+Manage+Collection+Policies', $alink_options),
   );
   $form['pid'] = array(
     '#type' => 'hidden',
@@ -53,7 +56,6 @@ function collection_policy_management($form, &$form_state, $collection_object, $
  * @param array $form
  * @param array $form_state
  */
-
 function collection_policy_management_submit($form, &$form_state) {
   $pid = $form_state['values']['pid'];
   $fedora_object = islandora_object_load($pid);
@@ -64,7 +66,8 @@ function collection_policy_management_submit($form, &$form_state) {
     if (in_array($candidate['identifier'], $chosen)) {
       $node = $collection_policy_xml->content_models->addChild('content_model');
       $node->addAttribute('dsid', 'ISLANDORACM');
-      $node->addAttribute('name', $candidate['prompt']);
+      // prompt removed for this iteration
+      //  $node->addAttribute('name', $candidate['prompt']);
       $node->addAttribute('namespace', $candidate['namespace'] . ':1');
       $node->addAttribute('pid', $candidate['identifier']);
     }
@@ -78,9 +81,7 @@ function collection_policy_management_submit($form, &$form_state) {
  * @param string $collection_pid
  * @return array
  */
-
 function islandora_collection_policy_table($pid) {
-  module_load_include('inc', 'islandora', 'api/tuque');
   $object = islandora_object_load($pid);
   $collection_policy = $object['COLLECTION_POLICY'];
   $content = $collection_policy->content;
@@ -135,7 +136,7 @@ function islandora_collection_policy_table($pid) {
   }
 
   $table = array(
-    '#header' => array(theme('table_select_header_cell'), t('Content Model Pid'), 'Namespace', t('Prompt')),
+    '#header' => array(theme('table_select_header_cell'), t('Content Model Pid'), 'Namespace'),
     '#theme' => 'islandora_collection_policy_table',
     '#tree' => TRUE,
     'rows' => array(),
@@ -168,7 +169,7 @@ function islandora_collection_policy_table($pid) {
     else {
       $cells['namespace'] = array('#type' => 'textfield', '#default_value' => $namespace);
     }
-    $cells['prompt'] = array('#type' => 'textfield', '#default_value' => $prompt);
+
     $cells['identifier'] = array('#type' => 'hidden', '#value' => $pid);
     $rows[] = $cells;
   }
@@ -182,7 +183,6 @@ function islandora_collection_policy_table($pid) {
  * @param array $element Drupal Form Element.
  * @return string
  */
-
 function theme_islandora_collection_policy_table(array $element) {
   $element = array_shift($element);
   $rows = array();
@@ -220,7 +220,6 @@ function theme_islandora_collection_policy_table(array $element) {
  * Gets blank Collection policy
  * @return string
  */
-
 function get_blank_collection_policy() {
   return '<?xml version="1.0" encoding="UTF-8"?>
 <collection_policy xmlns="http://www.islandora.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="" xsi:schemaLocation="http://www.islandora.ca http://syn.lib.umanitoba.ca/collection_policy.xsd">

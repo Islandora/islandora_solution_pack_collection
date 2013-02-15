@@ -30,9 +30,14 @@ function islandora_collection_deletion_form($form, &$form_state, $object, $url) 
   $submit_text_message = ($table) ? "Delete selected objects" : "Delete collection";
 
   $form = array();
-  $form['collection_delete']['link'] = array(
+  $form['link'] = array(
     '#type' => 'item',
     '#markup' => l(t("Return to Collection Manager"), $url),
+  );
+
+  $form['page_title'] = array(
+    '#type' => 'item',
+    '#markup' => '<h1>' . t('Delete Members of This Collection') . '</h1>',
   );
   
   $form['collection_delete']['pager'] = array(

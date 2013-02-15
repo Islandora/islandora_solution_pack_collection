@@ -52,8 +52,17 @@ function islandora_basic_collection_menu() {
     'page callback' => 'islandora_collection_management_wrapper',
     'type' => MENU_LOCAL_TASK,
     'access arguments' => array('administer site configuration'),
+    'page arguments' => array(current_path()),
+  );
+
+  $items['admin/islandora/collection/test'] = array(
+    'title' => 'Collection Management',
+    'page callback' => 'islandora_collection_management_wrapper',
+    'type' => MENU_NORMAL_ITEM,
+    'access arguments' => array('administer site configuration'),
     'page arguments' => array('islandora_basic_collection_admin'),
   );
+
   return $items;
 }
 
@@ -169,25 +178,25 @@ function islandora_basic_collection_ingest_access($object = NULL) {
 function islandora_basic_collection_theme($existing, $type, $theme, $path) {
   return array(
     'islandora_basic_collection' => array(
-      'file' => 'theme/islandora_basic_collection.theme.inc',
+      'file' => 'theme/theme.inc',
       'template' => 'theme/islandora-basic-collection',
       'pattern' => 'islandora_basic_collection__',
       'variables' => array('islandora_object' => NULL),
     ),
     'islandora_basic_collection_grid' => array(
-      'file' => 'theme/islandora_basic_collection.theme.inc',
+      'file' => 'theme/theme.inc',
       'template' => 'theme/islandora-basic-collection-grid',
       'pattern' => 'islandora_basic_collection_grid__',
       'variables' => array('islandora_object' => NULL, 'collection_results' => NULL),
     ),
     'islandora_basic_collection_wrapper' => array(
-      'file' => 'theme/islandora_basic_collection.theme.inc',
+      'file' => 'theme/theme.inc',
       'template' => 'theme/islandora-basic-collection-wrapper',
       'variables' => array('islandora_object' => NULL),
     ),
     'islandora_collection_policy_table' => array(
       'file' => 'includes/collection_policy_management.inc',
-       'render element' => 'form',
+      'render element' => 'form',
     ),
   );
 }
@@ -334,10 +343,10 @@ function islandora_basic_collection_get_ingest_configuration(FedoraObject $objec
  *   The islandora_ingest_form form id.
  */
 function islandora_basic_collection_form_islandora_ingest_form_alter(array &$form, array &$form_state, $form_id) {
-  $configuration = islandora_ingest_form_get_configuration($form_state);
-  if (isset($configuration['collections'])) {
-    $step_info = islandora_ingest_form_get_step_info($form_state);
-    $metadata_form_step = isset($step_info['form_id']) && $step_info['form_id'] == 'xml_form_builder_ingest_form';
+  $shared_storage = islandora_ingest_form_get_shared_storage($form_state);
+  if (isset($shared_storage['collections'])) {
+    $step = islandora_ingest_form_get_step($form_state);
+    $metadata_form_step = isset($step['form_id']) && $step['form_id'] == 'xml_form_builder_ingest_form';
     $submit_handler_already_added = in_array('islandora_basic_collection_ingest_form_submit', $form['next']['#submit']);
     if ($metadata_form_step && !$submit_handler_already_added) {
       array_unshift($form['next']['#submit'], 'islandora_basic_collection_ingest_form_submit');
@@ -354,9 +363,9 @@ function islandora_basic_collection_form_islandora_ingest_form_alter(array &$for
  *   The Drupal form state.
  */
 function islandora_basic_collection_ingest_form_submit(array $form, array &$form_state) {
-  $configuration = islandora_ingest_form_get_configuration($form_state);
+  $shared_storage = islandora_ingest_form_get_shared_storage($form_state);
   // Only support 1 for now.
-  $collection_id = current($configuration['collections']);
+  $collection_id = current($shared_storage['collections']);
   // Only support 1 for now.
   $object = islandora_ingest_form_get_object($form_state);
   if (!isset($object->id)) {
@@ -364,10 +373,8 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
     $collection_object = islandora_object_load($collection_id);
     $policy = new CollectionPolicy($collection_object['COLLECTION_POLICY']->content);
     $models = $policy->getContentModels();
-
     $association_step_storage = islandora_ingest_form_get_step_storage($form_state, 'xml_form_builder_association_step');
     $association = $association_step_storage['association'];
-
     // Get the form association's content model.
     $model = $association['content_model'];
     $model = $models[$model];
@@ -387,17 +394,17 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
   $url_stub = 'admin/islandora/collection/management';
   $list = array();
   if (user_access(CREATE_CHILD_COLLECTION)) {
-    $list[] = l(t('Create Child Collection'), "$url_stub/new collection/$pid");
+    $list[] = l(t('Create child collection'), "$url_stub/new collection/$pid");
   }
   if (user_access(MANAGE_COLLECTION_POLICY)) {
-    $list[] = l(t('Manage Collection Policy'), "$url_stub/collection policy/$pid");
+    $list[] = l(t('Manage collection policy'), "$url_stub/collection policy/$pid");
   }
   if (user_access(MIGRATE_COLLECTION_MEMBERS)) {
-    $list[] = l(t('Migrate Members of this Collection'), "$url_stub/migrate/$pid");
+    $list[] = l(t('Manage collection membership'), "$url_stub/migrate/$pid");
   }
-  $list[] = l(t('Change Content Models'), "$url_stub/change content model/$pid");
+  $list[] = l(t('Change content models'), "$url_stub/change content model/$pid");
   if (user_access(FEDORA_PURGE)) {
-    $list[] = l(t('Delete Members of this collection'), "$url_stub/delete/$pid");
+    $list[] = l(t('Delete members of this collection'), "$url_stub/delete/$pid");
   }
   $extras = module_invoke_all('islandora_collection_mangement', $pid);
   foreach ($extras as $extra) {
@@ -421,19 +428,17 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
 }
 
 /**
- * Wraps  all mamagement functions to direct user to file page
+ * Wraps  all management functions to direct user to file page
  * @global url $base_url
  * @param url $address
  * @param string $function
  * @param string $pid
  * @return array
  */
-
 function islandora_collection_management_wrapper($address, $function, $pid) {
   global $base_url;
   $overlay = '#overlay=islandora/object/islandora%253Aroot/manage/collections';
   $url = $base_url . "/islandora/object/$pid" . $overlay;
-  module_load_include('inc', 'islandora', 'api/tuque');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_manager_table');
   module_load_include('inc', 'islandora_basic_collection', 'includes/delete_collection');

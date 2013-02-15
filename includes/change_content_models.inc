@@ -4,7 +4,6 @@
  * @file
  * ChangeContentModels.inc
  */
-
 function islandora_change_content_models_form($form, &$form_state, $collection_object, $url) {
   $collection_pid = $collection_object->id;
   $content_models = get_content_models_list($collection_object);
@@ -40,9 +39,14 @@ function islandora_change_content_models_form($form, &$form_state, $collection_o
     }
   }
 
-  $form['change_cmodel']['link'] = array(
+  $form['link'] = array(
     '#type' => 'item',
     '#markup' => l(t("Return to Collection Manager"), $url),
+  );
+
+  $form['page_title'] = array(
+    '#type' => 'item',
+    '#markup' => '<h1>' . t('Change Content Models') . '</h1>',
   );
 
   $form['change_cmodel']['titlebox'] = array(
