@@ -312,10 +312,10 @@ function islandora_basic_collection_get_ingest_configuration(FedoraObject $objec
  *   The islandora_ingest_form form id.
  */
 function islandora_basic_collection_form_islandora_ingest_form_alter(array &$form, array &$form_state, $form_id) {
-  $configuration = islandora_ingest_form_get_configuration($form_state);
-  if (isset($configuration['collections'])) {
-    $step_info = islandora_ingest_form_get_step_info($form_state);
-    $metadata_form_step = isset($step_info['form_id']) && $step_info['form_id'] == 'xml_form_builder_ingest_form';
+  $shared_storage = islandora_ingest_form_get_shared_storage($form_state);
+  if (isset($shared_storage['collections'])) {
+    $step = islandora_ingest_form_get_step($form_state);
+    $metadata_form_step = isset($step['form_id']) && $step['form_id'] == 'xml_form_builder_ingest_form';
     $submit_handler_already_added = in_array('islandora_basic_collection_ingest_form_submit', $form['next']['#submit']);
     if ($metadata_form_step && !$submit_handler_already_added) {
       array_unshift($form['next']['#submit'], 'islandora_basic_collection_ingest_form_submit');
@@ -332,9 +332,9 @@ function islandora_basic_collection_form_islandora_ingest_form_alter(array &$for
  *   The Drupal form state.
  */
 function islandora_basic_collection_ingest_form_submit(array $form, array &$form_state) {
-  $configuration = islandora_ingest_form_get_configuration($form_state);
+  $shared_storage = islandora_ingest_form_get_shared_storage($form_state);
   // Only support 1 for now.
-  $collection_id = current($configuration['collections']);
+  $collection_id = current($shared_storage['collections']);
   // Only support 1 for now.
   $object = islandora_ingest_form_get_object($form_state);
   if (!isset($object->id)) {
@@ -342,10 +342,8 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
     $collection_object = islandora_object_load($collection_id);
     $policy = new CollectionPolicy($collection_object['COLLECTION_POLICY']->content);
     $models = $policy->getContentModels();
-
     $association_step_storage = islandora_ingest_form_get_step_storage($form_state, 'xml_form_builder_association_step');
     $association = $association_step_storage['association'];
-
     // Get the form association's content model.
     $model = $association['content_model'];
     $model = $models[$model];
