@@ -51,7 +51,6 @@ function islandora_basic_collection_menu() {
     'page callback' => 'islandora_collection_management_wrapper',
     'type' => MENU_LOCAL_TASK,
     'access arguments' => array('administer site configuration'),
-    'page arguments' => array(current_path()),
   );
 
   return $items;
@@ -404,7 +403,7 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
  * @param string $pid
  * @return array
  */
-function islandora_collection_management_wrapper($address, $function, $pid) {
+function islandora_collection_management_wrapper($function, $pid) {
   global $base_url;
   $overlay = "#overlay=islandora/object/$pid/manage/collection";
   $url = $base_url . "/islandora/object/$pid" . $overlay;
