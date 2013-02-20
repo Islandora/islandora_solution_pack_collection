@@ -229,7 +229,6 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
     'page_size' => $page_size,
     'page_number' => $page_number
   );
-  dsm($query_array);
   drupal_alter('islandora_basic_collection_query', $query_array);
   try {
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
