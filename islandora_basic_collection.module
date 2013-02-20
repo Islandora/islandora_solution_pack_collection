@@ -203,6 +203,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
  *   Query results.
  */
 function islandora_basic_collection_get_objects(FedoraObject $object, $page_number = 1, $page_size = 5) {
+  module_load_include('inc', 'islandora', 'includes/utilities');
   $query = 'SELECT $object $title $content
      FROM <#ri>
      WHERE {
@@ -214,18 +215,10 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
             FILTER (!sameTerm($content, <info:fedora/fedora-system:FedoraObject-3.0>))';
   $enforced = variable_get('islandora_namespace_restriction_enforced', FALSE);
   if ($enforced) {
-    $namespaces = variable_get('islandora_pids_allowed', 'default: demo: changeme: ilives: islandora-book: books: newspapers: ');
-    $namespace_array = explode(' ', $namespaces);
-    $namespace_sparql = '';
-    foreach ($namespace_array as $namespace) {
-      $stripped_namespace = str_replace(':', '', $namespace);
-      if (empty($namespace_sparql)) {
-        $namespace_sparql = $stripped_namespace;
-      }
-      else {
-        $namespace_sparql .= '|' . $stripped_namespace;
-      }
-    }
+    $namespace_array = explode(' ', variable_get('islandora_pids_allowed', 'default: demo: changeme: ilives: islandora-book: books: newspapers: '));
+    $namespace_array = array_map('islandora_get_namespace', $namespace_array);
+    $namespace_array = array_filter($namespace_array, 'trim');
+    $namespace_sparql = implode('|', $namespace_array);
     $query .= 'FILTER(regex(str(?object), "info:fedora/(' . $namespace_sparql . '):"))';
   }
   $query .= '} ORDER BY $title';
@@ -236,6 +229,7 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
     'page_size' => $page_size,
     'page_number' => $page_number
   );
+  dsm($query_array);
   drupal_alter('islandora_basic_collection_query', $query_array);
   try {
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
