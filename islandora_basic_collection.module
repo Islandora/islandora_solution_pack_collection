@@ -27,6 +27,16 @@ function islandora_basic_collection_menu() {
     'access callback' => 'islandora_basic_collection_ingest_access',
     'access arguments' => array(2),
   );
+
+  $items['islandora/object/%islandora_object/manage/collection/child'] = array(
+    'title' => 'Add a child collection to this collection',
+    'page callback' => 'islandora_collection_management_wrapper',
+    'page arguments' => array('new collection', 2),
+    'type' => MENU_LOCAL_ACTION,
+    'access callback' => 'user_access',
+    'access arguments' => array(CREATE_CHILD_COLLECTION),
+  );
+  
   $items['admin/islandora/basic_collection'] = array(
     'title' => 'Core collection',
     'description' => 'Configure the core Islandora collection functionality.',
@@ -362,7 +372,7 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
   $url_stub = 'admin/islandora/collection/management';
   $list = array();
   if (user_access(CREATE_CHILD_COLLECTION)) {
-    $list[] = l(t('Create child collection'), "$url_stub/new collection/$pid");
+    //$list[] = l(t('Create child collection'), "$url_stub/new collection/$pid");
   }
   if (user_access(MANAGE_COLLECTION_POLICY)) {
     $list[] = l(t('Manage collection policy'), "$url_stub/collection policy/$pid");
