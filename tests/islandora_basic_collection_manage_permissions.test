@@ -1,6 +1,6 @@
 <?php
 
-module_load_include('inc', 'islandora', 'tests/islandora_web_test_case');
+module_load_include('inc', 'islandora', 'tests/web_test_case');
 
 class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
   
