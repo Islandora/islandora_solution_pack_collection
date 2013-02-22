@@ -425,22 +425,24 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
  * @return array
  */
 function islandora_collection_management_wrapper($function = NULL, $pid = NULL) {
-  global $base_url;
+  //added to provide pathing if called from admin_menu
   if ($function == NULL) {
+    global $base_url;
+    $failure_message = t('This menu is not applicable in this context.') . '<br />' .
+        t("To manage any given collection navigate to that collection's Manage tab, and select Collection");
     $path = $_SERVER['HTTP_REFERER'];
     if (!$path) {
-      return t('This menu is not applicable in this context.') . '<br />' .
-      t("To manage any given collection navigate to that collection's Manage tab, and select Collection");
+      return $failure_message;
     }
     $path = str_replace($base_url . '/islandora/object/', '', $path);
     $path_parts = explode('/', $path);
     $pid = $path_parts[0];
     if (!$pid) {
-      return t('This menu is not applicable in this context.') . '<br />' .
-      t("To manage any given collection navigate to that collection's Manage tab, and select Collection");
+      return $failure_message;
     }
     drupal_goto("islandora/object/$pid/manage/collection");
   }
+
   global $base_url;
   $overlay = "#overlay=islandora/object/$pid/manage/collection";
   $url = $base_url . "/islandora/object/$pid" . $overlay;
