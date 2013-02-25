@@ -1,0 +1,12 @@
+
+.DS_Store
+
+islandora_basic_collection.info~
+
+islandora_basic_collection.module~
+
+tests/islandora_basic_collection_manage_permissions.test~
+
+tests/islandora_basic_collection_web_test_case.inc~
+
+tests/test_config.ini~
