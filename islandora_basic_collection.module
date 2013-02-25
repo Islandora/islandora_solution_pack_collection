@@ -5,6 +5,9 @@
  *
  * Provides functionality for creating/managing/deleting/viewing collections.
  */
+ 
+module_load_include('inc', 'islandora', 'tests/web_test_case.inc');
+ 
 define('CREATE_CHILD_COLLECTION', 'create child collection');
 define('MANAGE_COLLECTION_POLICY', 'manage collection policy');
 define('MANAGE_CONTENT_MODEL_ASSOCIATION', 'manage content model association');
@@ -66,6 +69,8 @@ function islandora_basic_collection_menu() {
   return $items;
 }
 
+/** * Implements hook_menu_alter(). * */function islandora_basic_collection_menu_alter(&$items) {    //we want to add more permissions to the access arguments for the manage tab.  $current_access_arguments = $items['islandora/object/%islandora_object/manage']['access arguments'][0];  $new_access_arguments = array(CREATE_CHILD_COLLECTION,MANAGE_COLLECTION_POLICY, MANAGE_CONTENT_MODEL_ASSOCIATION, MIGRATE_COLLECTION_MEMBERS);  $new_access_arguments = array_merge($current_access_arguments, $new_access_arguments);  $items['islandora/object/%islandora_object/manage']['access arguments'] = array($new_access_arguments,2);  }/** * Implements hook_init(). */function islandora_basic_collection_init() {  if (path_is_admin(current_path())) {    drupal_add_css(drupal_get_path('module', 'islandora_basic_collection') . '/css/islandora_basic_collection.admin.css');  }}
+
 /**
  * Implements hook_islandora_required_objects().
  */
@@ -118,9 +123,7 @@ function islandora_basic_collection_access($object = NULL) {
       islandora_basic_collection_ingest_access($object);
 
   // The user is allowed to manage, and the object has our content model.
-  $result = $access && islandora_object_manage_access_callback(array(FEDORA_MANAGE_DATASTREAMS, FEDORA_MANAGE_PROPERTIES, FEDORA_ADD_DS), $object) && in_array('islandora:collectionCModel', $object->models);
-
-  return $access && islandora_object_manage_access_callback(array(FEDORA_MANAGE_DATASTREAMS, FEDORA_MANAGE_PROPERTIES, FEDORA_ADD_DS), $object) && in_array('islandora:collectionCModel', $object->models);
+  return $access && in_array('islandora:collectionCModel', $object->models);
 }
 
 /**
