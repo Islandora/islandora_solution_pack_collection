@@ -27,6 +27,16 @@ function islandora_basic_collection_menu() {
     'access callback' => 'islandora_basic_collection_ingest_access',
     'access arguments' => array(2),
   );
+
+  $items['islandora/object/%islandora_object/manage/collection/child'] = array(
+    'title' => 'Add a child collection to this collection',
+    'page callback' => 'islandora_collection_management_wrapper',
+    'page arguments' => array('new collection', 2),
+    'type' => MENU_LOCAL_ACTION,
+    'access callback' => 'user_access',
+    'access arguments' => array(CREATE_CHILD_COLLECTION),
+  );
+
   $items['admin/islandora/basic_collection'] = array(
     'title' => 'Core collection',
     'description' => 'Configure the core Islandora collection functionality.',
@@ -200,7 +210,7 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
   $query = 'SELECT $object $title $content
      FROM <#ri>
      WHERE {
-            $object $collection_predicate <info:fedora/'. $object->id . '> ;
+            $object $collection_predicate <info:fedora/' . $object->id . '> ;
                    <fedora-model:label> $title ;
                    <fedora-model:hasModel> $content ;
                    <fedora-model:state> <fedora-model:Active> .
@@ -373,7 +383,7 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
   $url_stub = 'admin/islandora/collection/management';
   $list = array();
   if (user_access(CREATE_CHILD_COLLECTION)) {
-    $list[] = l(t('Create child collection'), "$url_stub/new collection/$pid");
+    //$list[] = l(t('Create child collection'), "$url_stub/new collection/$pid");
   }
   if (user_access(MANAGE_COLLECTION_POLICY)) {
     $list[] = l(t('Manage collection policy'), "$url_stub/collection policy/$pid");
@@ -414,7 +424,25 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
  * @param string $pid
  * @return array
  */
-function islandora_collection_management_wrapper($function, $pid) {
+function islandora_collection_management_wrapper($function = NULL, $pid = NULL) {
+  //added to provide pathing if called from admin_menu
+  if ($function == NULL) {
+    global $base_url;
+    $failure_message = t('This menu is not applicable in this context.') . '<br />' .
+        t("To manage any given collection navigate to that collection's Manage tab, and select Collection");
+    $path = $_SERVER['HTTP_REFERER'];
+    if (!$path) {
+      return $failure_message;
+    }
+    $path = str_replace($base_url . '/islandora/object/', '', $path);
+    $path_parts = explode('/', $path);
+    $pid = $path_parts[0];
+    if (!$pid) {
+      return $failure_message;
+    }
+    drupal_goto("islandora/object/$pid/manage/collection");
+  }
+
   global $base_url;
   $overlay = "#overlay=islandora/object/$pid/manage/collection";
   $url = $base_url . "/islandora/object/$pid" . $overlay;
@@ -437,3 +465,4 @@ function islandora_collection_management_wrapper($function, $pid) {
   $form = drupal_get_form($mappings[$function], $object, $url);
   return $form;
 }
+
