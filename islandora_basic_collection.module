@@ -2,9 +2,9 @@
 
 /**
  * @file
- *
  * Provides functionality for creating/managing/deleting/viewing collections.
  */
+
 define('CREATE_CHILD_COLLECTION', 'create child collection');
 define('MANAGE_COLLECTION_POLICY', 'manage collection policy');
 define('MANAGE_CONTENT_MODEL_ASSOCIATION', 'manage content model association');
@@ -67,22 +67,38 @@ function islandora_basic_collection_menu() {
 }
 
 /**
+ * Implements hook_menu_alter().
+ */
+function islandora_basic_collection_menu_alter(&$items) {
+  // We want to add more permissions to the access arguments for the manage tab.
+  $current_access_arguments = $items['islandora/object/%islandora_object/manage']['access arguments'][0];
+  $new_access_arguments = array(
+    CREATE_CHILD_COLLECTION,
+    MANAGE_COLLECTION_POLICY,
+    MANAGE_CONTENT_MODEL_ASSOCIATION,
+    MIGRATE_COLLECTION_MEMBERS,
+  );
+  $new_access_arguments = array_merge($current_access_arguments, $new_access_arguments);
+  $items['islandora/object/%islandora_object/manage']['access arguments'] = array($new_access_arguments,2);
+}
+
+/**
  * Implements hook_islandora_required_objects().
  */
 function islandora_basic_collection_islandora_required_objects(IslandoraTuque $connection) {
   $module_path = drupal_get_path('module', 'islandora_basic_collection');
-  // Collection Content Model
+  // Collection Content Model.
   $collection_content_model = $connection->repository->constructObject('islandora:collectionCModel');
   $collection_content_model->owner = 'fedoraAdmin';
   $collection_content_model->label = 'Islandora Collection Content Model';
   $collection_content_model->models = 'fedora-system:ContentModel-3.0';
-  // ISLANDORACM Datastream
+  // ISLANDORACM Datastream.
   $datastream = $collection_content_model->constructDatastream('ISLANDORACM', 'X');
   $datastream->label = 'Islandora content model';
   $datastream->mimetype = 'text/xml';
   $datastream->setContentFromFile("$module_path/xml/islandora_basic_collection_content_model.xml", FALSE);
   $collection_content_model->ingestDatastream($datastream);
-  // DS-COMPOSITE-MODEL Datastream
+  // DS-COMPOSITE-MODEL Datastream.
   $datastream = $collection_content_model->constructDatastream('DS-COMPOSITE-MODEL', 'X');
   $datastream->label = 'DS-COMPOSITE-MODEL';
   $datastream->mimetype = 'text/xml';
@@ -92,19 +108,19 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
     'islandora_basic_collection' => array(
       'title' => 'Islandora basic collection',
       'objects' => array(
-        $collection_content_model
-      )
-    )
+        $collection_content_model,
+      ),
+    ),
   );
 }
 
 /**
  * Determine whether or not to show this modules manage tab.
  *
- * @param FedoraObject $fedora_object
+ * @param FedoraObject $object
  *   The object being managed.
  *
- * @return boolean
+ * @return bool
  *   TRUE if it should be shown, and FALSE if it should not be shown.
  */
 function islandora_basic_collection_access($object = NULL) {
@@ -118,9 +134,7 @@ function islandora_basic_collection_access($object = NULL) {
       islandora_basic_collection_ingest_access($object);
 
   // The user is allowed to manage, and the object has our content model.
-  $result = $access && islandora_object_manage_access_callback(array(FEDORA_MANAGE_DATASTREAMS, FEDORA_MANAGE_PROPERTIES, FEDORA_ADD_DS), $object) && in_array('islandora:collectionCModel', $object->models);
-
-  return $access && islandora_object_manage_access_callback(array(FEDORA_MANAGE_DATASTREAMS, FEDORA_MANAGE_PROPERTIES, FEDORA_ADD_DS), $object) && in_array('islandora:collectionCModel', $object->models);
+  return $access && in_array('islandora:collectionCModel', $object->models);
 }
 
 /**
@@ -197,9 +211,9 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
  *
  * @param FedoraObject $object
  *   The collection object whose members will be fetched.
- * @param integer $page_number
+ * @param int $page_number
  *   The page number in the query for members.
- * @param integer $page_size
+ * @param int $page_size
  *   The number of results per page page from the query for members.
  *
  * @return array
@@ -230,12 +244,13 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
     'type' => 'sparql',
     'pid' => $object->id,
     'page_size' => $page_size,
-    'page_number' => $page_number
+    'page_number' => $page_number,
   );
   drupal_alter('islandora_basic_collection_query', $query_array);
   try {
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
-  } catch (Exception $e) {
+  }
+  catch (Exception $e) {
     drupal_set_message(t('Islandora Error getting related objects for %s', array('%s' => $object->id)), 'error');
     return '';
   }
@@ -260,28 +275,27 @@ function islandora_basic_collection_permission() {
   return array(
     CREATE_CHILD_COLLECTION => array(
       'title' => t('Create child collections'),
-      'description' => t('Create new collections within an existing collection.')
+      'description' => t('Create new collections within an existing collection.'),
     ),
     MANAGE_COLLECTION_POLICY => array(
       'title' => t('Manage collection policies'),
-      'description' => t('Define which content models are available for each collection.')
+      'description' => t('Define which content models are available for each collection.'),
     ),
     MANAGE_CONTENT_MODEL_ASSOCIATION => array(
       'title' => t('Manage content model associations'),
-      'description' => t('Change content models for objects within a collection.')
+      'description' => t('Change content models for objects within a collection.'),
     ),
     MIGRATE_COLLECTION_MEMBERS => array(
       'title' => t('Migrate collection members'),
-      'description' => t('Move objects from one collection to another.')
+      'description' => t('Move objects from one collection to another.'),
     ),
   );
 }
 
 /**
- * Manage action that allows for the ingestion of an object into the given
- * collection.
+ * Manage action that for ingestion of an object into the given collection.
  *
- * @param FedoraObject $object.
+ * @param FedoraObject $object
  *   The collection to ingest into.
  *
  * @return array
@@ -312,14 +326,16 @@ function islandora_basic_collection_get_ingest_configuration(FedoraObject $objec
     $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
     return array(
       'collections' => array($object->id),
-      'models' => array_keys($policy->getContentModels())
+      'models' => array_keys($policy->getContentModels()),
     );
   }
   return FALSE;
 }
 
 /**
- * The collection needs to add some additional, information to the ingest object
+ * Alter the ingest form to handle a change in the selected content model.
+ *
+ * The collection needs to add some additional  information to the ingest object
  * based on what form association was used to select the metadata form. Namely
  * it needs to provide a default namespace, and collection to be ingested into.
  * To do this it appends its own submit handler on to the metadata step.
@@ -373,18 +389,20 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
 }
 
 /**
- * Responds to Islandora callback
+ * Manage Collection local task.
+ *
+ * Defines the actions to appear in the collection section of the Manage tab.
  *
  * @param FedoraObject $object
+ *   The collection object.
+ *
  * @return array
+ *   A renderable array.
  */
 function islandora_basic_collection_manager_object(FedoraObject $object) {
   $pid = $object->id;
   $url_stub = 'admin/islandora/collection/management';
   $list = array();
-  if (user_access(CREATE_CHILD_COLLECTION)) {
-    //$list[] = l(t('Create child collection'), "$url_stub/new collection/$pid");
-  }
   if (user_access(MANAGE_COLLECTION_POLICY)) {
     $list[] = l(t('Manage collection policy'), "$url_stub/collection policy/$pid");
   }
@@ -404,7 +422,7 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
     'items' => $list,
     'title' => NULL,
     'type' => 'ul',
-    'attributes' => array('class' => 'items')
+    'attributes' => array('class' => 'items'),
   );
   $content = theme_item_list($variables);
   $form = array();
@@ -417,15 +435,20 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
 }
 
 /**
- * Wraps  all management functions to direct user to file page
- * @global url $base_url
- * @param url $address
+ * Wraps all management functions to direct user to file page.
+ *
+ * @global string $base_url
+ *
  * @param string $function
+ *   Management function name.
  * @param string $pid
+ *   The collection object.
+ *
  * @return array
+ *   A Drupal form definition.
  */
 function islandora_collection_management_wrapper($function = NULL, $pid = NULL) {
-  //added to provide pathing if called from admin_menu
+  // Added to provide pathing if called from admin menu.
   if ($function == NULL) {
     global $base_url;
     $failure_message = t('This menu is not applicable in this context.') . '<br />' .
@@ -459,10 +482,9 @@ function islandora_collection_management_wrapper($function = NULL, $pid = NULL) 
     'collection policy' => 'collection_policy_management',
     'migrate' => 'islandora_collection_migrate_form',
     'change content model' => 'islandora_change_content_models_form',
-    'delete' => 'islandora_collection_deletion_form'
+    'delete' => 'islandora_collection_deletion_form',
   );
   $object = islandora_object_load($pid);
   $form = drupal_get_form($mappings[$function], $object, $url);
   return $form;
 }
-
