@@ -80,6 +80,18 @@ function islandora_basic_collection_menu_alter(&$items) {
   );
   $new_access_arguments = array_merge($current_access_arguments, $new_access_arguments);
   $items['islandora/object/%islandora_object/manage']['access arguments'] = array($new_access_arguments,2);
+  
+  //this is to put the add an object to this collection on the overview tab
+  $items['islandora/object/%islandora_object/manage/overview'] = array(
+   'title' => 'Add an object to this Collection',
+   'page callback' => 'islandora_basic_collection_ingest_action',
+   'page arguments' => array(2),
+   'type' => MENU_LOCAL_ACTION,
+   'access callback' => 'islandora_basic_collection_ingest_access',
+   'access arguments' => array(2),
+  );
+  
+  
 }
 
 /**
