@@ -64,10 +64,11 @@ function collection_policy_management_submit($form, &$form_state) {
   $collection_policy_xml = simplexml_load_string($collection_policy);
   foreach ($form_state['values']['table']['rows'] as $candidate) {
     if (in_array($candidate['identifier'], $chosen)) {
+      $cm_object = islandora_object_load($candidate['identifier']);
       $node = $collection_policy_xml->content_models->addChild('content_model');
       $node->addAttribute('dsid', 'ISLANDORACM');
       // prompt removed for this iteration
-      //  $node->addAttribute('name', $candidate['prompt']);
+      $node->addAttribute('name', $cm_object->label);
       $node->addAttribute('namespace', $candidate['namespace'] . ':1');
       $node->addAttribute('pid', $candidate['identifier']);
     }

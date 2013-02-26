@@ -99,6 +99,7 @@ function islandora_collection_migrate_form_submit($form, &$form_state) {
   $action = $form_state['values']['action_select'];
   foreach ($pids as $pid) {
     $fedora_object = islandora_object_load($pid);
+    $fedora_object->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $new_collection);
     $fedora_object->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $new_collection);
     if ($action == 'move') {
       $fedora_object->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $current);
