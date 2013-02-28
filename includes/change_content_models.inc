@@ -2,8 +2,9 @@
 
 /**
  * @file
- * ChangeContentModels.inc
+ *   ChangeContentModels.inc
  */
+
 function islandora_change_content_models_form($form, &$form_state, $collection_object, $url) {
   $collection_pid = $collection_object->id;
   $content_models = get_content_models_list($collection_object);
