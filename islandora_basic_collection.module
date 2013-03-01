@@ -466,9 +466,8 @@ function islandora_collection_management_wrapper($function = NULL, $pid = NULL) 
     drupal_goto("islandora/object/$pid/manage/collection");
   }
 
-  global $base_url;
-  $overlay = "#overlay=islandora/object/$pid/manage/collection";
-  $url = $base_url . "/islandora/object/$pid" . $overlay;
+  $url = "islandora/object/$pid/manage/collection";
+
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_manager_table');
   module_load_include('inc', 'islandora_basic_collection', 'includes/delete_collection');
