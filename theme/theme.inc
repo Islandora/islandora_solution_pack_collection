@@ -68,8 +68,11 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
   $islandora_object = $variables['islandora_object'];
 
   try {
-    $dc = $islandora_object['DC']->content;
-    $dc_object = DublinCore::importFromXMLString($dc);
+    $datastream = $islandora_object['DC'];
+    if (!empty($datastream)) {
+      $dc = $datastream->content;
+      $dc_object = DublinCore::importFromXMLString($dc);
+    }
   } catch (Exception $e) {
     drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
   }

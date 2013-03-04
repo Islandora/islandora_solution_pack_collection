@@ -252,7 +252,7 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
   }
   catch (Exception $e) {
     drupal_set_message(t('Islandora Error getting related objects for %s', array('%s' => $object->id)), 'error');
-    return '';
+    return array();
   }
   return $results;
 }
