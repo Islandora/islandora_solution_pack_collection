@@ -56,12 +56,31 @@ function islandora_basic_collection_menu() {
     'access arguments' => array(2),
   );
 
-  $items['admin/islandora/collection/management'] = array(
-    'title' => 'Collection Management',
+  $items['islandora/object/%islandora_object/manage/collection/collection-policy'] = array(
+    'title' => 'Manage Collection Policy',
     'page callback' => 'islandora_collection_management_wrapper',
-    'type' => MENU_LOCAL_TASK,
-    'access arguments' => array('administer site configuration'),
+    'type' => MENU_CALLBACK,
+    'access arguments' => array(MANAGE_COLLECTION_POLICY),
   );
+  $items['islandora/object/%islandora_object/manage/collection/migrate'] = array(
+    'title' => 'Manage Membership of Objects',
+    'page callback' => 'islandora_collection_management_wrapper',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array(MIGRATE_COLLECTION_MEMBERS),
+  );
+  $items['islandora/object/%islandora_object/manage/collection/change-content-model'] = array(
+    'title' => 'Change Content Models',
+    'page callback' => 'islandora_collection_management_wrapper',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array(MANAGE_CONTENT_MODEL_ASSOCIATION),
+  );
+  $items['islandora/object/%islandora_object/manage/collection/delete'] = array(
+    'title' => 'Delete Members',
+    'page callback' => 'islandora_collection_management_wrapper',
+    'type' => MENU_CALLBACK,
+    'access arguments' => array(FEDORA_PURGE),
+  );
+  
 
   return $items;
 }
@@ -79,7 +98,17 @@ function islandora_basic_collection_menu_alter(&$items) {
     MIGRATE_COLLECTION_MEMBERS,
   );
   $new_access_arguments = array_merge($current_access_arguments, $new_access_arguments);
-  $items['islandora/object/%islandora_object/manage']['access arguments'] = array($new_access_arguments,2);
+  $items['islandora/object/%islandora_object/manage']['access arguments'] = array($new_access_arguments, 2);
+  
+  //this is to put the add an object to this collection on the overview tab
+  $items['islandora/object/%islandora_object/manage/overview/ingest'] = array(
+   'title' => 'Add an object to this Collection',
+   'page callback' => 'islandora_basic_collection_ingest_action',
+   'page arguments' => array(2),
+   'type' => MENU_LOCAL_ACTION,
+   'access callback' => 'islandora_basic_collection_ingest_access',
+   'access arguments' => array(2),
+  );
 }
 
 /**
@@ -401,17 +430,19 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
  */
 function islandora_basic_collection_manager_object(FedoraObject $object) {
   $pid = $object->id;
-  $url_stub = 'admin/islandora/collection/management';
+  $url_stub = "islandora/object/$pid/manage/collection";
   $list = array();
   if (user_access(MANAGE_COLLECTION_POLICY)) {
-    $list[] = l(t('Manage collection policy'), "$url_stub/collection policy/$pid");
+    $list[] = l(t('Manage collection policy'), "$url_stub/collection-policy/collection-policy/$pid");
   }
   if (user_access(MIGRATE_COLLECTION_MEMBERS)) {
-    $list[] = l(t('Manage collection membership'), "$url_stub/migrate/$pid");
+    $list[] = l(t('Manage collection membership'), "$url_stub/migrate/migrate/$pid");
   }
-  $list[] = l(t('Change content models'), "$url_stub/change content model/$pid");
+  if (user_access(MANAGE_CONTENT_MODEL_ASSOCIATION)) {
+    $list[] = l(t('Change content models'), "$url_stub/change-content-model/change-content-model/$pid");
+  }
   if (user_access(FEDORA_PURGE)) {
-    $list[] = l(t('Delete members of this collection'), "$url_stub/delete/$pid");
+    $list[] = l(t('Delete members of this collection'), "$url_stub/delete/delete/$pid");
   }
   $extras = module_invoke_all('islandora_collection_mangement', $pid);
   foreach ($extras as $extra) {
@@ -430,7 +461,6 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
   $form['collection_policy_link'] = array(
     '#markup' => $content,
   );
-
   return $form;
 }
 
@@ -448,25 +478,6 @@ function islandora_basic_collection_manager_object(FedoraObject $object) {
  *   A Drupal form definition.
  */
 function islandora_collection_management_wrapper($function = NULL, $pid = NULL) {
-  // Added to provide pathing if called from admin menu.
-  if ($function == NULL) {
-    global $base_url;
-    $failure_message = t('This menu is not applicable in this context.') . '<br />' .
-        t("To manage any given collection navigate to that collection's Manage tab, and select Collection");
-    $path = $_SERVER['HTTP_REFERER'];
-    if (!$path) {
-      return $failure_message;
-    }
-    $path = str_replace($base_url . '/islandora/object/', '', $path);
-    $path_parts = explode('/', $path);
-    $pid = $path_parts[0];
-    if (!$pid) {
-      return $failure_message;
-    }
-    drupal_goto("islandora/object/$pid/manage/collection");
-  }
-
-  $url = "islandora/object/$pid/manage/collection";
 
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_manager_table');
@@ -478,12 +489,13 @@ function islandora_collection_management_wrapper($function = NULL, $pid = NULL) 
   module_load_include('inc', 'islandora_basic_collection', 'includes/collection_policy_management');
   $mappings = array(
     'new collection' => 'islandora_create_child_collection_form',
-    'collection policy' => 'collection_policy_management',
+    'collection-policy' => 'collection_policy_management',
     'migrate' => 'islandora_collection_migrate_form',
-    'change content model' => 'islandora_change_content_models_form',
+    'change-content-model' => 'islandora_change_content_models_form',
     'delete' => 'islandora_collection_deletion_form',
   );
   $object = islandora_object_load($pid);
+  $url = "islandora/object/$pid/manage/collection";
   $form = drupal_get_form($mappings[$function], $object, $url);
   return $form;
 }

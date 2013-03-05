@@ -1,5 +1,10 @@
 <?php
 
+/**
+ * @file
+ * Function to test manage permissions for islandora_solution_pack_collection
+ */
+ 
 module_load_include('inc', 'islandora', 'tests/islandora_web_test_case');
 
 class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
@@ -36,7 +41,7 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->clickLink(t('Manage'));
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
-    $this->assertNoLink('Datastreams','Datastreams tab is not on current page.');
+    $this->assertNoLink('Datastreams', 'Datastreams tab is not on current page.');
     
      // permission FEDORA_VIEW_OBJECTS, MANAGE_COLLECTION_POLICY
     $user = $this->drupalCreateUser(array(FEDORA_VIEW_OBJECTS, MANAGE_COLLECTION_POLICY));
@@ -47,7 +52,7 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->clickLink(t('Manage'));
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
-    $this->assertNoLink('Datastreams','Datastreams tab is not on current page.');
+    $this->assertNoLink('Datastreams', 'Datastreams tab is not on current page.');
     
     
      // permission FEDORA_VIEW_OBJECTS, MANAGE_CONTENT_MODEL_ASSOCIATION
@@ -59,7 +64,7 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->clickLink(t('Manage'));
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
-    $this->assertNoLink('Datastreams','Datastreams tab is not on current page.');
+    $this->assertNoLink('Datastreams', 'Datastreams tab is not on current page.');
     
     
      // permission FEDORA_VIEW_OBJECTS, MIGRATE_COLLECTION_MEMBERS
@@ -71,7 +76,7 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->clickLink(t('Manage'));
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
-    $this->assertNoLink('Datastreams','Datastreams tab is not on current page.');
+    $this->assertNoLink('Datastreams', 'Datastreams tab is not on current page.');
     
     
   }
