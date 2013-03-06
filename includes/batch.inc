@@ -1,0 +1,289 @@
+<?php
+
+/**
+ * @file
+ * This file contains all the batch operations for collection objects.
+ */
+
+require_once dirname(__FILE__) . '/utilities.inc';
+
+/**
+ * Starts the batch operation.
+ *
+ * @param array $operands
+ *   All the objects to operate on.
+ * @param array $context
+ *   The context of this batch operation.
+ */
+function islandora_basic_collection_start_operation(array $operands, array &$context) {
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['total'] = count($operands);
+  }
+  return @$operands[$context['sandbox']['progress']];
+}
+
+/**
+ * Ends the batch operation.
+ *
+ * @param array $context
+ *   The context of this batch operation.
+ */
+function islandora_basic_collection_end_operation(array &$context) {
+  $context['sandbox']['progress']++;
+  if ($context['sandbox']['progress'] < $context['sandbox']['total']) {
+    $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['total'];
+    return FALSE;
+  }
+  return TRUE;
+}
+
+/**
+ * The batch 'finished' callback.
+ */
+function islandora_basic_collection_batch_finished($success, $results, $operations) {
+  if (!$success) {
+    // Generic Error Message.
+    $error_operation = reset($operations);
+    $message = t('An error occurred while processing %error_operation with arguments: @arguments', array(
+                 '%error_operation' => $error_operation[0],
+                 '@arguments' => print_r($error_operation[1], TRUE)));
+    drupal_set_message($message, 'error');
+  }
+}
+
+/**
+ * Changes the content model of all immediate children.
+ *
+ * Note this will not modify grandchildren only immediate children.
+ *
+ * @param FedoraObject $collection
+ *   The collection object within which the operation will take place.
+ * @param FedoraObject $current
+ *   The current model.
+ * @param FedoraObject $new
+ *   The new model.
+ *
+ * @return array
+ *   The batch definition.
+ */
+function islandora_basic_collection_change_content_model_batch(FedoraObject $collection, FedoraObject $current, FedoraObject $new, $children = NULL) {
+  $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection, $current->id);
+  $parameters = array($current, $new, $children);
+  $change_model_operation = array('islandora_basic_collection_change_content_model_batch_operation', $parameters);
+  $message_parameters = array('@current' => $current->label, '@new' => $new->label);
+  return array(
+    'operations' => array($change_model_operation),
+    'finished' => 'islandora_basic_collection_batch_finished',
+    'title' => t('Changing content model from @current to @new', $message_parameters),
+    'init_message' => t('Preparing to change content model from @current to @new.', $message_parameters),
+    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
+    'error_message' => t('An error has occurred.'),
+    'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
+  );
+}
+
+/**
+ * Changes the content model of the given objects.
+ *
+ * @param FedoraObject $current
+ *   The current model.
+ * @param FedoraObject $new
+ *   The new model.
+ * @param array $children
+ *   The PIDs of all the objects to change.
+ * @param array $context
+ *   The batch context.
+ */
+function islandora_basic_collection_change_content_model_batch_operation(FedoraObject $current, FedoraObject $new, array $children, array &$context) {
+  $object = islandora_basic_collection_start_operation($children, $context);
+  if ($object && $object = islandora_object_load($object)) {
+    $object->relationships->remove(FEDORA_MODEL_URI, 'hasModel', $current->id);
+    $object->relationships->add(FEDORA_MODEL_URI, 'hasModel', $new->id);
+  }
+  if (islandora_basic_collection_end_operation($context)) {
+    drupal_set_message(t('@current changed to @new on @count objects', array(
+          '@current' => $current->id,
+          '@new' => $new->id,
+          '@count' => count($children))));
+  }
+}
+
+/**
+ * Delete the given child objects within the collection.
+ *
+ * If no child objects are given its assumed all child objects are to be
+ * deleted.
+ *
+ * @param FedoraObject $collection
+ *   The collection object to purge the children from.
+ * @param array $children
+ *   The PID's of the children to delete, if NULL delete all child objects.
+ *
+ * @return array
+ *   The batch definition.
+ */
+function islandora_basic_collection_delete_children_batch(FedoraObject $collection, $children = NULL) {
+  $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
+  $parameters = array($collection, $children);
+  $delete_child_operation = array('islandora_basic_collection_delete_children_batch_operation', $parameters);
+  $message_parameters = array('@collection' => $collection->label, '@count' => count($children));
+  return array(
+    'operations' => array($delete_child_operation),
+    'finished' => 'islandora_basic_collection_batch_finished',
+    'title' => t('Deleting @count children from @collection', $message_parameters),
+    'init_message' => t('Preparing to delete @count children from @collection.', $message_parameters),
+    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
+    'error_message' => t('An error has occurred.'),
+    'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
+  );
+}
+
+/**
+ * Deletes the given children from the given collection.
+ *
+ * Children are only deleted if the given collection is there only parent,
+ * otherwise they are removed from the given collection.
+ *
+ * @param FedoraObject $collection
+ *   The collection object to purge the children from.
+ * @param array $children
+ *   The PID's of the children to delete.
+ * @param array $context
+ *   The batch context.
+ */
+function islandora_basic_collection_delete_children_batch_operation(FedoraObject $collection, array $children, array &$context) {
+  $child = islandora_basic_collection_start_operation($children, $context);
+  if ($child && $child = islandora_object_load($child)) {
+    $parents = islandora_basic_collection_get_parent_pids($child);
+    // If only one parent, delete the object.
+    if (count($parents) == 1 && in_array($collection->id, $parents)) {
+      islandora_delete_object($child);
+    }
+    else {
+      // If more than one parent, only remove parent relationship.
+      $child->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
+      $child->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOf', $collection->id);
+    }
+  }
+  if (islandora_basic_collection_end_operation($context)) {
+    drupal_set_message(t('Deleted @count children from @collection.', array(
+          '@collection' => $collection->label,
+          '@count' => count($children))));
+  }
+}
+
+/**
+ * Migrate the given child objects from the source to destination collection.
+ *
+ * If no child objects are given its assumed all child objects are to be
+ * migrated.
+ *
+ * @param FedoraObject $source
+ *   The source collection object.
+ * @param FedoraObject $destination
+ *   The destination collection object.
+ * @param array $children
+ *   The PID's of the children to migrate, if NULL migrate all child objects.
+ *
+ * @return array
+ *   The batch definition.
+ */
+function islandora_basic_collection_migrate_children_batch(FedoraObject $source, FedoraObject $destination, $children = NULL) {
+  $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
+  $parameters = array($source, $destination, $children);
+  $migrate_operation = array('islandora_basic_collection_migrate_children_batch_operation', $parameters);
+  $message_parameters = array('@source' => $source->label, '@destination' => $destination->label);
+  return array(
+    'operations' => array($migrate_operation),
+    'finished' => 'islandora_basic_collection_batch_finished',
+    'title' => t('Migrating children from @source to @destination', $message_parameters),
+    'init_message' => t('Preparing to migrate children from @source to @destination.', $message_parameters),
+    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
+    'error_message' => t('An error has occurred.'),
+    'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
+  );
+}
+
+/**
+ * Moves the given children from the current collection to the new collection.
+ *
+ * @param FedoraObject $source
+ *   The collection object the children are from.
+ * @param FedoraObject $destination
+ *   The destination collection.
+ * @param array $children
+ *   The PID's of the children to migrate.
+ * @param array $context
+ *   The batch context.
+ */
+function islandora_basic_collection_migrate_children_batch_operation(FedoraObject $source, FedoraObject $destination, array $children, array &$context) {
+  $child = islandora_basic_collection_start_operation($children, $context);
+  if ($child && $child = islandora_object_load($child)) {
+    $child->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $source->id);
+    $child->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $destination->id);
+  }
+  if (islandora_basic_collection_end_operation($context)) {
+    drupal_set_message(t('Migrated @count children from @source to @destination.', array(
+          '@source' => $source->label,
+          '@destination' => $destination->label,
+          '@count' => count($children))));
+  }
+}
+
+/**
+ * Copy the given child objects from the source to destination collection.
+ *
+ * If no child objects are given its assumed all child objects are to be
+ * copied.
+ *
+ * @param FedoraObject $source
+ *   The source collection object.
+ * @param FedoraObject $destination
+ *   The destination collection object.
+ * @param array $children
+ *   The PID's of the children to copy, if NULL copy all child objects.
+ *
+ * @return array
+ *   The batch definition.
+ */
+function islandora_basic_collection_copy_children_batch(FedoraObject $source, FedoraObject $destination, $children = NULL) {
+  $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
+  $parameters = array($source, $destination, $children);
+  $copy_operation = array('islandora_basic_collection_copy_children_batch_operation', $parameters);
+  $message_parameters = array('@source' => $source->label, '@destination' => $destination->label);
+  return array(
+    'operations' => array($copy_operation),
+    'finished' => 'islandora_basic_collection_batch_finished',
+    'title' => t('Copying children from @source to @destination', $message_parameters),
+    'init_message' => t('Preparing to copy children from @source to @destination.', $message_parameters),
+    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
+    'error_message' => t('An error has occurred.'),
+    'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
+  );
+}
+
+/**
+ * Moves the given children from the current collection to the new collection.
+ *
+ * @param FedoraObject $source
+ *   The collection object the children are from.
+ * @param FedoraObject $destination
+ *   The destination collection.
+ * @param array $children
+ *   The PID's of the children to copy.
+ * @param array $context
+ *   The batch context.
+ */
+function islandora_basic_collection_copy_children_batch_operation(FedoraObject $source, FedoraObject $destination, array $children, array &$context) {
+  $child = islandora_basic_collection_start_operation($children, $context);
+  if ($child && $child = islandora_object_load($child)) {
+    $child->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $destination->id);
+  }
+  if (islandora_basic_collection_end_operation($context)) {
+    drupal_set_message(t('Copied @count children from @source to @destination.', array(
+          '@source' => $source->label,
+          '@destination' => $destination->label,
+          '@count' => count($children))));
+  }
+}
