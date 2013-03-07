@@ -25,6 +25,7 @@ function islandora_basic_collection_manage_object(FedoraObject $object) {
   $access = array(
     'create_child_collection' => islandora_basic_collection_ingest_child_collection_access($object),
     'policy_management' => user_access(MANAGE_COLLECTION_POLICY),
+    'share_children' => user_access(MIGRATE_COLLECTION_MEMBERS),
     'migrate_children' => user_access(MIGRATE_COLLECTION_MEMBERS),
     'delete_children' => user_access(FEDORA_PURGE),
   );
@@ -52,6 +53,14 @@ function islandora_basic_collection_manage_object(FedoraObject $object) {
         '#type' => 'fieldset',
         '#title' => t('Manage collection policy'),
         'form' => $forms['policy_management'],
+      ),
+      'share_children' => array(
+        '#id' => 'share-children',
+        '#group' => 'manage_collection_object',
+        '#access' => $access['share_children'],
+        '#type' => 'fieldset',
+        '#title' => t('Share members'),
+        'form' => $forms['share_children'],
       ),
       'migrate_children' => array(
         '#id' => 'migrate-children',
@@ -205,7 +214,7 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
   $child_collection->ingestDatastream($policy_datastream);
   // Ingest the new object.
   islandora_add_object($child_collection);
-  drupal_goto('/islandora/object/' . $child_collection->id);
+  drupal_goto('islandora/object/' . $child_collection->id);
 }
 
 /**
@@ -290,6 +299,57 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
 }
 
 /**
+ * Define the share children form.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @param FedoraObject $object
+ *   The collection to share child objects from.
+ *
+ * @return array
+ *   The Drupal form definition.
+ */
+function islandora_basic_collection_share_children_form(array $form, array &$form_state, FedoraObject $object) {
+  $form_state['collection'] = $object;
+  $fragment = '#share-children';
+  return array(
+    '#action' => request_uri() . $fragment,
+    'collection' => array(
+      '#title' => t('Share members with collection'),
+      '#description' => t("Members can be shared with any number of collections."),
+      '#type' => 'select',
+      '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
+    ),
+    'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
+                  'element' => 0,
+                  'fragment' => $fragment,
+                )),
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => t('Share selected objects'),
+    ),
+  );
+}
+
+/**
+ * Submit handler for the share children form.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_basic_collection_share_children_form_submit(array $form, array &$form_state) {
+  $collection = $form_state['collection'];
+  $new_collection = islandora_object_load($form_state['values']['collection']);
+  $children = array_keys(array_filter($form_state['values']['children']));
+  $batch = islandora_basic_collection_share_children_batch($collection, $new_collection, $children);
+  batch_set($batch);
+}
+
+/**
  * Define the migrate children form.
  *
  * @param array $form
@@ -304,33 +364,18 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
  */
 function islandora_basic_collection_migrate_children_form(array $form, array &$form_state, FedoraObject $object) {
   $form_state['collection'] = $object;
-  $map_new_collection_options = function($o) {
-    return $o['label'];
-  };
-  $new_collection_options = array_map($map_new_collection_options, islandora_basic_collection_get_collections());
-  // Can't copy/migrate to my self.
-  unset($new_collection_options[$object->id]);
+  $fragment = '#migrate-children';
   return array(
-    '#action' => request_uri() . '#migrate-children',
-    'action' => array(
-      '#title' => t('Move or copy the selected objects'),
-      '#type' => 'radios',
-      '#options' => array(
-        'move' => 'Move',
-        'copy' => 'Copy',
-      ),
-      '#default_value' => 'copy',
-      '#description' => t('Objects can belong to one or many collections.'),
-    ),
-    'new_collection' => array(
-      '#title' => t('To new collection'),
-      '#description' => t("All content will be migrated from @pid to the selected collection", array('@pid' => $object->id)),
+    '#action' => request_uri() . $fragment,
+    'collection' => array(
+      '#title' => t('Migrate members to collection'),
+      '#description' => t('Removes members from their current collection "%label" and adds them to the selected collection', array('%label' => $object->label)),
       '#type' => 'select',
-      '#options' => $new_collection_options,
+      '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 0,
-                  'fragment' => '#migrate-children',
+                  'element' => 1,
+                  'fragment' => $fragment,
                 )),
     'submit' => array(
       '#type' => 'submit',
@@ -349,14 +394,9 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
  */
 function islandora_basic_collection_migrate_children_form_submit(array $form, array &$form_state) {
   $collection = $form_state['collection'];
-  $new_collection = islandora_object_load($form_state['values']['new_collection']);
+  $new_collection = islandora_object_load($form_state['values']['collection']);
   $children = array_keys(array_filter($form_state['values']['children']));
-  if ($form_state['values']['action'] == 'move') {
-    $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, $children);
-  }
-  else {
-    $batch = islandora_basic_collection_copy_children_batch($collection, $new_collection, $children);
-  }
+  $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, $children);
   batch_set($batch);
 }
 
@@ -378,7 +418,7 @@ function islandora_basic_collection_delete_children_form(array $form, array &$fo
   return array(
     '#action' => request_uri() . '#delete-children',
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 1,
+                  'element' => 2,
                   'fragment' => '#delete-children',
                 )),
     'description' => array(

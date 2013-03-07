@@ -98,20 +98,19 @@ function islandora_basic_collection_delete_children_batch(FedoraObject $collecti
 function islandora_basic_collection_delete_children_batch_operation(FedoraObject $collection, array $children, array &$context) {
   $child = islandora_basic_collection_start_operation($children, $context);
   if ($child && $child = islandora_object_load($child)) {
-    $parents = islandora_basic_collection_get_parent_pids($child);
+    $other_parents = islandora_basic_collection_get_other_parents($child, $collection);
     // If only one parent, delete the object.
-    if (count($parents) == 1 && in_array($collection->id, $parents)) {
+    if (empty($other_parents)) {
       islandora_delete_object($child);
     }
     else {
       // If more than one parent, only remove parent relationship.
-      $child->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
-      $child->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOf', $collection->id);
+      islandora_basic_collection_remove_from_collection($child, $collection);
     }
   }
   if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('Deleted @count children from @collection.', array(
-          '@collection' => $collection->label,
+    drupal_set_message(t('Deleted @count children from !collection.', array(
+          '!collection' => l($collection->label, "islandora/object/{$collection->id}"),
           '@count' => count($children))));
   }
 }
@@ -163,43 +162,43 @@ function islandora_basic_collection_migrate_children_batch(FedoraObject $source,
 function islandora_basic_collection_migrate_children_batch_operation(FedoraObject $source, FedoraObject $destination, array $children, array &$context) {
   $child = islandora_basic_collection_start_operation($children, $context);
   if ($child && $child = islandora_object_load($child)) {
-    $child->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $source->id);
-    $child->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $destination->id);
+    islandora_basic_collection_add_to_collection($child, $destination);
+    islandora_basic_collection_remove_from_collection($child, $source);
   }
   if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('Migrated @count children from @source to @destination.', array(
-          '@source' => $source->label,
-          '@destination' => $destination->label,
+    drupal_set_message(t('Migrated @count children from !source to !destination.', array(
+          '!source' => l($source->label, "islandora/object/{$source->id}"),
+          '!destination' => l($destination->label, "islandora/object/{$destination->id}"),
           '@count' => count($children))));
   }
 }
 
 /**
- * Copy the given child objects from the source to destination collection.
+ * Share the given child objects from the source with destination collection.
  *
  * If no child objects are given its assumed all child objects are to be
- * copied.
+ * shared.
  *
  * @param FedoraObject $source
  *   The source collection object.
  * @param FedoraObject $destination
  *   The destination collection object.
  * @param array $children
- *   The PID's of the children to copy, if NULL copy all child objects.
+ *   The PID's of the children to share, if NULL share all child objects.
  *
  * @return array
  *   The batch definition.
  */
-function islandora_basic_collection_copy_children_batch(FedoraObject $source, FedoraObject $destination, $children = NULL) {
+function islandora_basic_collection_share_children_batch(FedoraObject $source, FedoraObject $destination, $children = NULL) {
   $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
   $parameters = array($source, $destination, $children);
-  $copy_operation = array('islandora_basic_collection_copy_children_batch_operation', $parameters);
+  $copy_operation = array('islandora_basic_collection_share_children_batch_operation', $parameters);
   $message_parameters = array('@source' => $source->label, '@destination' => $destination->label);
   return array(
     'operations' => array($copy_operation),
     'finished' => 'islandora_basic_collection_batch_finished',
-    'title' => t('Copying children from @source to @destination', $message_parameters),
-    'init_message' => t('Preparing to copy children from @source to @destination.', $message_parameters),
+    'title' => t('Sharing children from @source to @destination', $message_parameters),
+    'init_message' => t('Preparing to share children from @source to @destination.', $message_parameters),
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
     'error_message' => t('An error has occurred.'),
     'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
@@ -207,26 +206,26 @@ function islandora_basic_collection_copy_children_batch(FedoraObject $source, Fe
 }
 
 /**
- * Moves the given children from the current collection to the new collection.
+ * Shares the given children from the current collection to the new collection.
  *
  * @param FedoraObject $source
  *   The collection object the children are from.
  * @param FedoraObject $destination
  *   The destination collection.
  * @param array $children
- *   The PID's of the children to copy.
+ *   The PID's of the children to share.
  * @param array $context
  *   The batch context.
  */
-function islandora_basic_collection_copy_children_batch_operation(FedoraObject $source, FedoraObject $destination, array $children, array &$context) {
+function islandora_basic_collection_share_children_batch_operation(FedoraObject $source, FedoraObject $destination, array $children, array &$context) {
   $child = islandora_basic_collection_start_operation($children, $context);
   if ($child && $child = islandora_object_load($child)) {
-    $child->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $destination->id);
+    islandora_basic_collection_add_to_collection($child, $destination);
   }
   if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('Copied @count children from @source to @destination.', array(
-          '@source' => $source->label,
-          '@destination' => $destination->label,
+    drupal_set_message(t('Shared @count children from !source with !destination.', array(
+          '!source' => l($source->label, "islandora/object/{$source->id}"),
+          '!destination' => l($destination->label, "islandora/object/{$destination->id}"),
           '@count' => count($children))));
   }
 }
