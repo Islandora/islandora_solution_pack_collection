@@ -163,7 +163,7 @@ function islandora_basic_collection_get_parent_pids(FedoraObject $object) {
     return $o['object']['value'];
   };
   $collections = array_map($map_results, $results);
-  return array_filter($collections);
+  return array_unique(array_filter($collections));
 }
 
 /**

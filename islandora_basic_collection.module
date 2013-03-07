@@ -226,6 +226,24 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
 }
 
 /**
+ * Implements hook_islandora_view_object().
+ */
+function islandora_basic_collection_islandora_overview_object(FedoraObject $object) {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
+  if (!in_array('islandora:collectionCModel', $object->models)) {
+    $map_to_row = function($o) {
+      $o = islandora_object_load($o);
+      return array(l($o->label, "islandora/object/{$o->id}"));
+    };
+    $pids = islandora_basic_collection_get_parent_pids($object);
+    $rows = array_map($map_to_row, $pids);
+    return array(
+      'collection' => theme('table', array('header' => array(t('Parent Collections')), 'rows' => $rows, 'empty' => t('No parent collections'))),
+    );
+  }
+}
+
+/**
  * Get objects associated with this object.
  *
  * Currently, we are only concerned with the with isMemberOf and
