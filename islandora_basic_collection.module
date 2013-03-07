@@ -8,7 +8,6 @@
 // Constants.
 define('CREATE_CHILD_COLLECTION', 'create child collection');
 define('MANAGE_COLLECTION_POLICY', 'manage collection policy');
-define('MANAGE_CONTENT_MODEL_ASSOCIATION', 'manage content model association');
 define('MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
 
 /**
@@ -31,7 +30,7 @@ function islandora_basic_collection_menu() {
       'page arguments' => array(2),
       'type' => MENU_LOCAL_TASK,
       'file' => 'includes/manage_collection.inc',
-      'access callback' => 'islandora_basic_collection_access',
+      'access callback' => 'islandora_basic_collection_manage_access',
       'access arguments' => array(2),
     ),
     'islandora/object/%islandora_object/manage/collection/ingest' => array(
@@ -55,7 +54,6 @@ function islandora_basic_collection_menu_alter(&$items) {
   $new_access_arguments = array(
     CREATE_CHILD_COLLECTION,
     MANAGE_COLLECTION_POLICY,
-    MANAGE_CONTENT_MODEL_ASSOCIATION,
     MIGRATE_COLLECTION_MEMBERS,
   );
   $new_access_arguments = array_merge($current_access_arguments, $new_access_arguments);
@@ -103,18 +101,14 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
  * @return bool
  *   TRUE if it should be shown, and FALSE if it should not be shown.
  */
-function islandora_basic_collection_access($object = NULL) {
-  if (!isset($object)) {
+function islandora_basic_collection_manage_access($object = NULL) {
+  if (!is_object($object) || !in_array('islandora:collectionCModel', $object->models)) {
     return FALSE;
   }
-  $access = islandora_basic_collection_ingest_child_collection_access($object) ||
+  return islandora_basic_collection_ingest_child_collection_access($object) ||
     user_access(MANAGE_COLLECTION_POLICY) ||
-    user_access(MANAGE_CONTENT_MODEL_ASSOCIATION) ||
     user_access(MIGRATE_COLLECTION_MEMBERS) ||
     islandora_basic_collection_ingest_access($object);
-
-  // The user is allowed to manage, and the object has our content model.
-  return $access && in_array('islandora:collectionCModel', $object->models);
 }
 
 /**
@@ -124,12 +118,10 @@ function islandora_basic_collection_access($object = NULL) {
  *   TRUE if the user has access, FALSE otherwise.
  */
 function islandora_basic_collection_ingest_child_collection_access($object = NULL) {
-  $can_access = is_object($object) &&
-    isset($object['COLLECTION_POLICY']) &&
-    in_array('islandora:collectionCModel', $object->models) &&
-    user_access(FEDORA_INGEST) &&
-    user_access(CREATE_CHILD_COLLECTION);
-  if (!$can_access) {
+  $user_access = user_access(FEDORA_INGEST) && user_access(CREATE_CHILD_COLLECTION);
+  $is_collection = is_object($object) && in_array('islandora:collectionCModel', $object->models);
+  $has_policy = isset($object['COLLECTION_POLICY']);
+  if (!($user_access && $is_collection && $has_policy)) {
     return FALSE;
   }
   $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
@@ -311,10 +303,6 @@ function islandora_basic_collection_permission() {
     MANAGE_COLLECTION_POLICY => array(
       'title' => t('Manage collection policies'),
       'description' => t('Define which content models are available for each collection.'),
-    ),
-    MANAGE_CONTENT_MODEL_ASSOCIATION => array(
-      'title' => t('Manage content model associations'),
-      'description' => t('Change content models for objects within a collection.'),
     ),
     MIGRATE_COLLECTION_MEMBERS => array(
       'title' => t('Migrate collection members'),

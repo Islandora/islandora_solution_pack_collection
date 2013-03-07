@@ -53,63 +53,6 @@ function islandora_basic_collection_batch_finished($success, $results, $operatio
 }
 
 /**
- * Changes the content model of all immediate children.
- *
- * Note this will not modify grandchildren only immediate children.
- *
- * @param FedoraObject $collection
- *   The collection object within which the operation will take place.
- * @param FedoraObject $current
- *   The current model.
- * @param FedoraObject $new
- *   The new model.
- *
- * @return array
- *   The batch definition.
- */
-function islandora_basic_collection_change_content_model_batch(FedoraObject $collection, FedoraObject $current, FedoraObject $new, $children = NULL) {
-  $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection, $current->id);
-  $parameters = array($current, $new, $children);
-  $change_model_operation = array('islandora_basic_collection_change_content_model_batch_operation', $parameters);
-  $message_parameters = array('@current' => $current->label, '@new' => $new->label);
-  return array(
-    'operations' => array($change_model_operation),
-    'finished' => 'islandora_basic_collection_batch_finished',
-    'title' => t('Changing content model from @current to @new', $message_parameters),
-    'init_message' => t('Preparing to change content model from @current to @new.', $message_parameters),
-    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
-    'error_message' => t('An error has occurred.'),
-    'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
-  );
-}
-
-/**
- * Changes the content model of the given objects.
- *
- * @param FedoraObject $current
- *   The current model.
- * @param FedoraObject $new
- *   The new model.
- * @param array $children
- *   The PIDs of all the objects to change.
- * @param array $context
- *   The batch context.
- */
-function islandora_basic_collection_change_content_model_batch_operation(FedoraObject $current, FedoraObject $new, array $children, array &$context) {
-  $object = islandora_basic_collection_start_operation($children, $context);
-  if ($object && $object = islandora_object_load($object)) {
-    $object->relationships->remove(FEDORA_MODEL_URI, 'hasModel', $current->id);
-    $object->relationships->add(FEDORA_MODEL_URI, 'hasModel', $new->id);
-  }
-  if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('@current changed to @new on @count objects', array(
-          '@current' => $current->id,
-          '@new' => $new->id,
-          '@count' => count($children))));
-  }
-}
-
-/**
  * Delete the given child objects within the collection.
  *
  * If no child objects are given its assumed all child objects are to be

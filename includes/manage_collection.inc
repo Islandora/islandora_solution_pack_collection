@@ -25,7 +25,6 @@ function islandora_basic_collection_manage_object(FedoraObject $object) {
   $access = array(
     'create_child_collection' => islandora_basic_collection_ingest_child_collection_access($object),
     'policy_management' => user_access(MANAGE_COLLECTION_POLICY),
-    'change_content_models' => user_access(MANAGE_CONTENT_MODEL_ASSOCIATION),
     'migrate_children' => user_access(MIGRATE_COLLECTION_MEMBERS),
     'delete_children' => user_access(FEDORA_PURGE),
   );
@@ -53,14 +52,6 @@ function islandora_basic_collection_manage_object(FedoraObject $object) {
         '#type' => 'fieldset',
         '#title' => t('Manage collection policy'),
         'form' => $forms['policy_management'],
-      ),
-      'change_content_models' => array(
-        '#id' => 'change-content-models',
-        '#group' => 'manage_collection_object',
-        '#access' => $access['change_content_models'],
-        '#type' => 'fieldset',
-        '#title' => t('Change content models'),
-        'form' => $forms['change_content_models'],
       ),
       'migrate_children' => array(
         '#id' => 'migrate-children',
@@ -297,161 +288,6 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
   $collection['COLLECTION_POLICY']->content = $policy->getXML();
   drupal_set_message(t('Updated Collection Policy'));
 }
-
-/**
- * Change the supported content models for the given collection.
- *
- * Modifies the collections COLLECTION_POLICY datastream.
- *
- * @param array $form
- *   The Drupal form definition.
- * @param array $form_state
- *   The Drupal form state.
- * @param FedoraObject $object
- *   The collection to add the child collection to.
- *
- * @return array
- *   The Drupal form definition.
- */
-function islandora_basic_collection_change_content_models_form(array $form, array &$form_state, FedoraObject $object) {
-  module_load_include('inc', 'islandora', 'includes/utilities');
-  $form_state['collection'] = $object;
-  $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
-  $form_state['policy_content_models'] = $policy_content_models = $policy->getContentModels();
-  $form_state['content_models'] = $content_models = islandora_get_content_models();
-  $show_namespace_for_content_models = array_keys(array_diff_key($content_models, $policy_content_models));
-  $default_namespace = drupal_substr($object->id, 0, strpos($object->id, ":"));
-  $namespace = islandora_basic_collection_get_namespace_form_element($default_namespace);
-  $namespace['#element_validate'] = array('islandora_basic_collection_change_content_models_form_validate_namespace');
-  $namespace['#states'] = array('visible' => array());
-  foreach ($show_namespace_for_content_models as $content_model) {
-    $namespace['#states']['visible'][] = array(
-      ":input[name='new_content_model'],value='$content_model'" => array('value' => $content_model),
-    );
-  }
-  return array(
-    '#action' => request_uri() . '#change-content-models',
-    'current_content_model' => array(
-      '#title' => "Choose content model to be changed",
-      '#type' => 'select',
-      '#options' => islandora_basic_collection_get_content_models_as_form_options($policy_content_models),
-      '#description' => t("All objects in this collection with the selected content model will be changed."),
-    ),
-    'new_content_model' => array(
-      '#title' => "Choose new content model",
-      '#type' => 'select',
-      '#options' => islandora_basic_collection_get_content_models_as_form_options($content_models),
-      '#description' => t("The new content model to be assigned to selected objects."),
-    ),
-    'namespace' => $namespace,
-    'submit' => array(
-      '#type' => 'submit',
-      '#value' => t('Change content model associations'),
-    ),
-  );
-}
-
-/**
- * Validates the namespace form element.
- *
- * @param array $element
- *   The namespace form element.
- * @param array $form_state
- *   The Drupal form state.
- * @param array $form
- *   The Drupal form definition.
- */
-function islandora_basic_collection_change_content_models_form_validate_namespace(array $element, array &$form_state, array $form) {
-  // Only use the namespace for content models not in the policy.
-  if (in_array($form_state['values']['new_content_model'], array_keys($form_state['policy_content_models']))) {
-    return;
-  }
-  if (empty($element['#value'])) {
-    form_error($element, t('This field is required.'));
-  }
-  elseif (!islandora_is_valid_namespace($element['#value'])) {
-    form_error($element, t('The namespace is not valid.'));
-  }
-}
-
-/**
- * Validate handler for the change content models form.
- *
- * Checks the DS-COMPOSITE-MODEL of both the existing and new content model
- * such that all required datastreams in the new content model are also
- * required in the existing content model.
- *
- * @param array $form
- *   The Drupal form definition.
- * @param array $form_state
- *   The Drupal form state.
- */
-function islandora_basic_collection_change_content_models_form_validate(array $form, array &$form_state) {
-  $current = islandora_object_load($form_state['values']['current_content_model']);
-  $new = islandora_object_load($form_state['values']['new_content_model']);
-  // Both content models must define a DS-COMPOSITE-MODEL.
-  if (empty($current['DS-COMPOSITE-MODEL'])) {
-    $message = t('Content model @pid does not have a DS-COMPOSITE-MODEL datastream.', array('@pid' => $current->id));
-    form_set_error('current_content_model', $message);
-  }
-  elseif (empty($new['DS-COMPOSITE-MODEL'])) {
-    $message = t('Content model @pid does not have a DS-COMPOSITE-MODEL datastream.', array('@pid' => $new->id));
-    form_set_error('new_content_model', $message);
-  }
-  $filter_required = function($o) {
-    return !$o['optional'];
-  };
-  $current_requirements = islandora_get_datastreams_requirements_from_content_model($current);
-  $current_requirements = array_filter($current_requirements, $filter_required);
-  $new_requirements = islandora_get_datastreams_requirements_from_content_model($new);
-  $new_requirements = array_filter($new_requirements, $filter_required);
-  // The require datastreams in the new content model must also be required in
-  // the current content model.
-  if ($new_requirements != array_intersect_key($new_requirements, $current_requirements)) {
-    $message_parameters = array('@new' => $new->id, '@current' => $current->id);
-    $message = t('Content model @new has required datastreams that @current does not have.', $message_parameters);
-    form_set_error('new_content_model', $message);
-  }
-  else {
-    // The requirements must also be identical.
-    foreach ($new_requirements as $dsid => $requirement) {
-      if ($requirement != $current_requirements[$dsid]) {
-        $message_parameters = array('@new' => $new->id, '@current' => $current->id);
-        $message = t('Content model @new required datastreams do not match @current.', $message_parameters);
-        form_set_error('new_content_model', $message);
-        break;
-      }
-    }
-  }
-}
-
-/**
- * Submit handler for the change content models form.
- *
- * Updates the collection's COLLECTION_POLICY datastream with the changes
- * made in the form.
- *
- * @param array $form
- *   The Drupal form definition.
- * @param array $form_state
- *   The Drupal form state.
- */
-function islandora_basic_collection_change_content_models_form_submit(array $form, array &$form_state) {
-  $collection = $form_state['collection'];
-  $current = $form_state['values']['current_content_model'];
-  $new = $form_state['values']['new_content_model'];
-  if (!in_array($new, array_keys($form_state['policy_content_models']))) {
-    // Add to Policy if not already present.
-    $policy = new CollectionPolicy($collection['COLLECTION_POLICY']->content);
-    $policy->addContentModel($new, $form_state['content_models'][$new]['label'], $form_state['values']['namespace']);
-    $collection['COLLECTION_POLICY']->content = $policy->getXML();
-  }
-  $current = islandora_object_load($current);
-  $new = islandora_object_load($new);
-  $batch = islandora_basic_collection_change_content_model_batch($collection, $current, $new);
-  batch_set($batch);
-}
-
 
 /**
  * Define the migrate children form.
