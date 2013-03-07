@@ -14,6 +14,15 @@ define('MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
  * Implements hook_menu().
  */
 function islandora_basic_collection_menu() {
+  $ingest_object_menu_item = array(
+    'title' => 'Add an object to this Collection',
+    'page callback' => 'islandora_basic_collection_ingest_action',
+    'page arguments' => array(2),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'includes/ingest.form.inc',
+    'access callback' => 'islandora_basic_collection_ingest_access',
+    'access arguments' => array(2),
+  );
   return array(
     'admin/islandora/basic_collection' => array(
       'title' => 'Core collection',
@@ -33,15 +42,8 @@ function islandora_basic_collection_menu() {
       'access callback' => 'islandora_basic_collection_manage_access',
       'access arguments' => array(2),
     ),
-    'islandora/object/%islandora_object/manage/collection/ingest' => array(
-      'title' => 'Add an object to this Collection',
-      'page callback' => 'islandora_basic_collection_ingest_action',
-      'page arguments' => array(2),
-      'type' => MENU_LOCAL_ACTION,
-      'file' => 'includes/ingest.form.inc',
-      'access callback' => 'islandora_basic_collection_ingest_access',
-      'access arguments' => array(2),
-    ),
+    'islandora/object/%islandora_object/manage/collection/ingest' => $ingest_object_menu_item,
+    'islandora/object/%islandora_object/manage/overview/ingest' => $ingest_object_menu_item,
   );
 }
 
