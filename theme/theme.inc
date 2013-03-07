@@ -158,6 +158,8 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
  *   Variables passed to this theme function.
  */
 function theme_islandora_basic_collection_policy_management_table(array $variables) {
+  // Manually add the table select javascript as we are using a custom table.
+  drupal_add_js('misc/tableselect.js');
   $table = $variables['table'];
   $row_elements = $table['rows'];
   $rows = array();

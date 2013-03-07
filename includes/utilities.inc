@@ -177,7 +177,7 @@ function islandora_basic_collection_get_parent_pids(FedoraObject $object) {
  */
 function islandora_basic_collection_get_other_parents(FedoraObject $object, FedoraObject $parent) {
   $parents = islandora_basic_collection_get_parent_pids($object);
-  unset($parents[array_search($parent->id)]);
+  unset($parents[array_search($parent->id, $parents)]);
   return $parents;
 }
 

@@ -190,7 +190,7 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
                           'pid' => $collection->id,
                           'relationship' => $form_state['default_relationship'])));
   // Add TN datastream.
-  $thumbnail_url = url(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png', array('absolute' => TRUE));
+  $thumbnail_url = file_create_url(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png');
   $thumbnail_datastream = $child_collection->constructDatastream('TN');
   $thumbnail_datastream->setContentFromUrl($thumbnail_url);
   $thumbnail_datastream->label = 'Thumbnail';
@@ -258,12 +258,13 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
   return array(
     '#action' => request_uri() . '#policy-management',
     'help' => array(
+      '#type' => 'item',
       '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA112/How+to+Manage+Collection+Policies', array()),
     ),
     'table' => array(
       '#tree' => TRUE,
       '#header' => array(
-        theme('table_select_header_cell'), t('PID'), 'Namespace',
+        array('class' => array('select-all')), t('PID'), 'Namespace',
       ),
       '#theme' => 'islandora_basic_collection_policy_management_table',
       'rows' => $rows,

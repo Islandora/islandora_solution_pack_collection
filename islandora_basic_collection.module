@@ -197,6 +197,35 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
 }
 
 /**
+ * Implements hook_CMODEL_PID_islandora_view_object().
+ */
+function islandora_basic_collection_islandora_collectionCModel_islandora_overview_object(FedoraObject $object) {
+  $rows = array();
+  $members = islandora_basic_collection_get_objects($object);
+  foreach ($members as $member) {
+    $content_model = islandora_object_load($member['content']['value']);
+    if (isset($rows[$content_model->id])) {
+      $rows[$content_model->id][1]++;
+    }
+    else {
+      $link = l($content_model->label, "islandora/object/{$content_model->id}");
+      $rows[$content_model->id] = array($link, 1);
+    }
+  }
+  $content = array(
+    'total' => array('#markup' => t('Total # of Members: %total', array('%total' => count($members)))),
+    'table' => array(
+      '#theme' => 'table',
+      '#header' => array('type' => array('data' => t('Type')), 'count' => array('data' => t('Count'))),
+      '#rows' => $rows,
+      '#empty' => t('Collection is Empty.')),
+  );
+  return array(
+    'collection' => drupal_render($content),
+  );
+}
+
+/**
  * Get objects associated with this object.
  *
  * Currently, we are only concerned with the with isMemberOf and
