@@ -2,8 +2,7 @@
 
 /**
  * @file
- *
- * This file defines a class for parsing the COLLECTION_POLICY xml document.
+ * Defines CollectionPolicy class to process the COLLECTION_POLICY datastream.
  * As defined here http://syn.lib.umanitoba.ca/collection_policy.xsd.
  */
 
@@ -18,6 +17,25 @@ class CollectionPolicy {
    * @var DOMDocument
    */
   protected $xml;
+
+  /**
+   * Gets an empty CollectionPolicy.
+   *
+   * @return CollectionPolicy
+   *   An empty CollectionPolicy.
+   */
+  static public function emptyPolicy() {
+    $xml = <<<EOT
+<?xml version="1.0" encoding="UTF-8"?>
+<collection_policy xmlns="http://www.islandora.ca" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" name="" xsi:schemaLocation="http://www.islandora.ca http://syn.lib.umanitoba.ca/collection_policy.xsd">
+ <content_models/>
+ <search_terms/>
+ <staging_area/>
+ <relationship>isMemberOfCollection</relationship>
+</collection_policy>
+EOT;
+    return new CollectionPolicy($xml);
+  }
 
   /**
    * Creates a new CollectionPolicy object.
@@ -40,7 +58,7 @@ class CollectionPolicy {
    * @return string
    *   The name of this Collection Policy.
    */
-  function getName() {
+  public function getName() {
     return $this->xml->getElementsByTagName('collection_policy')->item(0)->getAttribute('name');
   }
 
@@ -55,34 +73,32 @@ class CollectionPolicy {
   }
 
   /**
-   * Gets a list of ContentModel objects supported by this collection along
-   * with any other defaults used during ingestion.
+   * Gets a list of content model objects supported by this collection policy.
+   *
+   * Also includes default values for creating child objects of supported
+   * content models.
    *
    * @return array
    *   An array describing each content model allowed in this collection each
-   *   populated by key value pairs.
-   *
-   * @code
-   *  array(
-   *    'islandora:imageCModel' => array(
-   *      'pid' => 'islandora:imageCModel',
-   *      'name' => 'New Image',
-   *      'namespace' => 'islandora'
-   *    )
-   *   )
-   * @endcode
+   *   populated by the key value pairs:
+   *   - pid: The PID with which the content model object.
+   *     - pid: The PID with which the content model object.
+   *     - name: The default label to use for new child objects of this type.
+   *     - namespace: The default namespace for new child objects of this type.
    */
-  function getContentModels() {
+  public function getContentModels() {
     $ret = array();
     $models = $this->xml->getElementsByTagName('content_models')->item(0)->getElementsByTagName('content_model');
     foreach ($models as $model) {
       $pid = $model->getAttribute('pid');
       $matches = array();
-      preg_match('/^([^:]*)/', $model->getAttribute('namespace'), $matches); // Clean up the namespace attribute as its wrong in most existing COLLECTION_POLICY datastreams.
+      // Clean up the namespace attribute as its wrong in most existing
+      // COLLECTION_POLICY datastreams.
+      preg_match('/^([^:]*)/', $model->getAttribute('namespace'), $matches);
       $ret[$pid] = array(
         'pid' => $pid,
         'name' => $model->getAttribute('name'),
-        'namespace' => $matches[0]
+        'namespace' => $matches[0],
       );
     }
     return $ret;
@@ -91,7 +107,7 @@ class CollectionPolicy {
   /**
    * Add an entry for the given content model to the collection policy.
    */
-  function addContentModel($pid, $name, $namespace) {
+  public function addContentModel($pid, $name, $namespace) {
     $content_models_element = $this->xml->getElementsByTagName('content_models');
     $content_model_element = $content_models_element->item(0)->getElementsByTagName('content_model');
 
@@ -113,9 +129,9 @@ class CollectionPolicy {
    * @return int
    *   The number of entries which have been removed.
    */
-  function removeContentModel($candidates) {
+  public function removeContentModel($candidates) {
     $count = 0;
-    foreach ((array)$candidates as $candidate) {
+    foreach ((array) $candidates as $candidate) {
       if (is_string($candidate)) {
         $content_models_element = $this->xml->getElementsByTagName('content_models');
         $models = $content_models_element->item(0)->getElementsByTagName('content_model');
@@ -140,7 +156,7 @@ class CollectionPolicy {
   /**
    * Dump out the XML for this collection policy.
    */
-  function getXML() {
+  public function getXML() {
     return $this->xml->saveXML();
   }
 }

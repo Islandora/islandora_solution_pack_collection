@@ -21,5 +21,10 @@ function islandora_basic_collection_install() {
 function islandora_basic_collection_uninstall() {
   module_load_include('inc', 'islandora', 'includes/solution_packs');
   islandora_install_solution_pack('islandora_basic_collection', 'uninstall');
-  // @TODO remove drupal variables here
+  $variables = array(
+    'islandora_basic_collection_page_size',
+    'islandora_basic_collection_disable_collection_policy_delete',
+    'islandora_basic_collection_default_view'
+  );
+  array_walk($variables, 'variable_del');
 }

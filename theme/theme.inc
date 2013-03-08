@@ -2,7 +2,6 @@
 
 /**
  * @file
- *
  * This file contains all theme and preprocess functions
  */
 
@@ -34,28 +33,39 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
       'title' => 'List view',
       'href' => $base_url . '/islandora/object/' . $islandora_object->id,
       'attributes' => array(
-        'class' => 'islandora-view-list'
+        'class' => 'islandora-view-list',
       ),
-      'query' => $query_params
+      'query' => $query_params,
     );
     unset($query_params['display']);
     $query_params['display'] = 'grid';
-    $grid_link = array('title' => 'Grid view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => array('islandora-view-grid', 'active')),
-    'query' => $query_params);
+    $grid_link = array(
+      'title' => 'Grid view',
+      'href' => $base_url . '/islandora/object/' . $islandora_object->id,
+      'attributes' => array('class' => array('islandora-view-grid', 'active')),
+      'query' => $query_params,
+    );
     $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
   }
   else {
     $query_params['display'] = 'list';
-    $list_link = array('title' => 'List view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => array('islandora-view-list', 'active')),
-    'query' => $query_params);
+    $list_link = array(
+      'title' => 'List view',
+      'href' => $base_url . '/islandora/object/' . $islandora_object->id,
+      'attributes' => array('class' => array('islandora-view-list', 'active')),
+      'query' => $query_params,
+    );
     unset($query_params['display']);
     $query_params['display'] = 'grid';
-    $grid_link = array('title' => 'Grid view', 'href' => $base_url . '/islandora/object/' . $islandora_object->id, 'attributes' => array('class' => 'islandora-view-grid'),
-    'query' => $query_params);
+    $grid_link = array(
+      'title' => 'Grid view',
+      'href' => $base_url . '/islandora/object/' . $islandora_object->id,
+      'attributes' => array('class' => 'islandora-view-grid'),
+      'query' => $query_params,
+    );
     $collection_content = theme('islandora_basic_collection', array('islandora_object' => $islandora_object, 'collection_results' => $results));
   }
   $variables['view_links'] = array($grid_link, $list_link);
-  //$variables['grid_link'] = $grid_link;
   $variables['collection_content'] = $collection_content;
 }
 
@@ -70,7 +80,8 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
   try {
     $dc = $islandora_object['DC']->content;
     $dc_object = DublinCore::importFromXMLString($dc);
-  } catch (Exception $e) {
+  }
+  catch (Exception $e) {
     drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
   }
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
@@ -107,14 +118,16 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     $pid = $results[$i]['object']['value'];
     $fc_object = islandora_object_load($pid);
     if (!isset($fc_object)) {
-      continue; //null object so don't show in collection view;
+      // NULL object so don't show in collection view.
+      continue;
     }
     $associated_objects_array[$pid]['object'] = $fc_object;
     try {
       $dc = $fc_object['DC']->content;
       $dc_object = DublinCore::importFromXMLString($dc);
       $associated_objects_array[$pid]['dc_array'] = $dc_object->asArray();
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
       drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
     }
     $object_url = 'islandora/object/' . $pid;
@@ -136,4 +149,40 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     $associated_objects_array[$pid]['thumb_link'] = l($thumbnail_img, $object_url, array('html' => TRUE, 'attributes' => array('title' => $title)));
   }
   $variables['associated_objects_array'] = $associated_objects_array;
+}
+
+/**
+ * Theme the collection policy management table.
+ *
+ * @param array $variables
+ *   Variables passed to this theme function.
+ */
+function theme_islandora_basic_collection_policy_management_table(array $variables) {
+  // Manually add the table select javascript as we are using a custom table.
+  drupal_add_js('misc/tableselect.js');
+  $table = $variables['table'];
+  $row_elements = $table['rows'];
+  $rows = array();
+  foreach (element_children($row_elements) as $key) {
+    $columns = array();
+    $row_element = $row_elements[$key];
+    foreach (element_children($row_element) as $key) {
+      $column_element = $row_element[$key];
+      $columns[] = array(
+        'data' => drupal_render($column_element),
+        'class' => isset($cell_element['#attributes']['class']) ? $column_element['#attributes']['class'] : NULL,
+      );
+    }
+    $rows[] = $columns;
+  }
+  $variables = array(
+    'header' => $table['#header'],
+    'rows' => $rows,
+    'attributes' => $table['#attributes'],
+    'caption' => NULL,
+    'colgroups' => NULL,
+    'sticky' => NULL,
+    'empty' => t("No Content Models"),
+  );
+  return theme('table', $variables);
 }
