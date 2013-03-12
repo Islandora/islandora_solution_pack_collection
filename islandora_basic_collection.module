@@ -5,65 +5,46 @@
  * Provides functionality for creating/managing/deleting/viewing collections.
  */
 
+// Constants.
 define('CREATE_CHILD_COLLECTION', 'create child collection');
 define('MANAGE_COLLECTION_POLICY', 'manage collection policy');
-define('MANAGE_CONTENT_MODEL_ASSOCIATION', 'manage content model association');
 define('MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
 
 /**
  * Implements hook_menu().
- *
- * We need some standard entry points so we can have consistent urls for
- * different Object actions
  */
 function islandora_basic_collection_menu() {
-  $items = array();
-
-  $items['islandora/object/%islandora_object/manage/collection/ingest'] = array(
+  $ingest_object_menu_item = array(
     'title' => 'Add an object to this Collection',
     'page callback' => 'islandora_basic_collection_ingest_action',
     'page arguments' => array(2),
     'type' => MENU_LOCAL_ACTION,
+    'file' => 'includes/ingest.form.inc',
     'access callback' => 'islandora_basic_collection_ingest_access',
     'access arguments' => array(2),
   );
-
-  $items['islandora/object/%islandora_object/manage/collection/child'] = array(
-    'title' => 'Add a child collection to this collection',
-    'page callback' => 'islandora_collection_management_wrapper',
-    'page arguments' => array('new collection', 2),
-    'type' => MENU_LOCAL_ACTION,
-    'access callback' => 'user_access',
-    'access arguments' => array(CREATE_CHILD_COLLECTION),
+  return array(
+    'admin/islandora/basic_collection' => array(
+      'title' => 'Core collection',
+      'description' => 'Configure the core Islandora collection functionality.',
+      'page callback' => 'drupal_get_form',
+      'access arguments' => array('administer site configuration'),
+      'page arguments' => array('islandora_basic_collection_admin'),
+      'file' => 'includes/admin.form.inc',
+      'type' => MENU_NORMAL_ITEM,
+    ),
+    'islandora/object/%islandora_object/manage/collection' => array(
+      'title' => 'Collection',
+      'page callback' => 'islandora_basic_collection_manage_object',
+      'page arguments' => array(2),
+      'type' => MENU_LOCAL_TASK,
+      'file' => 'includes/manage_collection.inc',
+      'access callback' => 'islandora_basic_collection_manage_access',
+      'access arguments' => array(2),
+    ),
+    'islandora/object/%islandora_object/manage/collection/ingest' => $ingest_object_menu_item,
+    'islandora/object/%islandora_object/manage/overview/ingest' => $ingest_object_menu_item,
   );
-
-  $items['admin/islandora/basic_collection'] = array(
-    'title' => 'Core collection',
-    'description' => 'Configure the core Islandora collection functionality.',
-    'page callback' => 'drupal_get_form',
-    'access arguments' => array('administer site configuration'),
-    'page arguments' => array('islandora_basic_collection_admin'),
-    'file' => 'includes/admin.form.inc',
-    'type' => MENU_NORMAL_ITEM,
-  );
-
-  $items['islandora/object/%islandora_object/manage/collection'] = array(
-    'title' => 'Collection',
-    'page callback' => 'islandora_basic_collection_manager_object',
-    'page arguments' => array(2),
-    'type' => MENU_LOCAL_TASK,
-    'access callback' => 'islandora_basic_collection_access',
-    'access arguments' => array(2),
-  );
-
-  $items['admin/islandora/collection/management'] = array(
-    'title' => 'Collection Management',
-    'page callback' => 'islandora_collection_management_wrapper',
-    'type' => MENU_LOCAL_TASK,
-    'access arguments' => array('administer site configuration'),
-  );
-
-  return $items;
 }
 
 /**
@@ -75,7 +56,6 @@ function islandora_basic_collection_menu_alter(&$items) {
   $new_access_arguments = array(
     CREATE_CHILD_COLLECTION,
     MANAGE_COLLECTION_POLICY,
-    MANAGE_CONTENT_MODEL_ASSOCIATION,
     MIGRATE_COLLECTION_MEMBERS,
   );
   $new_access_arguments = array_merge($current_access_arguments, $new_access_arguments);
@@ -123,18 +103,32 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
  * @return bool
  *   TRUE if it should be shown, and FALSE if it should not be shown.
  */
-function islandora_basic_collection_access($object = NULL) {
-  if (!isset($object)) {
+function islandora_basic_collection_manage_access($object = NULL) {
+  if (!is_object($object) || !in_array('islandora:collectionCModel', $object->models)) {
     return FALSE;
   }
-  $access = user_access(CREATE_CHILD_COLLECTION) ||
-      user_access(MANAGE_COLLECTION_POLICY) ||
-      user_access(MANAGE_CONTENT_MODEL_ASSOCIATION) ||
-      user_access(MIGRATE_COLLECTION_MEMBERS) ||
-      islandora_basic_collection_ingest_access($object);
+  return islandora_basic_collection_ingest_child_collection_access($object) ||
+    user_access(MANAGE_COLLECTION_POLICY) ||
+    user_access(MIGRATE_COLLECTION_MEMBERS) ||
+    islandora_basic_collection_ingest_access($object);
+}
 
-  // The user is allowed to manage, and the object has our content model.
-  return $access && in_array('islandora:collectionCModel', $object->models);
+/**
+ * Checks if the user has access to ingest a new child collection.
+ *
+ * @return bool
+ *   TRUE if the user has access, FALSE otherwise.
+ */
+function islandora_basic_collection_ingest_child_collection_access($object = NULL) {
+  $user_access = user_access(FEDORA_INGEST) && user_access(CREATE_CHILD_COLLECTION);
+  $is_collection = is_object($object) && in_array('islandora:collectionCModel', $object->models);
+  $has_policy = isset($object['COLLECTION_POLICY']);
+  if (!($user_access && $is_collection && $has_policy)) {
+    return FALSE;
+  }
+  $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
+  $policy_content_models = $policy->getContentModels();
+  return isset($policy_content_models['islandora:collectionCModel']);
 }
 
 /**
@@ -152,6 +146,7 @@ function islandora_basic_collection_ingest_access($object = NULL) {
   static $checked_objects = array();
   if (!in_array($object->id, array_keys($checked_objects))) {
     module_load_include('inc', 'islandora', 'includes/ingest.form');
+    module_load_include('inc', 'islandora_basic_collection', 'includes/ingest.form');
     // Assume ingest is denied.
     $checked_objects[$object->id] = FALSE;
     $configuration = islandora_basic_collection_get_ingest_configuration($object);
@@ -186,9 +181,9 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
       'template' => 'theme/islandora-basic-collection-wrapper',
       'variables' => array('islandora_object' => NULL),
     ),
-    'islandora_collection_policy_table' => array(
-      'file' => 'includes/collection_policy_management.inc',
-      'render element' => 'form',
+    'islandora_basic_collection_policy_management_table' => array(
+      'file' => 'theme/theme.inc',
+      'render element' => 'table',
     ),
   );
 }
@@ -197,10 +192,55 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_view_object(FedoraObject $object) {
-  $output = theme('islandora_basic_collection_wrapper', array(
-        'islandora_object' => $object,
-      ));
+  $output = theme('islandora_basic_collection_wrapper', array('islandora_object' => $object));
   return array('Collection View' => $output);
+}
+
+/**
+ * Implements hook_CMODEL_PID_islandora_view_object().
+ */
+function islandora_basic_collection_islandora_collectionCModel_islandora_overview_object(FedoraObject $object) {
+  $rows = array();
+  $members = islandora_basic_collection_get_objects($object);
+  foreach ($members as $member) {
+    $content_model = islandora_object_load($member['content']['value']);
+    if (isset($rows[$content_model->id])) {
+      $rows[$content_model->id][1]++;
+    }
+    else {
+      $link = l($content_model->label, "islandora/object/{$content_model->id}");
+      $rows[$content_model->id] = array($link, 1);
+    }
+  }
+  $content = array(
+    'total' => array('#markup' => t('Total # of Members: %total', array('%total' => count($members)))),
+    'table' => array(
+      '#theme' => 'table',
+      '#header' => array('type' => array('data' => t('Type')), 'count' => array('data' => t('Count'))),
+      '#rows' => $rows,
+      '#empty' => t('Collection is Empty.')),
+  );
+  return array(
+    'collection' => drupal_render($content),
+  );
+}
+
+/**
+ * Implements hook_islandora_view_object().
+ */
+function islandora_basic_collection_islandora_overview_object(FedoraObject $object) {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
+  if (!in_array('islandora:collectionCModel', $object->models)) {
+    $map_to_row = function($o) {
+      $o = islandora_object_load($o);
+      return array(l($o->label, "islandora/object/{$o->id}"));
+    };
+    $pids = islandora_basic_collection_get_parent_pids($object);
+    $rows = array_map($map_to_row, $pids);
+    return array(
+      'collection' => theme('table', array('header' => array(t('Parent Collections')), 'rows' => $rows, 'empty' => t('No parent collections'))),
+    );
+  }
 }
 
 /**
@@ -243,6 +283,7 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
     'query' => $query,
     'type' => 'sparql',
     'pid' => $object->id,
+    // Seems as though this is ignored completely.
     'page_size' => $page_size,
     'page_number' => $page_number,
   );
@@ -255,6 +296,37 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
     return '';
   }
   return $results;
+}
+
+/**
+ * Get all existing collections.
+ *
+ * @return array
+ *   An associative array containing all the known collections:
+ *   - pid: The PID of the collection.
+ *    - pid: The PID of the collection.
+ *    - label: The label of the collection.
+ */
+function islandora_basic_collection_get_collections() {
+  module_load_include('inc', 'islandora', 'includes/utilities');
+  $tuque = islandora_get_tuque_connection();
+  $query = 'select $object $label from <#ri> where (
+            $object <fedora-model:label> $label and
+            $object <info:fedora/fedora-system:def/model#hasModel> <info:fedora/islandora:collectionCModel> and
+            $object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)
+            order by $label';
+  $results = $tuque->repository->ri->itqlQuery($query, 'unlimited');
+  $collections = array();
+  foreach ($results as $result) {
+    $pid = $result['object']['value'];
+    if (islandora_namespace_accessible($pid)) {
+      $collections[$pid] = array(
+        'pid' => $pid,
+        'label' => $result['label']['value'],
+      );
+    }
+  }
+  return $collections;
 }
 
 /**
@@ -281,10 +353,6 @@ function islandora_basic_collection_permission() {
       'title' => t('Manage collection policies'),
       'description' => t('Define which content models are available for each collection.'),
     ),
-    MANAGE_CONTENT_MODEL_ASSOCIATION => array(
-      'title' => t('Manage content model associations'),
-      'description' => t('Change content models for objects within a collection.'),
-    ),
     MIGRATE_COLLECTION_MEMBERS => array(
       'title' => t('Migrate collection members'),
       'description' => t('Move objects from one collection to another.'),
@@ -293,197 +361,40 @@ function islandora_basic_collection_permission() {
 }
 
 /**
- * Manage action that for ingestion of an object into the given collection.
- *
- * @param FedoraObject $object
- *   The collection to ingest into.
- *
- * @return array
- *   The ingest form.
+ * Implements hook_form_islandora_object_properties_form_alter().
  */
-function islandora_basic_collection_ingest_action(FedoraObject $object) {
-  if (($configuration = islandora_basic_collection_get_ingest_configuration($object)) !== FALSE) {
-    module_load_include('inc', 'islandora', 'includes/ingest.form');
-    return drupal_get_form('islandora_ingest_form', $configuration);
-  }
-  drupal_not_found();
-}
-
-/**
- * Generates an ingest configuration from the given collection object.
- *
- * @see islandora_ingest_form
- *
- * @param FedoraObject $object
- *   A collection object to generate the configuration from.
- *
- * @return array
- *   An ingest configuration array as defined by islandora_ingest_form() if
- *   possible FALSE otherwise.
- */
-function islandora_basic_collection_get_ingest_configuration(FedoraObject $object) {
-  if (in_array('islandora:collectionCModel', $object->models) && isset($object['COLLECTION_POLICY'])) {
-    $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
-    return array(
-      'collections' => array($object->id),
-      'models' => array_keys($policy->getContentModels()),
-    );
-  }
-  return FALSE;
-}
-
-/**
- * Alter the ingest form to handle a change in the selected content model.
- *
- * The collection needs to add some additional  information to the ingest object
- * based on what form association was used to select the metadata form. Namely
- * it needs to provide a default namespace, and collection to be ingested into.
- * To do this it appends its own submit handler on to the metadata step.
- *
- * @param array $form
- *   The Drupal form.
- * @param array $form_state
- *   The Drupal form state.
- * @param string $form_id
- *   The islandora_ingest_form form id.
- */
-function islandora_basic_collection_form_islandora_ingest_form_alter(array &$form, array &$form_state, $form_id) {
-  $shared_storage = islandora_ingest_form_get_shared_storage($form_state);
-  if (isset($shared_storage['collections'])) {
-    $step = islandora_ingest_form_get_step($form_state);
-    $metadata_form_step = isset($step['form_id']) && $step['form_id'] == 'xml_form_builder_ingest_form';
-    $submit_handler_already_added = in_array('islandora_basic_collection_ingest_form_submit', $form['next']['#submit']);
-    if ($metadata_form_step && !$submit_handler_already_added) {
-      array_unshift($form['next']['#submit'], 'islandora_basic_collection_ingest_form_submit');
-    }
+function islandora_basic_collection_form_islandora_object_properties_form_alter(array &$form, array &$form_state) {
+  $object = $form_state['object'];
+  if (in_array('islandora:collectionCModel', $object->models)) {
+    $form['delete']['#value'] = t('Delete Collection');
   }
 }
 
 /**
- * Set the default namespace.
+ * Implements hook_form_islandora_object_properties_form_alter().
+ */
+function islandora_basic_collection_form_islandora_delete_object_form_alter(array &$form, array &$form_state) {
+  $object = $form_state['object'];
+  if (in_array('islandora:collectionCModel', $object->models)) {
+    $form['description']['#markup'] = t('This will remove the collection object and all child objects, child objects that belong to other collections will not be deleted. This action cannot be undone.');
+    $form['#submit'] = array('islandora_basic_collection_islandora_delete_object_form_delete_pages_submit');
+  }
+}
+
+/**
+ * Delete all the page objects related to the collection object being deleted.
  *
  * @param array $form
  *   The Drupal form.
  * @param array $form_state
  *   The Drupal form state.
  */
-function islandora_basic_collection_ingest_form_submit(array $form, array &$form_state) {
-  $shared_storage = islandora_ingest_form_get_shared_storage($form_state);
-  // Only support 1 for now.
-  $collection_id = current($shared_storage['collections']);
-  // Only support 1 for now.
-  $object = islandora_ingest_form_get_object($form_state);
-  if (!isset($object->id)) {
-    module_load_include('inc', 'islandora', 'includes/utilities');
-    $collection_object = islandora_object_load($collection_id);
-    $policy = new CollectionPolicy($collection_object['COLLECTION_POLICY']->content);
-    $models = $policy->getContentModels();
-    $association_step_storage = islandora_ingest_form_get_step_storage($form_state, 'xml_form_builder_association_step');
-    $association = $association_step_storage['association'];
-    // Get the form association's content model.
-    $model = $association['content_model'];
-    $model = $models[$model];
-    $namespace = islandora_get_namespace($model['namespace']);
-    $object->id = $object->repository->api->m->getNextPid($namespace);
-  }
-}
-
-/**
- * Manage Collection local task.
- *
- * Defines the actions to appear in the collection section of the Manage tab.
- *
- * @param FedoraObject $object
- *   The collection object.
- *
- * @return array
- *   A renderable array.
- */
-function islandora_basic_collection_manager_object(FedoraObject $object) {
-  $pid = $object->id;
-  $url_stub = 'admin/islandora/collection/management';
-  $list = array();
-  if (user_access(MANAGE_COLLECTION_POLICY)) {
-    $list[] = l(t('Manage collection policy'), "$url_stub/collection policy/$pid");
-  }
-  if (user_access(MIGRATE_COLLECTION_MEMBERS)) {
-    $list[] = l(t('Manage collection membership'), "$url_stub/migrate/$pid");
-  }
-  $list[] = l(t('Change content models'), "$url_stub/change content model/$pid");
-  if (user_access(FEDORA_PURGE)) {
-    $list[] = l(t('Delete members of this collection'), "$url_stub/delete/$pid");
-  }
-  $extras = module_invoke_all('islandora_collection_mangement', $pid);
-  foreach ($extras as $extra) {
-    $list[] = $extra;
-  }
-
-  $variables = array(
-    'items' => $list,
-    'title' => NULL,
-    'type' => 'ul',
-    'attributes' => array('class' => 'items'),
-  );
-  $content = theme_item_list($variables);
-  $form = array();
-
-  $form['collection_policy_link'] = array(
-    '#markup' => $content,
-  );
-
-  return $form;
-}
-
-/**
- * Wraps all management functions to direct user to file page.
- *
- * @global string $base_url
- *
- * @param string $function
- *   Management function name.
- * @param string $pid
- *   The collection object.
- *
- * @return array
- *   A Drupal form definition.
- */
-function islandora_collection_management_wrapper($function = NULL, $pid = NULL) {
-  // Added to provide pathing if called from admin menu.
-  if ($function == NULL) {
-    global $base_url;
-    $failure_message = t('This menu is not applicable in this context.') . '<br />' .
-        t("To manage any given collection navigate to that collection's Manage tab, and select Collection");
-    $path = $_SERVER['HTTP_REFERER'];
-    if (!$path) {
-      return $failure_message;
-    }
-    $path = str_replace($base_url . '/islandora/object/', '', $path);
-    $path_parts = explode('/', $path);
-    $pid = $path_parts[0];
-    if (!$pid) {
-      return $failure_message;
-    }
-    drupal_goto("islandora/object/$pid/manage/collection");
-  }
-
-  $url = "islandora/object/$pid/manage/collection";
-
-  module_load_include('inc', 'islandora_basic_collection', 'includes/collection_management');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/collection_manager_table');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/delete_collection');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/move_collection');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/child_collection');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/manage_policies');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/change_content_models');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/collection_policy_management');
-  $mappings = array(
-    'new collection' => 'islandora_create_child_collection_form',
-    'collection policy' => 'collection_policy_management',
-    'migrate' => 'islandora_collection_migrate_form',
-    'change content model' => 'islandora_change_content_models_form',
-    'delete' => 'islandora_collection_deletion_form',
-  );
-  $object = islandora_object_load($pid);
-  $form = drupal_get_form($mappings[$function], $object, $url);
-  return $form;
+function islandora_basic_collection_islandora_delete_object_form_delete_pages_submit(array $form, array &$form_state) {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
+  batch_set(islandora_basic_collection_delete_children_batch($form_state['object']));
+  // Called from within this submit handler rather than from the Drupal Form API
+  // as we need the object to exist to generate the pages and if we run this.
+  // batch operation from a submit handler any submit handlers to be called
+  // afterwards will not get called, which is a bug/feature of the Form API.
+  islandora_delete_object_form_submit($form, $form_state);
 }
