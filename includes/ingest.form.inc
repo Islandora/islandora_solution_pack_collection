@@ -15,6 +15,7 @@
  *   The ingest form.
  */
 function islandora_basic_collection_ingest_action(FedoraObject $object) {
+  dsm('configuration islandora_basic_collection_ingest_action' . '</b>',$configuration);
   if (($configuration = islandora_basic_collection_get_ingest_configuration($object)) !== FALSE) {
     module_load_include('inc', 'islandora', 'includes/ingest.form');
     return drupal_get_form('islandora_ingest_form', $configuration);
