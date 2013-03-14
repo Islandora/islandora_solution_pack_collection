@@ -59,7 +59,7 @@ function islandora_basic_collection_menu_alter(&$items) {
     MIGRATE_COLLECTION_MEMBERS,
   );
   $new_access_arguments = array_merge($current_access_arguments, $new_access_arguments);
-  $items['islandora/object/%islandora_object/manage']['access arguments'] = array($new_access_arguments,2);
+  $items['islandora/object/%islandora_object/manage']['access arguments'] = array($new_access_arguments, 2);
 }
 
 /**

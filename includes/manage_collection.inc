@@ -243,7 +243,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     $content_model_in_policy = isset($policy_content_models[$pid]);
     $namespace = $content_model_in_policy ? $policy_content_models[$pid]['namespace'] : $default_namespace;
     $namespace_element = islandora_basic_collection_get_namespace_form_element($namespace);
-    unset($namespace_element['#title'],$namespace_element['#description']);
+    unset($namespace_element['#title'], $namespace_element['#description']);
     $rows[$pid] = array(
       'selected' => array(
         '#type' => 'checkbox',

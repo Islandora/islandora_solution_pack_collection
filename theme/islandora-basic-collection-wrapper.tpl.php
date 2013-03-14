@@ -16,5 +16,6 @@
     <?php print $collection_pager; ?>
     <?php print $collection_content; ?>
     <?php print $collection_pager; ?>
+
   </div>
 </div>
