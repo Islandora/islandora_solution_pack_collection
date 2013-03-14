@@ -24,7 +24,6 @@ function islandora_basic_collection_uninstall() {
   $variables = array(
     'islandora_basic_collection_page_size',
     'islandora_basic_collection_disable_collection_policy_delete',
-    'islandora_basic_collection_default_view'
-  );
+    'islandora_basic_collection_default_view');
   array_walk($variables, 'variable_del');
 }
