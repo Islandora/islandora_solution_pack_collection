@@ -152,6 +152,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
       $thumbnail_img = '<img src="' . $img_source . '"/>';
     }
     else {
+      $image_path = drupal_get_path('module', 'islandora');
       $img_source = url($image_path . '/images/folder.png');
       $thumbnail_img = '<img src="' . $img_source . '"/>';
     }
