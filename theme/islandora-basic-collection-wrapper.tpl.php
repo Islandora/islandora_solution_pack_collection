@@ -14,7 +14,7 @@
       <ul class="links inline">
         <?php foreach ($view_links as $link): ?>
           <li>
-            <a href="<?php print url($link['href'], $link)?>" <?php print drupal_attributes($link['attributes']) ?>><?php print $link['title'] ?></a>
+            <a <?php print drupal_attributes($link['attributes']) ?>><?php print $link['title'] ?></a>
           </li>
         <?php endforeach ?>
       </ul>

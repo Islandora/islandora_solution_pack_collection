@@ -31,17 +31,12 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
     $query_params['display'] = 'list';
     $list_link = array(
       'title' => 'List view',
-      'href' => "islandora/object/$islandora_object->id",
-      'attributes' => array('class' => array('islandora-view-list')),
-      'query' => $query_params,
+      'attributes' => array('href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)), 'class' => array('islandora-view-list')),
     );
-    unset($query_params['display']);
     $query_params['display'] = 'grid';
     $grid_link = array(
       'title' => 'Grid view',
-      'href' => "islandora/object/$islandora_object->id",
-      'attributes' => array('class' => array('islandora-view-grid', 'active')),
-      'query' => $query_params,
+      'attributes' => array('href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)), 'class' => array('islandora-view-grid', 'active')),
     );
     $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
   }
@@ -49,17 +44,12 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
     $query_params['display'] = 'list';
     $list_link = array(
       'title' => 'List view',
-      'href' => 'islandora/object/' . $islandora_object->id,
-      'attributes' => array('class' => array('islandora-view-list', 'active')),
-      'query' => $query_params,
+      'attributes' => array('href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)), 'class' => array('islandora-view-list', 'active')),
     );
-    unset($query_params['display']);
     $query_params['display'] = 'grid';
     $grid_link = array(
       'title' => 'Grid view',
-      'href' => 'islandora/object/' . $islandora_object->id,
-      'attributes' => array('class' => array('islandora-view-grid')),
-      'query' => $query_params,
+      'attributes' => array('href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)), 'class' => array('islandora-view-grid')),
     );
     $collection_content = theme('islandora_basic_collection', array('islandora_object' => $islandora_object, 'collection_results' => $results));
   }
