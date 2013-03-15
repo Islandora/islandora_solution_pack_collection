@@ -96,7 +96,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     $variables['theme_hook_suggestions'][] = 'islandora_basic_collection__' . str_replace(':', '_', $islandora_object->id);
   }
   if (isset($islandora_object['OBJ'])) {
-    $full_size_url = url("`islandora/object/{$islandora_object->id}/datastram/OBJ/view");
+    $full_size_url = url("islandora/object/{$islandora_object->id}/datastram/OBJ/view");
     $params = array(
       'title' => $islandora_object->label,
       'path' => $full_size_url);
@@ -148,6 +148,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
       $thumbnail_img = theme('image', array('path' => "$object_url/datastream/TN/view"));
     }
     else {
+      $image_path = drupal_get_path('module', 'islandora');
       $thumbnail_img = theme('image', array('path' => "$image_path/images/folder.png"));
     }
     $associated_objects_array[$pid]['thumbnail'] = $thumbnail_img;
