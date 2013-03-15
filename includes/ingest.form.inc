@@ -97,5 +97,6 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
   $model = $association['content_model'];
   $model = $models[$model];
   $namespace = islandora_get_namespace($model['namespace']);
-  $object->id = $object->repository->api->m->getNextPid($namespace);
+  // @todo check if namespace is already right before asking for new id.
+  $object->id = $object->repository->getNextIdentifier($namespace);
 }
