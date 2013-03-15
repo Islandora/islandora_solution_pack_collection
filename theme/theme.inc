@@ -27,32 +27,32 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
   $link_text = (empty($_GET['display'])) ? 'grid' : $_GET['display'];
   $query_params = drupal_get_query_parameters($_GET);
   global $base_url;
+
+  $query_params['display'] = 'list';
+  $list_link = array(
+    'title' => t('List view'),
+    'attributes' => array(
+      'href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)),
+      'class' => array('islandora-view-list')
+    ),
+  );
+  $query_params['display'] = 'grid';
+  $grid_link = array(
+    'title' => t('Grid view'),
+    'attributes' => array(
+      'href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)),
+      'class' => array('islandora-view-grid')
+    ),
+  );
+  $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
+
   if ($display == 'grid') {
-    $query_params['display'] = 'list';
-    $list_link = array(
-      'title' => 'List view',
-      'attributes' => array('href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)), 'class' => array('islandora-view-list')),
-    );
-    $query_params['display'] = 'grid';
-    $grid_link = array(
-      'title' => 'Grid view',
-      'attributes' => array('href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)), 'class' => array('islandora-view-grid', 'active')),
-    );
-    $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
+    $grid_link['attributes']['class'][] = 'active';
   }
   else {
-    $query_params['display'] = 'list';
-    $list_link = array(
-      'title' => 'List view',
-      'attributes' => array('href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)), 'class' => array('islandora-view-list', 'active')),
-    );
-    $query_params['display'] = 'grid';
-    $grid_link = array(
-      'title' => 'Grid view',
-      'attributes' => array('href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)), 'class' => array('islandora-view-grid')),
-    );
-    $collection_content = theme('islandora_basic_collection', array('islandora_object' => $islandora_object, 'collection_results' => $results));
+    $list_link['attributes']['class'][] = 'active';
   }
+
   $variables['view_links'] = array($grid_link, $list_link);
   $variables['collection_content'] = $collection_content;
 }
