@@ -98,5 +98,5 @@ function islandora_basic_collection_ingest_form_submit(array $form, array &$form
   $model = $models[$model];
   $namespace = islandora_get_namespace($model['namespace']);
   // @todo check if namespace is already right before asking for new id.
-  $object->id = $object->repository->getNextIdentifier($namespace);
+  $object->id = $object->repository->getNextIdentifier($namespace, variable_get('islandora_basic_collection_generate_uuid', FALSE));
 }

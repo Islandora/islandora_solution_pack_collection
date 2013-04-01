@@ -2,7 +2,7 @@
 
 /**
  * @file
- * Provides functionality for creating/managing/deleting/viewing collections.
+ *   Provides functionality for creating/managing/deleting/viewing collections.
  */
 
 // Constants.
@@ -397,4 +397,18 @@ function islandora_basic_collection_islandora_delete_object_form_delete_pages_su
   // batch operation from a submit handler any submit handlers to be called
   // afterwards will not get called, which is a bug/feature of the Form API.
   islandora_delete_object_form_submit($form, $form_state);
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter().
+ * Alters islandora_repository_admin.
+ * Adds in a setting for site-wide UUID generation on ingest.
+ */
+function islandora_basic_collection_form_islandora_repository_admin_alter(&$form, &$form_state) {
+  $form['islandora_tabs']['islandora_general']['islandora_basic_collection_generate_uuid'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('UUID PID Generation'),
+    '#default_value' => variable_get('islandora_basic_collection_generate_uuid', FALSE),
+    '#description' => t('Generate Fedora object PIDs with v4 UUIDs.'),
+  );
 }
