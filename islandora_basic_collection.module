@@ -25,7 +25,7 @@ function islandora_basic_collection_menu() {
   );
   return array(
     'admin/islandora/basic_collection' => array(
-      'title' => 'Core collection',
+      'title' => 'Core Collection',
       'description' => 'Configure the core Islandora collection functionality.',
       'page callback' => 'drupal_get_form',
       'access arguments' => array('administer site configuration'),
@@ -213,12 +213,12 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
     }
   }
   $content = array(
-    'total' => array('#markup' => t('Total # of Members: %total', array('%total' => count($members)))),
+    'total' => array('#markup' => t('Total members: %total', array('%total' => count($members)))),
     'table' => array(
       '#theme' => 'table',
       '#header' => array('type' => array('data' => t('Type')), 'count' => array('data' => t('Count'))),
       '#rows' => $rows,
-      '#empty' => t('Collection is Empty.')),
+      '#empty' => t('Collection is empty.')),
   );
   return array(
     'collection' => drupal_render($content),
@@ -292,7 +292,7 @@ function islandora_basic_collection_get_objects(FedoraObject $object, $page_numb
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
   }
   catch (Exception $e) {
-    drupal_set_message(t('Islandora Error getting related objects for %s', array('%s' => $object->id)), 'error');
+    drupal_set_message(t('Error getting related objects for %s', array('%s' => $object->id)), 'error');
     return '';
   }
   return $results;
@@ -376,7 +376,7 @@ function islandora_basic_collection_form_islandora_object_properties_form_alter(
 function islandora_basic_collection_form_islandora_delete_object_form_alter(array &$form, array &$form_state) {
   $object = $form_state['object'];
   if (in_array('islandora:collectionCModel', $object->models)) {
-    $form['description']['#markup'] = t('This will remove the collection object and all child objects, child objects that belong to other collections will not be deleted. This action cannot be undone.');
+    $form['description']['#markup'] = t('This will remove the collection object and all its child objects. Child objects currently shared with other collections will not be deleted. This action cannot be undone.');
     $form['#submit'] = array('islandora_basic_collection_islandora_delete_object_form_delete_pages_submit');
   }
 }

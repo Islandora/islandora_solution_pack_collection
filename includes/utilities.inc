@@ -67,7 +67,7 @@ function islandora_basic_collection_get_namespace_form_element($default_value) {
   $restrict_namespace = variable_get('islandora_namespace_restriction_enforced', FALSE);
   return array(
     '#type' => $restrict_namespace ? 'select' : 'textfield',
-    '#title' => 'Collection Namespace',
+    '#title' => 'Collection namespace',
     '#description' => t('Namespace for objects in this collection.'),
     '#size' => 15,
     '#options' => $restrict_namespace ? drupal_map_assoc(islandora_get_allowed_namespaces()) : NULL,
@@ -115,7 +115,7 @@ function islandora_basic_collection_get_children_select_table_form_element(Fedor
     '#type' => 'tableselect',
     '#header' => array('label' => array('data' => t('Label'))),
     '#options' => $rows,
-    '#empty' => t('Collection is Empty.'),
+    '#empty' => t('Collection is empty.'),
     '#prefix' => $pager,
     '#suffix' => $pager,
   );
