@@ -179,7 +179,7 @@ function theme_islandora_basic_collection_policy_management_table(array $variabl
     'caption' => NULL,
     'colgroups' => NULL,
     'sticky' => NULL,
-    'empty' => t("No Content Models"),
+    'empty' => t("No content models"),
   );
   return theme('table', $variables);
 }

@@ -15,7 +15,7 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
   public static function getInfo() {
     return array(
       'name' => 'Islandora Basic Collection Manage Permissions',
-      'description' => 'Ensure the manage tab is shown based on the corrent permissions.',
+      'description' => 'Ensure the manage tab is shown based on current permissions.',
       'group' => 'Islandora Basic Collection',
     );
   }

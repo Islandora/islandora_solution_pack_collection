@@ -109,14 +109,14 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
     'label' => array(
       '#type' => 'textfield',
       '#title' => t('Collection Label'),
-      '#description' => t('Human readable name for this collection'),
+      '#description' => t('Human-readable name for this collection.'),
       '#required' => TRUE,
       '#size' => 25,
     ),
     'pid' => array(
       '#type' => 'textfield',
       '#title' => t('Collection PID'),
-      '#description' => t("Unique PID for this collection. Leave blank for default.<br/>PID's take the general form of namespace:collection (eg. islandora:pamphlets)"),
+      '#description' => t("Unique PID for this collection. Leave blank to use the default.<br/>PIDs take the general form of <strong>namespace:collection</strong> (e.g. islandora:pamphlets)"),
       '#size' => 15,
     ),
     'inherit_policy' => array(
@@ -134,7 +134,7 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
       ),
       'namespace' => islandora_basic_collection_get_namespace_form_element($form_state['default_namespace']),
       'content_models' => array(
-        '#title' => "Choose allowable content models for this collection",
+        '#title' => "Allowable content models",
         '#type' => 'checkboxes',
         '#options' => islandora_basic_collection_get_content_models_as_form_options($content_models),
         '#description' => t("Content models describe the behaviours of objects with which they are associated."),
@@ -160,7 +160,7 @@ function islandora_basic_collection_create_child_collection_form_validate(array 
   if (!empty($form_state['values']['pid'])) {
     $pid = $form_state['values']['pid'];
     if (!islandora_is_valid_pid($pid)) {
-      form_set_error('pid', t('Collection PID is Invalid.'));
+      form_set_error('pid', t('Collection PID is invalid.'));
     }
     elseif (islandora_object_load($pid)) {
       form_set_error('pid', t('Collection PID already exists.'));
@@ -259,7 +259,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     '#action' => request_uri() . '#policy-management',
     'help' => array(
       '#type' => 'item',
-      '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA112/How+to+Manage+Collection+Policies', array()),
+      '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA711/How+to+Manage+Collection+Policies', array()),
     ),
     'table' => array(
       '#tree' => TRUE,
@@ -271,7 +271,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     ),
     'submit' => array(
       '#type' => 'submit',
-      '#value' => t('Update Collection Policy'),
+      '#value' => t('Update collection policy'),
     ),
   );
 }
@@ -296,7 +296,7 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
     $policy->addContentModel($pid, $content_model->label, $properties['namespace']);
   }
   $collection['COLLECTION_POLICY']->content = $policy->getXML();
-  drupal_set_message(t('Updated Collection Policy'));
+  drupal_set_message(t('Updated collection policy'));
 }
 
 /**
@@ -370,7 +370,7 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
     '#action' => request_uri() . $fragment,
     'collection' => array(
       '#title' => t('Migrate members to collection'),
-      '#description' => t('Removes members from their current collection "%label" and adds them to the selected collection', array('%label' => $object->label)),
+      '#description' => t('Removes members from their current collection (%label) and adds them to the selected collection.', array('%label' => $object->label)),
       '#type' => 'select',
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
