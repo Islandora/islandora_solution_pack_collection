@@ -190,9 +190,8 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
                           'pid' => $collection->id,
                           'relationship' => $form_state['default_relationship'])));
   // Add TN datastream.
-  $thumbnail_url = file_create_url(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png');
   $thumbnail_datastream = $child_collection->constructDatastream('TN');
-  $thumbnail_datastream->setContentFromUrl($thumbnail_url);
+  $thumbnail_datastream->setContentFromFile(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png',FALSE);
   $thumbnail_datastream->label = 'Thumbnail';
   $thumbnail_datastream->mimetype = 'image/png';
   $child_collection->ingestDatastream($thumbnail_datastream);
