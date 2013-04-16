@@ -40,6 +40,7 @@ function islandora_basic_collection_get_ingest_configuration(FedoraObject $objec
     return array(
       'collections' => array($object->id),
       'models' => array_keys($policy->getContentModels()),
+      'parent' => $object->id,
     );
   }
   return FALSE;
@@ -63,7 +64,7 @@ function islandora_basic_collection_get_ingest_configuration(FedoraObject $objec
 function islandora_basic_collection_form_islandora_ingest_form_alter(array &$form, array &$form_state, $form_id) {
   $shared_storage = islandora_ingest_form_get_shared_storage($form_state);
   $step = islandora_ingest_form_get_step($form_state);
-  if (isset($shared_storage['collections'])) {
+  if (isset($shared_storage['collections']) && $step['type'] != 'callback') {
     $step = islandora_ingest_form_get_step($form_state);
     $metadata_form_step = isset($step['form_id']) && $step['form_id'] == 'xml_form_builder_ingest_form';
     $submit_handler_already_added = in_array('islandora_basic_collection_ingest_form_submit', $form['next']['#submit']);
