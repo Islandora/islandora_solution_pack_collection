@@ -40,7 +40,10 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->assertNoLink('Manage', 'Manage tab is not on current page.');
 
     // Test permission FEDORA_VIEW_OBJECTS, CREATE_CHILD_COLLECTION.
-    $user = $this->drupalCreateUser(array(FEDORA_VIEW_OBJECTS, FEDORA_INGEST, CREATE_CHILD_COLLECTION));
+    $user = $this->drupalCreateUser(array(
+              FEDORA_VIEW_OBJECTS,
+              FEDORA_INGEST,
+              CREATE_CHILD_COLLECTION));
     $this->drupalLogin($user);
     $this->clickLink(t('Islandora Repository'));
     $this->assertLink('Manage', 0, 'Manage tab is on current page.');

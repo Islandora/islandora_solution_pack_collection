@@ -109,8 +109,9 @@ function islandora_basic_collection_delete_children_batch_operation(FedoraObject
     }
   }
   if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('Deleted @count children from !collection.', array(
-          '!collection' => l($collection->label, "islandora/object/{$collection->id}"),
+    drupal_set_message(t('Deleted @count children from <a href="@collection-url">@collection</a>.', array(
+          '@collection' => $collection->label,
+          '@collection-url' => url("islandora/object/{$collection->id}"),
           '@count' => count($children))));
   }
 }
@@ -166,9 +167,11 @@ function islandora_basic_collection_migrate_children_batch_operation(FedoraObjec
     islandora_basic_collection_remove_from_collection($child, $source);
   }
   if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('Migrated @count children from !source to !destination.', array(
-          '!source' => l($source->label, "islandora/object/{$source->id}"),
-          '!destination' => l($destination->label, "islandora/object/{$destination->id}"),
+    drupal_set_message(t('Migrated @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.', array(
+          '@source' => $source->label,
+          '@source-url' => url("islandora/object/{$source->id}"),
+          '@destination' => $destination->label,
+          '@destination-url' => url("islandora/object/{$destination->id}"),
           '@count' => count($children))));
   }
 }
@@ -223,9 +226,11 @@ function islandora_basic_collection_share_children_batch_operation(FedoraObject 
     islandora_basic_collection_add_to_collection($child, $destination);
   }
   if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('Shared @count children from !source with !destination.', array(
-          '!source' => l($source->label, "islandora/object/{$source->id}"),
-          '!destination' => l($destination->label, "islandora/object/{$destination->id}"),
+    drupal_set_message(t('Shared @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.', array(
+          '@source' => $source->label,
+          '@source-url' => url("islandora/object/{$source->id}"),
+          '@destination' => $destination->label,
+          '@destination-url' => url("islandora/object/{$destination->id}"),
           '@count' => count($children))));
   }
 }
