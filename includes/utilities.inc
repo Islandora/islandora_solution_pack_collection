@@ -34,7 +34,7 @@ function islandora_basic_collection_get_content_models_as_form_options(array $co
  *
  * @see islandora_get_collections()
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   A collection object to ignore.
  *
  * @return array
@@ -43,7 +43,7 @@ function islandora_basic_collection_get_content_models_as_form_options(array $co
  *   - pid: The PID of the collection object.
  *     - label: The label to display to the user.
  */
-function islandora_basic_collection_get_other_collections_as_form_options(FedoraObject $object) {
+function islandora_basic_collection_get_other_collections_as_form_options(AbstractObject $object) {
   $map_options = function($o) {
     return $o['label'];
   };
@@ -78,7 +78,7 @@ function islandora_basic_collection_get_namespace_form_element($default_value) {
 /**
  * A Drupal form select table populated with the given collection's children.
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection object.
  * @param array $pager_options
  *   An associative array containing options to pass onto the pager.
@@ -88,7 +88,7 @@ function islandora_basic_collection_get_namespace_form_element($default_value) {
  * @return array
  *   A Drupal select table form element.
  */
-function islandora_basic_collection_get_children_select_table_form_element(FedoraObject $object, array $pager_options) {
+function islandora_basic_collection_get_children_select_table_form_element(AbstractObject $object, array $pager_options) {
   // Assumes all results are returned although the function description
   // states otherwise.
   $results = islandora_basic_collection_get_objects($object);
@@ -124,7 +124,7 @@ function islandora_basic_collection_get_children_select_table_form_element(Fedor
 /**
  * Gets a list of all immediate child PIDs.
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection object.
  * @param string $type
  *   Limit the child PID's to those of the given content model.
@@ -132,7 +132,7 @@ function islandora_basic_collection_get_children_select_table_form_element(Fedor
  * @return array
  *   The list of child PIDs.
  */
-function islandora_basic_collection_get_child_pids(FedoraObject $object, $type = NULL) {
+function islandora_basic_collection_get_child_pids(AbstractObject $object, $type = NULL) {
   $results = islandora_basic_collection_get_objects($object);
   if (isset($type)) {
     $filter_type = function($o) use($type) {
@@ -149,13 +149,13 @@ function islandora_basic_collection_get_child_pids(FedoraObject $object, $type =
 /**
  * Gets a list of all parent pids.
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The object.
  *
  * @return array
  *   The list of parent PIDs.
  */
-function islandora_basic_collection_get_parent_pids(FedoraObject $object) {
+function islandora_basic_collection_get_parent_pids(AbstractObject $object) {
   $results = array_merge(
       $object->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection'),
       $object->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOf'));
@@ -169,13 +169,13 @@ function islandora_basic_collection_get_parent_pids(FedoraObject $object) {
 /**
  * Gets a list of all parent pids exluding the given parent.
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The object.
  *
  * @return array
  *   The list of parent PIDs.
  */
-function islandora_basic_collection_get_other_parents(FedoraObject $object, FedoraObject $parent) {
+function islandora_basic_collection_get_other_parents(AbstractObject $object, AbstractObject $parent) {
   $parents = islandora_basic_collection_get_parent_pids($object);
   unset($parents[array_search($parent->id, $parents)]);
   return $parents;
@@ -184,12 +184,12 @@ function islandora_basic_collection_get_other_parents(FedoraObject $object, Fedo
 /**
  * Adds the given object to the given collection.
  *
- * @param FedoraObject $new_member
+ * @param AbstractObject $new_member
  *   The object to add.
- * @param FedoraObject $collection
+ * @param AbstractObject $collection
  *   The collection object to add to.
  */
-function islandora_basic_collection_add_to_collection(FedoraObject $new_member, FedoraObject $collection) {
+function islandora_basic_collection_add_to_collection(AbstractObject $new_member, AbstractObject $collection) {
   $results = $new_member->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
   if (empty($results)) {
     $new_member->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
@@ -199,12 +199,12 @@ function islandora_basic_collection_add_to_collection(FedoraObject $new_member, 
 /**
  * Removes the given object from the given collection.
  *
- * @param FedoraObject $member
+ * @param AbstractObject $member
  *   The object to remove.
- * @param FedoraObject $collection
+ * @param AbstractObject $collection
  *   The collection object to remove from.
  */
-function islandora_basic_collection_remove_from_collection(FedoraObject $member, FedoraObject $collection) {
+function islandora_basic_collection_remove_from_collection(AbstractObject $member, AbstractObject $collection) {
   $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
   $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOf', $collection->id);
 }

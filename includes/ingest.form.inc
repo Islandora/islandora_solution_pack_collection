@@ -8,13 +8,13 @@
 /**
  * Manage action that for ingestion of an object into the given collection.
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection to ingest into.
  *
  * @return array
  *   The ingest form.
  */
-function islandora_basic_collection_ingest_action(FedoraObject $object) {
+function islandora_basic_collection_ingest_action(AbstractObject $object) {
   if (($configuration = islandora_basic_collection_get_ingest_configuration($object)) !== FALSE) {
     module_load_include('inc', 'islandora', 'includes/ingest.form');
     return drupal_get_form('islandora_ingest_form', $configuration);
@@ -27,14 +27,14 @@ function islandora_basic_collection_ingest_action(FedoraObject $object) {
  *
  * @see islandora_ingest_form
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   A collection object to generate the configuration from.
  *
  * @return array
  *   An ingest configuration array as defined by islandora_ingest_form() if
  *   possible FALSE otherwise.
  */
-function islandora_basic_collection_get_ingest_configuration(FedoraObject $object) {
+function islandora_basic_collection_get_ingest_configuration(AbstractObject $object) {
   if (in_array('islandora:collectionCModel', $object->models) && isset($object['COLLECTION_POLICY'])) {
     $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
     return array(
