@@ -114,7 +114,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
   for ($i = $start; $i < $end; $i++) {
     $pid = $results[$i]['object']['value'];
     $fc_object = islandora_object_load($pid);
-    if (!isset($fc_object)) {
+    if (!is_object($fc_object)) {
       // NULL object so don't show in collection view.
       continue;
     }
