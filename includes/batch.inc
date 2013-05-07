@@ -70,12 +70,17 @@ function islandora_basic_collection_delete_children_batch(FedoraObject $collecti
   $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
   $parameters = array($collection, $children);
   $delete_child_operation = array('islandora_basic_collection_delete_children_batch_operation', $parameters);
-  $message_parameters = array('@collection' => $collection->label, '@count' => count($children));
+  $child_count = count($children);
+  $message_parameters = array('@collection' => $collection->label);
   return array(
     'operations' => array($delete_child_operation),
     'finished' => 'islandora_basic_collection_batch_finished',
-    'title' => t('Deleting @count children from @collection ...', $message_parameters),
-    'init_message' => t('Preparing to delete @count children from @collection ...', $message_parameters),
+    'title' => format_plural($child_count,
+      'Deleting 1 child from @collection ...',
+      'Deleting @count children from @collection ...', $message_parameters),
+    'init_message' => format_plural($child_count,
+      'Preparing to delete 1 child from @collection ...',
+      'Preparing to delete @count children from @collection ...', $message_parameters),
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
     'error_message' => t('An error has occurred.'),
     'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
@@ -109,10 +114,12 @@ function islandora_basic_collection_delete_children_batch_operation(FedoraObject
     }
   }
   if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('Deleted @count children from <a href="@collection-url">@collection</a>.', array(
-          '@collection' => $collection->label,
-          '@collection-url' => url("islandora/object/{$collection->id}"),
-          '@count' => count($children))));
+    drupal_set_message(format_plural(count($children),
+      'Deleted 1 child from <a href="@collection-url">@collection</a>.',
+      'Deleted @count children from <a href="@collection-url">@collection</a>.', array(
+        '@collection' => $collection->label,
+        '@collection-url' => url("islandora/object/{$collection->id}"),
+    )));
   }
 }
 
@@ -167,12 +174,14 @@ function islandora_basic_collection_migrate_children_batch_operation(FedoraObjec
     islandora_basic_collection_remove_from_collection($child, $source);
   }
   if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('Migrated @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.', array(
+    drupal_set_message(format_plural(count($children),
+      'Migrated 1 child from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.',
+      'Migrated @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.', array(
           '@source' => $source->label,
           '@source-url' => url("islandora/object/{$source->id}"),
           '@destination' => $destination->label,
           '@destination-url' => url("islandora/object/{$destination->id}"),
-          '@count' => count($children))));
+    )));
   }
 }
 
@@ -226,11 +235,13 @@ function islandora_basic_collection_share_children_batch_operation(FedoraObject 
     islandora_basic_collection_add_to_collection($child, $destination);
   }
   if (islandora_basic_collection_end_operation($context)) {
-    drupal_set_message(t('Shared @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.', array(
+    drupal_set_message(format_plural(count($children),
+      'Shared 1 child from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.',
+      'Shared @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.', array(
           '@source' => $source->label,
           '@source-url' => url("islandora/object/{$source->id}"),
           '@destination' => $destination->label,
           '@destination-url' => url("islandora/object/{$destination->id}"),
-          '@count' => count($children))));
+    )));
   }
 }

@@ -5,8 +5,6 @@
  * Handles the ingestion of child objects that are not collections.
  */
 
-require_once 'utilities.inc';
-
 // Constants.
 define('FAKE_PID', 'fake:pid');
 
@@ -48,6 +46,8 @@ function islandora_basic_collection_get_ingest_configuration(FedoraObject $colle
   // getNextIdentifier(), needlessly.
   $object = $collection->repository->constructObject(FAKE_PID);
   $object->label = 'New Object';
+
+  module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
   islandora_basic_collection_add_to_collection($object, $collection);
   $policy = new CollectionPolicy($collection['COLLECTION_POLICY']->content);
   return array(
@@ -79,9 +79,9 @@ function islandora_basic_collection_select_content_model_form(array $form, array
     $options[$model] = $object->label;
   }
   $model = isset($form_state['values']['models']) ? $form_state['values']['models'] : key($options);
-  // A bit of a hack, to update the prev/next buttons, we need to update the
-  // shared storage with our current selection, and then rebuild the list of
-  // steps. Since many other steps depend on what content model is selected.
+  // A bit of a hack, to update the prev/next buttons: Since many other steps
+  // depend on what content model is selected, we need to update the shared
+  // storage with our current selection, and then rebuild the list of steps.
   $shared_storage = &islandora_ingest_form_get_shared_storage($form_state);
   $shared_storage['models'] = array($model);
   drupal_static_reset('islandora_ingest_form_get_steps');
