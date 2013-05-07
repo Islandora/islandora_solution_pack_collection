@@ -70,7 +70,7 @@ function islandora_basic_collection_delete_children_batch(FedoraObject $collecti
   $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
   $parameters = array($collection, $children);
   $delete_child_operation = array('islandora_basic_collection_delete_children_batch_operation', $parameters);
-  $child_count = count($children)l
+  $child_count = count($children);
   $message_parameters = array('@collection' => $collection->label);
   return array(
     'operations' => array($delete_child_operation),
