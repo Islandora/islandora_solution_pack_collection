@@ -417,6 +417,11 @@ function islandora_basic_collection_form_islandora_repository_admin_alter(&$form
 function islandora_basic_collection_islandora_ingest_steps(array &$form_state) {
   // Assumes that only a single object will get created.
   $shared_storage = islandora_ingest_form_get_shared_storage($form_state);
+  // Not ingesting into a collection.
+  if (empty($shared_storage['collection'])) {
+    return;
+  }
+  // Configure the step storage
   $step_storage = &islandora_ingest_form_get_step_storage($form_state, 'islandora_basic_collection_select_content_model');
   $step_storage['models'] = isset($step_storage['models']) ? $step_storage['models'] : $shared_storage['models'];
   if (count($step_storage['models']) > 0) {
