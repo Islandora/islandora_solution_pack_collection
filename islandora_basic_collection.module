@@ -443,27 +443,29 @@ function islandora_basic_collection_islandora_ingest_steps(array &$form_state) {
  */
 function islandora_basic_collection_islandora_ingest_steps_alter(array &$steps, array $form_state) {
   $step_storage = &islandora_ingest_form_get_step_storage($form_state, 'islandora_basic_collection_select_content_model');
-  // Convert the select content model form step to a callback when only one
-  // content model is available and when there are more than one form steps,
-  // as we can't have a form with no steps.
-  $select_model_form_step = !empty($steps['islandora_basic_collection_select_content_model']);
-  $no_model_selection = count($step_storage['models']) == 1;
-  $form_steps = islandora_ingest_form_get_form_steps($form_state);
-  if ($select_model_form_step && $no_model_selection && count($form_steps) > 1) {
-    $steps['islandora_basic_collection_select_content_model'] = array(
-      'type' => 'callback',
-      'do_function' => array(
-        'function' => 'islandora_basic_collection_set_content_model_callback',
-        'args' => array(
-          reset($step_storage['models']),
+  if (!empty($step_storage)) {
+    // Convert the select content model form step to a callback when only one
+    // content model is available and when there are more than one form steps,
+    // as we can't have a form with no steps.
+    $select_model_form_step = !empty($steps['islandora_basic_collection_select_content_model']);
+    $no_model_selection = count($step_storage['models']) == 1;
+    $form_steps = islandora_ingest_form_get_form_steps($form_state);
+    if ($select_model_form_step && $no_model_selection && count($form_steps) > 1) {
+      $steps['islandora_basic_collection_select_content_model'] = array(
+        'type' => 'callback',
+        'do_function' => array(
+          'function' => 'islandora_basic_collection_set_content_model_callback',
+          'args' => array(
+            reset($step_storage['models']),
+          ),
         ),
-      ),
-      'undo_function' => array(
-        'function' => 'islandora_basic_collection_set_content_model_undo_callback',
-      ),
-      'weight' => -50,
-      'module' => 'islandora_basic_collection',
-      'file' => 'includes/ingest.form.inc',
-    );
+        'undo_function' => array(
+          'function' => 'islandora_basic_collection_set_content_model_undo_callback',
+        ),
+        'weight' => -50,
+        'module' => 'islandora_basic_collection',
+        'file' => 'includes/ingest.form.inc',
+      );
+    }
   }
 }
