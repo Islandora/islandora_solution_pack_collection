@@ -23,7 +23,11 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    */
   public function createRootTestCollection($label, $model, $pid = '') {
     $current_user = $this->loggedInUser;
-    $user = $this->drupalCreateUser(array('view fedora repository objects', 'create child collection', 'ingest fedora objects'));
+    $user = $this->drupalCreateUser(array(
+      'view fedora repository objects',
+      'create child collection',
+      'ingest fedora objects',
+    ));
     $this->drupalLogin($user);
 
     $this->drupalGet('islandora');

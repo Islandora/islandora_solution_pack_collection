@@ -87,9 +87,7 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
   return array(
     'islandora_basic_collection' => array(
       'title' => 'Islandora basic collection',
-      'objects' => array(
-        $collection_content_model,
-      ),
+      'objects' => array($collection_content_model),
     ),
   );
 }
@@ -421,7 +419,7 @@ function islandora_basic_collection_islandora_ingest_steps(array &$form_state) {
   if (empty($shared_storage['collection'])) {
     return;
   }
-  // Configure the step storage
+  // Configure the step storage.
   $step_storage = &islandora_ingest_form_get_step_storage($form_state, 'islandora_basic_collection_select_content_model');
   $step_storage['models'] = isset($step_storage['models']) ? $step_storage['models'] : $shared_storage['models'];
   if (count($step_storage['models']) > 0) {
@@ -459,9 +457,7 @@ function islandora_basic_collection_islandora_ingest_steps_alter(array &$steps, 
             reset($step_storage['models']),
           ),
         ),
-        'undo_function' => array(
-          'function' => 'islandora_basic_collection_set_content_model_undo_callback',
-        ),
+        'undo_function' => array('function' => 'islandora_basic_collection_set_content_model_undo_callback'),
         'weight' => -50,
         'module' => 'islandora_basic_collection',
         'file' => 'includes/ingest.form.inc',
