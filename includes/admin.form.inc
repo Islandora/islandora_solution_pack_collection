@@ -28,7 +28,7 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
       '#type' => 'checkbox',
       '#title' => t('Disable deleting the collection policy'),
       '#default_value' => variable_get('islandora_basic_collection_disable_collection_policy_delete', TRUE),
-      '#description' => t('Disables the \'delete\' link for the COLLECTION_POLICY datastream.'),
+      '#description' => t("Disables the 'delete' link for the COLLECTION_POLICY datastream."),
     ),
     'islandora_basic_collection_default_view' => array(
       '#type' => 'select',

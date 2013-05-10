@@ -33,7 +33,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
     'title' => t('List view'),
     'attributes' => array(
       'href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)),
-      'class' => array('islandora-view-list')
+      'class' => array('islandora-view-list'),
     ),
   );
   $query_params['display'] = 'grid';
@@ -41,7 +41,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
     'title' => t('Grid view'),
     'attributes' => array(
       'href' => url("islandora/object/$islandora_object->id", array('query' => $query_params)),
-      'class' => array('islandora-view-grid')
+      'class' => array('islandora-view-grid'),
     ),
   );
   $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
@@ -114,7 +114,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
   for ($i = $start; $i < $end; $i++) {
     $pid = $results[$i]['object']['value'];
     $fc_object = islandora_object_load($pid);
-    if (!isset($fc_object)) {
+    if (!is_object($fc_object)) {
       // NULL object so don't show in collection view.
       continue;
     }
