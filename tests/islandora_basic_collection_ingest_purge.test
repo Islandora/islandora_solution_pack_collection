@@ -5,7 +5,7 @@
  * Attempts to create and remove a randomly generated image collection
  */
 
-class IslandoraBasicCollectionIngestTestCase extends CollectionWebTestCase {
+class IslandoraBasicCollectionIngestTestCase extends IslandoraCollectionWebTestCase {
 
   /**
    * Get test information.
@@ -36,10 +36,6 @@ class IslandoraBasicCollectionIngestTestCase extends CollectionWebTestCase {
    * Creates an administrative user and attempts to ingest a test image.
    */
   public function testIngestPurgeBasicCollection() {
-
-    // Sets up the testing space.
-    $user = $this->createDrupalAdminUser();
-    $this->drupalLogin($user);
     $label = $this->randomName(16);
     $suffix = $this->randomName(16);
     $collectionpid = 'islandora:' . $suffix;
