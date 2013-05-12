@@ -116,10 +116,12 @@ function islandora_basic_collection_delete_children_batch_operation(FedoraObject
   if (islandora_basic_collection_end_operation($context)) {
     drupal_set_message(format_plural(count($children),
       'Deleted 1 child from <a href="@collection-url">@collection</a>.',
-      'Deleted @count children from <a href="@collection-url">@collection</a>.', array(
+      'Deleted @count children from <a href="@collection-url">@collection</a>.',
+      array(
         '@collection' => $collection->label,
         '@collection-url' => url("islandora/object/{$collection->id}"),
-    )));
+      )
+    ));
   }
 }
 
@@ -176,12 +178,14 @@ function islandora_basic_collection_migrate_children_batch_operation(FedoraObjec
   if (islandora_basic_collection_end_operation($context)) {
     drupal_set_message(format_plural(count($children),
       'Migrated 1 child from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.',
-      'Migrated @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.', array(
-          '@source' => $source->label,
-          '@source-url' => url("islandora/object/{$source->id}"),
-          '@destination' => $destination->label,
-          '@destination-url' => url("islandora/object/{$destination->id}"),
-    )));
+      'Migrated @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.',
+      array(
+        '@source' => $source->label,
+        '@source-url' => url("islandora/object/{$source->id}"),
+        '@destination' => $destination->label,
+        '@destination-url' => url("islandora/object/{$destination->id}"),
+      )
+    ));
   }
 }
 
@@ -237,11 +241,13 @@ function islandora_basic_collection_share_children_batch_operation(FedoraObject 
   if (islandora_basic_collection_end_operation($context)) {
     drupal_set_message(format_plural(count($children),
       'Shared 1 child from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.',
-      'Shared @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.', array(
-          '@source' => $source->label,
-          '@source-url' => url("islandora/object/{$source->id}"),
-          '@destination' => $destination->label,
-          '@destination-url' => url("islandora/object/{$destination->id}"),
-    )));
+      'Shared @count children from <a href="@source-url">@source</a> to <a href="@destination-url">@destination</a>.',
+      array(
+        '@source' => $source->label,
+        '@source-url' => url("islandora/object/{$source->id}"),
+        '@destination' => $destination->label,
+        '@destination-url' => url("islandora/object/{$destination->id}"),
+      )
+    ));
   }
 }
