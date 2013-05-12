@@ -78,7 +78,7 @@
 
   <target name="test">
     <exec executable="drush">
-      <arg line="test-run --xml=${basedir}/build/test 'Islandora Solution Pack Collection'" />
+      <arg line="test-run --xml=${basedir}/build/test 'Islandora Basic Collection'" />
     </exec>
   </target>
 
