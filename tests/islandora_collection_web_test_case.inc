@@ -76,4 +76,39 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
       $this->drupalLogout();
     }
   }
+
+ /**
+   * Runs a series of assertLink() checks on an object's datastreams.
+   *
+   * @param string $objectpid
+   *   The PID of the object to be passed to the GET request.
+   * @param array $datastreams
+   *   An array containing the list of datastream links to assert.
+   *
+   * @see DrupalWebTestCase::assertLink()
+   */
+  public function assertDatastreams($objectpid, array $datastreams) {
+    $path = 'islandora/object/' . $objectpid . '/manage/datastreams';
+    $this->drupalGet($path);
+    foreach ($datastreams as $datastream) {
+      $this->assertLink($datastream, 0, t('%datastream datastream created', array('%datastream' => $datastream)), 'Islandora');
+      }
+    }
+
+  /**
+   * Deletes a single object specified by its PID and identified by its label.
+   *
+   * @param string $objectpid
+   *   The PID of the object to be deleted.
+   * @param string $label
+   *   The PID's title; used to assertNoText() after deletion.
+   */
+  public function deleteTestObject($objectpid, $label, $delete = 'Delete') {
+    $path = 'islandora/object/' . $objectpid . '/manage/properties';
+    $edit = array();
+    $this->drupalPost($path, $edit, $delete);
+    $path = $this->url;
+    $this->drupalPost($path, $edit, t('Delete'));
+    $this->assertNoText($label, t('Object %label successfully removed', array('%label' => $label)));
+   }
 }
