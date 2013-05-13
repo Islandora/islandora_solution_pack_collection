@@ -33,7 +33,7 @@ class IslandoraBasicCollectionIngestTestCase extends IslandoraCollectionWebTestC
   }
 
   /**
-   * Creates an administrative user and attempts to ingest a test image.
+   * Attempts to ingest a test collection.
    */
   public function testIngestPurgeBasicCollection() {
     $label = $this->randomName(16);
