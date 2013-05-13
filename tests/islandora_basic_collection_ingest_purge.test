@@ -39,7 +39,7 @@ class IslandoraBasicCollectionIngestTestCase extends IslandoraCollectionWebTestC
     $label = $this->randomName(16);
     $suffix = $this->randomName(16);
     $collectionpid = 'islandora:' . $suffix;
-    $this->createRootTestCollection($label, 'islandora:sp_basic_image', $collectionpid);
-    $this->deleteRootTestCollectionByPid($collectionpid);
+    $this->createTestCollection($label, 'islandora:sp_basic_image', $collectionpid);
+    $this->deleteTestCollection($collectionpid);
   }
 }
