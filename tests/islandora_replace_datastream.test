@@ -5,7 +5,7 @@
  * Attempts to replace the thumbnail datastream of a collection.
  */
 
-class IslandoraReplaceDatastreamTestCase extends IslandoraCollectionWebTestCase {
+class IslandoraReplaceDatastreamTestCase extends CollectionWebTestCase {
 
   /**
    * Get test information.
@@ -16,7 +16,7 @@ class IslandoraReplaceDatastreamTestCase extends IslandoraCollectionWebTestCase 
     return array(
       'name' => 'Replace Datastream',
       'description' => 'Generates a random collection and replaces its thumbnail datastream',
-      'group' => 'Islandora Basic Collection',
+      'group' => 'Islandora Object Management',
     );
   }
 
@@ -40,15 +40,8 @@ class IslandoraReplaceDatastreamTestCase extends IslandoraCollectionWebTestCase 
   public function testReplaceDatastream() {
 
     // Sets up the testing space.
-    $user = $this->drupalCreateUser(array(
-      'view fedora repository objects',
-      'create child collection',
-      'ingest fedora objects',
-      'delete fedora objects and datastreams',
-      'add fedora datastreams',
-    ));
+    $user = $this->createDrupalAdminUser();
     $this->drupalLogin($user);
-
     $label = $this->randomName(16);
     $suffix = $this->randomName(16);
     $collectionpid = 'islandora:' . $suffix;
