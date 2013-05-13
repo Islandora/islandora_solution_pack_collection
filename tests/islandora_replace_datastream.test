@@ -52,7 +52,7 @@ class IslandoraReplaceDatastreamTestCase extends IslandoraCollectionWebTestCase 
     $label = $this->randomName(16);
     $suffix = $this->randomName(16);
     $collectionpid = 'islandora:' . $suffix;
-    $this->createRootTestCollection($label, 'islandora:collectionCModel', $collectionpid);
+    $this->createTestCollection($label, 'islandora:collectionCModel', $collectionpid);
 
     // Attempts to remove the original TN datastream.
     $edit = array();
@@ -73,6 +73,6 @@ class IslandoraReplaceDatastreamTestCase extends IslandoraCollectionWebTestCase 
     $this->assertLink('TN', 0, 'Thumbnail datastream successfully created', 'Islandora');
     $this->clickLink('TN');
     $this->assertNoText('PNG', 'PNG thumbnail correctly replaced with JPG', 'Islandora');
-    $this->deleteRootTestCollectionByPid($collectionpid);
+    $this->deleteTestCollection($collectionpid);
   }
 }
