@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * Attempts to create and remove a randomly generated image collection
+ */
+
+class IslandoraBasicCollectionIngestTestCase extends IslandoraCollectionWebTestCase {
+
+  /**
+   * Get test information.
+   *
+   * @see IslandoraWebTestCase::getInfo()
+   */
+  public static function getInfo() {
+    return array(
+      'name' => 'Basic Collection Ingest/Purge',
+      'description' => 'Creates and deletes a randomly generated collection',
+      'group' => 'Islandora Basic Collection',
+    );
+  }
+
+  /**
+   * Set up the test environment.
+   *
+   * @see IslandoraWebTestCase::setUp()
+   */
+  public function setUp() {
+    parent::setUp(array(
+      'islandora',
+      'islandora_basic_collection',
+    ));
+  }
+
+  /**
+   * Creates an administrative user and attempts to ingest a test image.
+   */
+  public function testIngestPurgeBasicCollection() {
+    $label = $this->randomName(16);
+    $suffix = $this->randomName(16);
+    $collectionpid = 'islandora:' . $suffix;
+    $this->createTestCollection($label, 'islandora:collectionCModel', $collectionpid);
+    $this->deleteTestCollection($collectionpid);
+  }
+}

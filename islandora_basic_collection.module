@@ -2,7 +2,7 @@
 
 /**
  * @file
- *   Provides functionality for creating/managing/deleting/viewing collections.
+ * Provides functionality for creating/managing/deleting/viewing collections.
  */
 
 // Constants.
@@ -50,7 +50,7 @@ function islandora_basic_collection_menu() {
 /**
  * Implements hook_menu_alter().
  */
-function islandora_basic_collection_menu_alter(&$items) {
+function islandora_basic_collection_menu_alter(array &$items) {
   // We want to add more permissions to the access arguments for the manage tab.
   $current_access_arguments = $items['islandora/object/%islandora_object/manage']['access arguments'][0];
   $new_access_arguments = array(
@@ -87,9 +87,7 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
   return array(
     'islandora_basic_collection' => array(
       'title' => 'Islandora basic collection',
-      'objects' => array(
-        $collection_content_model,
-      ),
+      'objects' => array($collection_content_model),
     ),
   );
 }
@@ -138,23 +136,17 @@ function islandora_basic_collection_ingest_child_collection_access($object = NUL
  *   Collection object to check if ingestion is possible.
  */
 function islandora_basic_collection_ingest_access($object = NULL) {
-  if (!is_object($object) || !user_access(FEDORA_INGEST)) {
+  if (!islandora_user_access($object, array(FEDORA_INGEST), array('islandora:collectionCModel'))) {
     return FALSE;
   }
+  module_load_include('inc', 'islandora', 'includes/ingest.form');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/ingest.form');
   // Reduce need to validate to once per object, as this if often called more
   // than once per request.
   static $checked_objects = array();
   if (!in_array($object->id, array_keys($checked_objects))) {
-    module_load_include('inc', 'islandora', 'includes/ingest.form');
-    module_load_include('inc', 'islandora_basic_collection', 'includes/ingest.form');
-    // Assume ingest is denied.
-    $checked_objects[$object->id] = FALSE;
     $configuration = islandora_basic_collection_get_ingest_configuration($object);
-    if ($configuration) {
-      $steps = islandora_ingest_get_approximate_steps($configuration);
-      // Only if one or more steps are defined should we ingest.
-      $checked_objects[$object->id] = count($steps) > 0;
-    }
+    $checked_objects[$object->id] = islandora_ingest_can_display_ingest_form($configuration);
   }
   return $checked_objects[$object->id];
 }
@@ -237,9 +229,11 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
     };
     $pids = islandora_basic_collection_get_parent_pids($object);
     $rows = array_map($map_to_row, $pids);
-    return array(
-      'collection' => theme('table', array('header' => array(t('Parent Collections')), 'rows' => $rows, 'empty' => t('No parent collections'))),
-    );
+    $table = theme('table', array(
+               'header' => array(t('Parent Collections')),
+               'rows' => $rows,
+               'empty' => t('No parent collections')));
+    return array('collection' => $table);
   }
 }
 
@@ -304,8 +298,8 @@ function islandora_basic_collection_get_objects(AbstractObject $object, $page_nu
  * @return array
  *   An associative array containing all the known collections:
  *   - pid: The PID of the collection.
- *    - pid: The PID of the collection.
- *    - label: The label of the collection.
+ *   - pid: The PID of the collection.
+ *   - label: The label of the collection.
  */
 function islandora_basic_collection_get_collections() {
   module_load_include('inc', 'islandora', 'includes/utilities');
@@ -377,20 +371,21 @@ function islandora_basic_collection_form_islandora_delete_object_form_alter(arra
   $object = $form_state['object'];
   if (in_array('islandora:collectionCModel', $object->models)) {
     $form['description']['#markup'] = t('This will remove the collection object and all its child objects. Child objects currently shared with other collections will not be deleted. This action cannot be undone.');
-    $form['#submit'] = array('islandora_basic_collection_islandora_delete_object_form_delete_pages_submit');
+    $form['#submit'] = array('islandora_basic_collection_islandora_delete_object_form_delete_children_submit');
   }
 }
 
 /**
- * Delete all the page objects related to the collection object being deleted.
+ * Delete all the child objects related to the collection object being deleted.
  *
  * @param array $form
  *   The Drupal form.
  * @param array $form_state
  *   The Drupal form state.
  */
-function islandora_basic_collection_islandora_delete_object_form_delete_pages_submit(array $form, array &$form_state) {
+function islandora_basic_collection_islandora_delete_object_form_delete_children_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
+  // @todo This should be recursive.
   batch_set(islandora_basic_collection_delete_children_batch($form_state['object']));
   // Called from within this submit handler rather than from the Drupal Form API
   // as we need the object to exist to generate the pages and if we run this.
@@ -401,7 +396,8 @@ function islandora_basic_collection_islandora_delete_object_form_delete_pages_su
 
 /**
  * Implements hook_form_FORM_ID_alter().
- * Alters islandora_repository_admin.
+ *
+ * Alters islandora_repository_admin form.
  * Adds in a setting for site-wide UUID generation on ingest.
  */
 function islandora_basic_collection_form_islandora_repository_admin_alter(&$form, &$form_state) {
@@ -411,4 +407,61 @@ function islandora_basic_collection_form_islandora_repository_admin_alter(&$form
     '#default_value' => variable_get('islandora_basic_collection_generate_uuid', FALSE),
     '#description' => t('Generate Fedora object PIDs with v4 UUIDs.'),
   );
+}
+
+/**
+ * Implements hook_islandora_ingest_steps().
+ */
+function islandora_basic_collection_islandora_ingest_steps(array &$form_state) {
+  // Assumes that only a single object will get created.
+  $shared_storage = islandora_ingest_form_get_shared_storage($form_state);
+  // Not ingesting into a collection.
+  if (empty($shared_storage['collection'])) {
+    return;
+  }
+  // Configure the step storage.
+  $step_storage = &islandora_ingest_form_get_step_storage($form_state, 'islandora_basic_collection_select_content_model');
+  $step_storage['models'] = isset($step_storage['models']) ? $step_storage['models'] : $shared_storage['models'];
+  if (count($step_storage['models']) > 0) {
+    return array(
+      'islandora_basic_collection_select_content_model' => array(
+        'type' => 'form',
+        'form_id' => 'islandora_basic_collection_select_content_model_form',
+        'args' => array($step_storage['models']),
+        'weight' => -50,
+        'module' => 'islandora_basic_collection',
+        'file' => 'includes/ingest.form.inc',
+      ),
+    );
+  }
+}
+
+/**
+ * Implements hook_islandora_ingest_steps_alter().
+ */
+function islandora_basic_collection_islandora_ingest_steps_alter(array &$steps, array $form_state) {
+  $step_storage = &islandora_ingest_form_get_step_storage($form_state, 'islandora_basic_collection_select_content_model');
+  if (!empty($step_storage)) {
+    // Convert the select content model form step to a callback when only one
+    // content model is available and when there are more than one form steps,
+    // as we can't have a form with no steps.
+    $select_model_form_step = !empty($steps['islandora_basic_collection_select_content_model']);
+    $no_model_selection = count($step_storage['models']) == 1;
+    $form_steps = islandora_ingest_form_get_form_steps($form_state);
+    if ($select_model_form_step && $no_model_selection && count($form_steps) > 1) {
+      $steps['islandora_basic_collection_select_content_model'] = array(
+        'type' => 'callback',
+        'do_function' => array(
+          'function' => 'islandora_basic_collection_set_content_model_callback',
+          'args' => array(
+            reset($step_storage['models']),
+          ),
+        ),
+        'undo_function' => array('function' => 'islandora_basic_collection_set_content_model_undo_callback'),
+        'weight' => -50,
+        'module' => 'islandora_basic_collection',
+        'file' => 'includes/ingest.form.inc',
+      );
+    }
+  }
 }
