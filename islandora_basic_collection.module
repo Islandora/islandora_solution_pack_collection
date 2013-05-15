@@ -95,7 +95,7 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
 /**
  * Determine whether or not to show this modules manage tab.
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The object being managed.
  *
  * @return bool
@@ -132,7 +132,7 @@ function islandora_basic_collection_ingest_child_collection_access($object = NUL
 /**
  * Ingest action access callback.
  *
- * @param AbstractFedoraObject $object
+ * @param AbstractObject $object
  *   Collection object to check if ingestion is possible.
  */
 function islandora_basic_collection_ingest_access($object = NULL) {
@@ -183,7 +183,7 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
 /**
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
-function islandora_basic_collection_islandora_collectionCModel_islandora_view_object(FedoraObject $object) {
+function islandora_basic_collection_islandora_collectionCModel_islandora_view_object(AbstractObject $object) {
   $output = theme('islandora_basic_collection_wrapper', array('islandora_object' => $object));
   return array('Collection View' => $output);
 }
@@ -191,7 +191,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
 /**
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
-function islandora_basic_collection_islandora_collectionCModel_islandora_overview_object(FedoraObject $object) {
+function islandora_basic_collection_islandora_collectionCModel_islandora_overview_object(AbstractObject $object) {
   $rows = array();
   $members = islandora_basic_collection_get_objects($object);
   foreach ($members as $member) {
@@ -220,7 +220,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
 /**
  * Implements hook_islandora_view_object().
  */
-function islandora_basic_collection_islandora_overview_object(FedoraObject $object) {
+function islandora_basic_collection_islandora_overview_object(AbstractObject $object) {
   module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
   if (!in_array('islandora:collectionCModel', $object->models)) {
     $map_to_row = function($o) {
@@ -243,7 +243,7 @@ function islandora_basic_collection_islandora_overview_object(FedoraObject $obje
  * Currently, we are only concerned with the with isMemberOf and
  * isMemberOfCollection relationships.
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection object whose members will be fetched.
  * @param int $page_number
  *   The page number in the query for members.
@@ -253,7 +253,7 @@ function islandora_basic_collection_islandora_overview_object(FedoraObject $obje
  * @return array
  *   Query results.
  */
-function islandora_basic_collection_get_objects(FedoraObject $object, $page_number = 1, $page_size = 5) {
+function islandora_basic_collection_get_objects(AbstractObject $object, $page_number = 1, $page_size = 5) {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $query = 'SELECT $object $title $content
      FROM <#ri>
