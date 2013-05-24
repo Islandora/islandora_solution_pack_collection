@@ -13,8 +13,10 @@
     <span class="islandora-basic-collection-display-switch">
       <ul class="links inline">
         <?php foreach ($view_links as $link): ?>
+          <?php $attributes = drupal_attributes($link['attributes']); ?>
+          <?php $title = t('@title', array('@title' => $link['title'])); ?>
           <li>
-            <a <?php print drupal_attributes($link['attributes']) ?>><?php print $link['title'] ?></a>
+            <a <?php print $attributes; ?>><?php print $title; ?></a>
           </li>
         <?php endforeach ?>
       </ul>
