@@ -21,7 +21,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    *
    * @see IslandoraWebTestCase::deleteRootTestCollection()
    */
-  public function createRootTestCollection($label, $model, $pid = '') {
+  public function createTestCollection($label, $model, $pid = '') {
     $current_user = $this->loggedInUser;
     $user = $this->drupalCreateUser(array(
       'view fedora repository objects',
@@ -56,7 +56,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    * @param string $pid
    *   The PID of the collection to be deleted
    */
-  public function deleteRootTestCollectionByPid($pid) {
+  public function deleteTestCollection($pid) {
     $current_user = $this->loggedInUser;
     $user = $this->drupalCreateUser(array('manage object properties', 'delete fedora objects and datastreams'));
 

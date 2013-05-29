@@ -11,13 +11,13 @@ define('FAKE_PID', 'fake:pid');
 /**
  * Manage action that for ingestion of an object into the given collection.
  *
- * @param FedoraObject $collection
+ * @param AbstractObject $collection
  *   The collection to ingest into.
  *
  * @return array
  *   The ingest form.
  */
-function islandora_basic_collection_ingest_action(FedoraObject $collection) {
+function islandora_basic_collection_ingest_action(AbstractObject $collection) {
   if (($configuration = islandora_basic_collection_get_ingest_configuration($collection)) !== FALSE) {
     module_load_include('inc', 'islandora', 'includes/ingest.form');
     return drupal_get_form('islandora_ingest_form', $configuration);
@@ -30,13 +30,13 @@ function islandora_basic_collection_ingest_action(FedoraObject $collection) {
  *
  * @see islandora_ingest_form
  *
- * @param FedoraObject $collection
+ * @param AbstractObject $collection
  *   A collection object to generate the configuration from.
  *
  * @return array
  *   An ingest configuration array as defined by islandora_ingest_form().
  */
-function islandora_basic_collection_get_ingest_configuration(FedoraObject $collection) {
+function islandora_basic_collection_get_ingest_configuration(AbstractObject $collection) {
   $is_collection_object = in_array('islandora:collectionCModel', $collection->models);
   $has_policy = isset($collection['COLLECTION_POLICY']);
   if (!$is_collection_object || !$has_policy) {

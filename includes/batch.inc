@@ -58,7 +58,7 @@ function islandora_basic_collection_batch_finished($success, $results, $operatio
  * If no child objects are given its assumed all child objects are to be
  * deleted.
  *
- * @param FedoraObject $collection
+ * @param AbstractObject $collection
  *   The collection object to purge the children from.
  * @param array $children
  *   The PID's of the children to delete, if NULL delete all child objects.
@@ -66,7 +66,7 @@ function islandora_basic_collection_batch_finished($success, $results, $operatio
  * @return array
  *   The batch definition.
  */
-function islandora_basic_collection_delete_children_batch(FedoraObject $collection, $children = NULL) {
+function islandora_basic_collection_delete_children_batch(AbstractObject $collection, $children = NULL) {
   $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
   $parameters = array($collection, $children);
   $delete_child_operation = array('islandora_basic_collection_delete_children_batch_operation', $parameters);
@@ -93,14 +93,14 @@ function islandora_basic_collection_delete_children_batch(FedoraObject $collecti
  * Children are only deleted if the given collection is there only parent,
  * otherwise they are removed from the given collection.
  *
- * @param FedoraObject $collection
+ * @param AbstractObject $collection
  *   The collection object to purge the children from.
  * @param array $children
  *   The PID's of the children to delete.
  * @param array $context
  *   The batch context.
  */
-function islandora_basic_collection_delete_children_batch_operation(FedoraObject $collection, array $children, array &$context) {
+function islandora_basic_collection_delete_children_batch_operation(AbstractObject $collection, array $children, array &$context) {
   $child = islandora_basic_collection_start_operation($children, $context);
   if ($child && $child = islandora_object_load($child)) {
     $other_parents = islandora_basic_collection_get_other_parents($child, $collection);
@@ -131,9 +131,9 @@ function islandora_basic_collection_delete_children_batch_operation(FedoraObject
  * If no child objects are given its assumed all child objects are to be
  * migrated.
  *
- * @param FedoraObject $source
+ * @param AbstractObject $source
  *   The source collection object.
- * @param FedoraObject $destination
+ * @param AbstractObject $destination
  *   The destination collection object.
  * @param array $children
  *   The PID's of the children to migrate, if NULL migrate all child objects.
@@ -141,7 +141,7 @@ function islandora_basic_collection_delete_children_batch_operation(FedoraObject
  * @return array
  *   The batch definition.
  */
-function islandora_basic_collection_migrate_children_batch(FedoraObject $source, FedoraObject $destination, $children = NULL) {
+function islandora_basic_collection_migrate_children_batch(AbstractObject $source, AbstractObject $destination, $children = NULL) {
   $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
   $parameters = array($source, $destination, $children);
   $migrate_operation = array('islandora_basic_collection_migrate_children_batch_operation', $parameters);
@@ -160,16 +160,16 @@ function islandora_basic_collection_migrate_children_batch(FedoraObject $source,
 /**
  * Moves the given children from the current collection to the new collection.
  *
- * @param FedoraObject $source
+ * @param AbstractObject $source
  *   The collection object the children are from.
- * @param FedoraObject $destination
+ * @param AbstractObject $destination
  *   The destination collection.
  * @param array $children
  *   The PID's of the children to migrate.
  * @param array $context
  *   The batch context.
  */
-function islandora_basic_collection_migrate_children_batch_operation(FedoraObject $source, FedoraObject $destination, array $children, array &$context) {
+function islandora_basic_collection_migrate_children_batch_operation(AbstractObject $source, AbstractObject $destination, array $children, array &$context) {
   $child = islandora_basic_collection_start_operation($children, $context);
   if ($child && $child = islandora_object_load($child)) {
     islandora_basic_collection_add_to_collection($child, $destination);
@@ -195,9 +195,9 @@ function islandora_basic_collection_migrate_children_batch_operation(FedoraObjec
  * If no child objects are given its assumed all child objects are to be
  * shared.
  *
- * @param FedoraObject $source
+ * @param AbstractObject $source
  *   The source collection object.
- * @param FedoraObject $destination
+ * @param AbstractObject $destination
  *   The destination collection object.
  * @param array $children
  *   The PID's of the children to share, if NULL share all child objects.
@@ -205,7 +205,7 @@ function islandora_basic_collection_migrate_children_batch_operation(FedoraObjec
  * @return array
  *   The batch definition.
  */
-function islandora_basic_collection_share_children_batch(FedoraObject $source, FedoraObject $destination, $children = NULL) {
+function islandora_basic_collection_share_children_batch(AbstractObject $source, AbstractObject $destination, $children = NULL) {
   $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
   $parameters = array($source, $destination, $children);
   $copy_operation = array('islandora_basic_collection_share_children_batch_operation', $parameters);
@@ -224,16 +224,16 @@ function islandora_basic_collection_share_children_batch(FedoraObject $source, F
 /**
  * Shares the given children from the current collection to the new collection.
  *
- * @param FedoraObject $source
+ * @param AbstractObject $source
  *   The collection object the children are from.
- * @param FedoraObject $destination
+ * @param AbstractObject $destination
  *   The destination collection.
  * @param array $children
  *   The PID's of the children to share.
  * @param array $context
  *   The batch context.
  */
-function islandora_basic_collection_share_children_batch_operation(FedoraObject $source, FedoraObject $destination, array $children, array &$context) {
+function islandora_basic_collection_share_children_batch_operation(AbstractObject $source, AbstractObject $destination, array $children, array &$context) {
   $child = islandora_basic_collection_start_operation($children, $context);
   if ($child && $child = islandora_object_load($child)) {
     islandora_basic_collection_add_to_collection($child, $destination);
