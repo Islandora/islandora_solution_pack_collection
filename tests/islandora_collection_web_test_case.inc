@@ -101,5 +101,4 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
       }
     }
   }
-
 }
