@@ -44,7 +44,8 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
   public function deleteTestCollection($pid) {
     $path = 'islandora/object/' . $pid . '/delete';
     $this->drupalPost($path, array(), t('Delete'));
-    $this->assertPattern('/Deleted (\w+) children from/', t('Deleted collection directly via PID %pid', array('%pid' => $pid)), t('Islandora'));
+    $this->drupalGet('islandora/object/' . $pid);
+    $this->assertResponse(404, t('Deleted collection directly via PID %pid', array('%pid' => $pid)), t('Islandora'));
   }
 
   /**
