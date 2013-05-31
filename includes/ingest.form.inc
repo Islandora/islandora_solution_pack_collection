@@ -79,12 +79,8 @@ function islandora_basic_collection_select_content_model_form(array $form, array
     $options[$model] = $object->label;
   }
   $model = isset($form_state['values']['models']) ? $form_state['values']['models'] : key($options);
-  // A bit of a hack, to update the prev/next buttons: Since many other steps
-  // depend on what content model is selected, we need to update the shared
-  // storage with our current selection, and then rebuild the list of steps.
   $shared_storage = &islandora_ingest_form_get_shared_storage($form_state);
   $shared_storage['models'] = array($model);
-  drupal_static_reset('islandora_ingest_form_get_steps');
   return array(
     '#prefix' => '<div id="islandora-select-content-model-wrapper">',
     '#suffix' => '</div>',
