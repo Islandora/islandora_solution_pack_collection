@@ -266,9 +266,7 @@ function islandora_basic_collection_get_objects(AbstractObject $object, $page_nu
             FILTER (!sameTerm($content, <info:fedora/fedora-system:FedoraObject-3.0>))';
   $enforced = variable_get('islandora_namespace_restriction_enforced', FALSE);
   if ($enforced) {
-    $namespace_array = explode(' ', variable_get('islandora_pids_allowed', 'default: demo: changeme: ilives: islandora-book: books: newspapers: '));
-    $namespace_array = array_map('islandora_get_namespace', $namespace_array);
-    $namespace_array = array_filter($namespace_array, 'trim');
+    $namespace_array = islandora_get_allowed_namespaces();
     $namespace_sparql = implode('|', $namespace_array);
     $query .= 'FILTER(regex(str(?object), "info:fedora/(' . $namespace_sparql . '):"))';
   }
