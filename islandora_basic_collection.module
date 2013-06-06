@@ -105,28 +105,10 @@ function islandora_basic_collection_manage_access($object = NULL) {
   if (!is_object($object) || !in_array('islandora:collectionCModel', $object->models)) {
     return FALSE;
   }
-  return islandora_basic_collection_ingest_child_collection_access($object) ||
-    user_access(MANAGE_COLLECTION_POLICY) ||
-    user_access(MIGRATE_COLLECTION_MEMBERS) ||
+  return islandora_object_access(CREATE_CHILD_COLLECTION, $object) ||
+    islandora_object_access(MANAGE_COLLECTION_POLICY, $object) ||
+    islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object) ||
     islandora_basic_collection_ingest_access($object);
-}
-
-/**
- * Checks if the user has access to ingest a new child collection.
- *
- * @return bool
- *   TRUE if the user has access, FALSE otherwise.
- */
-function islandora_basic_collection_ingest_child_collection_access($object = NULL) {
-  $user_access = user_access(FEDORA_INGEST) && user_access(CREATE_CHILD_COLLECTION);
-  $is_collection = is_object($object) && in_array('islandora:collectionCModel', $object->models);
-  $has_policy = isset($object['COLLECTION_POLICY']);
-  if (!($user_access && $is_collection && $has_policy)) {
-    return FALSE;
-  }
-  $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
-  $policy_content_models = $policy->getContentModels();
-  return isset($policy_content_models['islandora:collectionCModel']);
 }
 
 /**
@@ -136,7 +118,7 @@ function islandora_basic_collection_ingest_child_collection_access($object = NUL
  *   Collection object to check if ingestion is possible.
  */
 function islandora_basic_collection_ingest_access($object = NULL) {
-  if (!islandora_user_access($object, array(FEDORA_INGEST), array('islandora:collectionCModel'))) {
+  if (!(islandora_user_access($object, array(FEDORA_INGEST), array('islandora:collectionCModel')) && islandora_object_access(FEDORA_INGEST, $object))) {
     return FALSE;
   }
   module_load_include('inc', 'islandora', 'includes/ingest.form');
@@ -462,4 +444,33 @@ function islandora_basic_collection_islandora_ingest_steps_alter(array &$steps, 
       );
     }
   }
+}
+
+/**
+ * Implements hook_islandora_object_access().
+ *
+ * Maps our three permissions onto those in the Islandora core.
+ */
+function islandora_basic_collection_islandora_object_access($op, $object) {
+  $result = NULL;
+
+  if ($op == CREATE_CHILD_COLLECTION) {
+    $result = islandora_object_access(FEDORA_INGEST, $object) && islandora_datastream_access(FEDORA_VIEW_OBJECTS, $object['COLLECTION_POLICY']);
+    if ($result) {
+      $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
+      $policy_content_models = $policy->getContentModels();
+      $policy_contains_model = array_key_exists('islandora:collectionCModel', $policy_content_models);
+    }
+  }
+  elseif ($op == MANAGE_COLLECTION_POLICY) {
+    $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['COLLECTION_POLICY']);
+  }
+  elseif ($op == MIGRATE_COLLECTION_MEMBERS) {
+    // Not sure how much sense this makes... Check that we can modify the
+    // RELS-EXT of the current object, assuming that we'll be able to modify
+    // the children as well...
+    $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['RELS-EXT']);
+  }
+
+  return $result;
 }
