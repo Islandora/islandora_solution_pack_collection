@@ -23,7 +23,7 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
   drupal_set_title(t('Manage @label Collection', array('@label' => $object->label, '@pid' => $object->id)));
   // Defines accessible elements.
   $access = array(
-    'create_child_collection' => islandora_object_access(CREATE_CHILD_COLLECTION,$object),
+    'create_child_collection' => islandora_object_access(CREATE_CHILD_COLLECTION, $object),
     'policy_management' => islandora_object_access(MANAGE_COLLECTION_POLICY, $object),
     'share_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
     'migrate_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
@@ -99,7 +99,6 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
   module_load_include('inc', 'islandora', 'includes/utilities');
   $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
   $policy_content_models = $policy->getContentModels();
-  dsm($policy_content_models);
   $content_models = islandora_get_content_models();
   $form_state['collection'] = $object;
   $form_state['content_models'] = $content_models;

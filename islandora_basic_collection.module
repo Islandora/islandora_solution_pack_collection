@@ -439,7 +439,7 @@ function islandora_basic_collection_islandora_object_access($op, $object) {
     }
   }
   elseif ($op == MANAGE_COLLECTION_POLICY) {
-    $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['COLLECTION_POLICY']);
+    $result = isset($object['COLLECTION_POLICY']) && islandora_datastream_access(FEDORA_METADATA_EDIT, $object['COLLECTION_POLICY']);
   }
   elseif ($op == MIGRATE_COLLECTION_MEMBERS) {
     // Not sure how much sense this makes... Check that we can modify the
