@@ -20,8 +20,8 @@ function islandora_basic_collection_menu() {
     'page arguments' => array(2),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'includes/ingest.form.inc',
-    'access callback' => 'islandora_basic_collection_ingest_access',
-    'access arguments' => array(2),
+    'access callback' => 'islandora_object_access',
+    'access arguments' => array(FEDORA_INGEST, 2),
   );
   return array(
     'admin/islandora/basic_collection' => array(
@@ -102,35 +102,11 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
  *   TRUE if it should be shown, and FALSE if it should not be shown.
  */
 function islandora_basic_collection_manage_access($object = NULL) {
-  if (!is_object($object) || !in_array('islandora:collectionCModel', $object->models)) {
-    return FALSE;
-  }
   return islandora_object_access(CREATE_CHILD_COLLECTION, $object) ||
     islandora_object_access(MANAGE_COLLECTION_POLICY, $object) ||
     islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object) ||
-    islandora_basic_collection_ingest_access($object);
-}
-
-/**
- * Ingest action access callback.
- *
- * @param AbstractObject $object
- *   Collection object to check if ingestion is possible.
- */
-function islandora_basic_collection_ingest_access($object = NULL) {
-  if (!(islandora_user_access($object, array(FEDORA_INGEST), array('islandora:collectionCModel')) && islandora_object_access(FEDORA_INGEST, $object))) {
-    return FALSE;
-  }
-  module_load_include('inc', 'islandora', 'includes/ingest.form');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/ingest.form');
-  // Reduce need to validate to once per object, as this if often called more
-  // than once per request.
-  static $checked_objects = array();
-  if (!in_array($object->id, array_keys($checked_objects))) {
-    $configuration = islandora_basic_collection_get_ingest_configuration($object);
-    $checked_objects[$object->id] = islandora_ingest_can_display_ingest_form($configuration);
-  }
-  return $checked_objects[$object->id];
+    islandora_object_access(FEDORA_INGEST, $object) ||
+    islandora_object_access(FEDORA_PURGE, $object);
 }
 
 /**
@@ -459,7 +435,7 @@ function islandora_basic_collection_islandora_object_access($op, $object) {
     if ($result) {
       $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
       $policy_content_models = $policy->getContentModels();
-      $policy_contains_model = array_key_exists('islandora:collectionCModel', $policy_content_models);
+      $result = array_key_exists('islandora:collectionCModel', $policy_content_models);
     }
   }
   elseif ($op == MANAGE_COLLECTION_POLICY) {
@@ -470,6 +446,12 @@ function islandora_basic_collection_islandora_object_access($op, $object) {
     // RELS-EXT of the current object, assuming that we'll be able to modify
     // the children as well...
     $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['RELS-EXT']);
+  }
+  elseif ($op == FEDORA_INGEST && in_array('islanora:collectionCModel', $object->models)) {
+    module_load_include('inc', 'islandora', 'includes/ingest.form');
+    module_load_include('inc', 'islandora_basic_collection', 'includes/ingest.form');
+    $configuration = islandora_basic_collection_get_ingest_configuration($object);
+    $result = islandora_ingest_can_display_ingest_form($configuration) ? TRUE : NULL;
   }
 
   return $result;

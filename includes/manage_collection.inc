@@ -99,6 +99,7 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
   module_load_include('inc', 'islandora', 'includes/utilities');
   $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
   $policy_content_models = $policy->getContentModels();
+  dsm($policy_content_models);
   $content_models = islandora_get_content_models();
   $form_state['collection'] = $object;
   $form_state['content_models'] = $content_models;
