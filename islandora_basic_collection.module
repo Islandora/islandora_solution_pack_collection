@@ -20,8 +20,8 @@ function islandora_basic_collection_menu() {
     'page arguments' => array(2),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'includes/ingest.form.inc',
-    'access callback' => 'islandora_object_access',
-    'access arguments' => array(FEDORA_INGEST, 2),
+    'access callback' => 'islandora_basic_collection_ingest_access',
+    'access arguments' => array(2),
   );
   return array(
     'admin/islandora/basic_collection' => array(
@@ -45,6 +45,16 @@ function islandora_basic_collection_menu() {
     'islandora/object/%islandora_object/manage/collection/ingest' => $ingest_object_menu_item,
     'islandora/object/%islandora_object/manage/overview/ingest' => $ingest_object_menu_item,
   );
+}
+
+/**
+ * Access callback for ingest
+ */
+function islandora_basic_collection_ingest_access(AbstractObject $object) {
+  $collection_models = islandora_basic_collection_get_collection_content_models();
+  $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
+
+  return $is_a_collection && islandora_object_access(FEDOAR_INGEST, $object);
 }
 
 /**
