@@ -54,7 +54,7 @@ function islandora_basic_collection_ingest_access(AbstractObject $object) {
   $collection_models = islandora_basic_collection_get_collection_content_models();
   $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
 
-  return $is_a_collection && islandora_object_access(FEDOAR_INGEST, $object);
+  return $is_a_collection && islandora_object_access(FEDORA_INGEST, $object);
 }
 
 /**
