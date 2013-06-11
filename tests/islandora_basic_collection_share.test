@@ -72,4 +72,3 @@ class IslandoraShareCollectionTestCase extends IslandoraCollectionWebTestCase {
     $this->deleteTestCollection($collection_2);
   }
 }
-

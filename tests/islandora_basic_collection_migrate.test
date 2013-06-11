@@ -74,4 +74,3 @@ class IslandoraMigrateCollectionTestCase extends IslandoraCollectionWebTestCase 
     $this->deleteTestCollection($collection_1);
   }
 }
-
