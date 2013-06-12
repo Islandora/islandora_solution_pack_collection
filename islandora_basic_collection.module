@@ -52,9 +52,21 @@ function islandora_basic_collection_menu() {
  */
 function islandora_basic_collection_ingest_access(AbstractObject $object) {
   $collection_models = islandora_basic_collection_get_collection_content_models();
-  $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
+  $is_a_collection = (
+    (count(array_intersect($collection_models, $object->models)) > 0) &&
+    isset($object['COLLECTION_POLICY'])
+  );
 
-  return $is_a_collection && islandora_object_access(FEDORA_INGEST, $object);
+  if (!$is_a_collection) {
+    return FALSE;
+  }
+
+  module_load_include('inc', 'islandora', 'includes/ingest.form');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/ingest.form');
+  $configuration = islandora_basic_collection_get_ingest_configuration($object);
+  $has_ingest_steps = islandora_ingest_can_display_ingest_form($configuration);
+
+  return $has_ingest_steps && islandora_object_access(FEDORA_INGEST, $object);
 }
 
 /**
@@ -454,16 +466,19 @@ function islandora_basic_collection_get_collection_content_models() {
  *
  * Maps our three permissions onto those in the Islandora core.
  */
-function islandora_basic_collection_islandora_object_access($op, $object) {
+function islandora_basic_collection_islandora_object_access($op, $object, $user) {
   $result = NULL;
 
   $collection_models = islandora_basic_collection_get_collection_content_models();
-  $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
+  $is_a_collection = (
+    (count(array_intersect($collection_models, $object->models)) > 0) &&
+    isset($object['COLLECTION_POLICY'])
+  );
 
   if (in_array($op, array_keys(islandora_basic_collection_permission()))) {
     if ($is_a_collection) {
       if ($op == CREATE_CHILD_COLLECTION) {
-        $result = islandora_object_access(FEDORA_INGEST, $object) && islandora_datastream_access(FEDORA_VIEW_OBJECTS, $object['COLLECTION_POLICY']);
+        $result = islandora_object_access(FEDORA_INGEST, $object, $user) && islandora_datastream_access(FEDORA_VIEW_OBJECTS, $object['COLLECTION_POLICY'], $user);
         if ($result) {
           $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
           $policy_content_models = $policy->getContentModels();
@@ -471,24 +486,18 @@ function islandora_basic_collection_islandora_object_access($op, $object) {
         }
       }
       elseif ($op == MANAGE_COLLECTION_POLICY) {
-        $result = isset($object['COLLECTION_POLICY']) && islandora_datastream_access(FEDORA_METADATA_EDIT, $object['COLLECTION_POLICY']);
+        $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['COLLECTION_POLICY'], $user);
       }
       elseif ($op == MIGRATE_COLLECTION_MEMBERS) {
         // Not sure how much sense this makes... Check that we can modify the
         // RELS-EXT of the current object, assuming that we'll be able to modify
         // the children as well...
-        $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['RELS-EXT']);
+        $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['RELS-EXT'], $user);
       }
     }
     else {
       $result = FALSE;
     }
-  }
-  elseif ($is_a_collection && $op == FEDORA_INGEST) {
-    module_load_include('inc', 'islandora', 'includes/ingest.form');
-    module_load_include('inc', 'islandora_basic_collection', 'includes/ingest.form');
-    $configuration = islandora_basic_collection_get_ingest_configuration($object);
-    $result = islandora_ingest_can_display_ingest_form($configuration) ? TRUE : NULL;
   }
 
   return $result;
