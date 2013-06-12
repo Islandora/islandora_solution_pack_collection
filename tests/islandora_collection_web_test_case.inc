@@ -22,14 +22,6 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    * @see IslandoraWebTestCase::deleteRootTestCollection()
    */
   public function createTestCollection($label, $model, $pid = '') {
-    $current_user = $this->loggedInUser;
-    $user = $this->drupalCreateUser(array(
-      'view fedora repository objects',
-      'create child collection',
-      'ingest fedora objects',
-    ));
-    $this->drupalLogin($user);
-
     $this->drupalGet('islandora');
     $root = $this->url;
     $path = $root . '/manage/collection';
@@ -41,13 +33,6 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
     );
     $this->drupalPost($path, $edit, t('Create collection'), array(), array(), 'islandora-basic-collection-create-child-collection-form');
     $this->assertText($label, t('Created collection %label using the content model %model', array('%label' => $label, '%model' => $model)), 'Islandora');
-
-    if ($current_user) {
-      $this->drupalLogin($current_user);
-    }
-    else {
-      $this->drupalLogout();
-    }
   }
 
   /**
@@ -57,23 +42,64 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    *   The PID of the collection to be deleted
    */
   public function deleteTestCollection($pid) {
-    $current_user = $this->loggedInUser;
-    $user = $this->drupalCreateUser(array('manage object properties', 'delete fedora objects and datastreams'));
+    $path = 'islandora/object/' . $pid . '/delete';
+    $this->drupalPost($path, array(), t('Delete'));
+    $this->drupalGet('islandora/object/' . $pid);
+    $this->assertResponse(404, t('Deleted collection directly via PID %pid', array('%pid' => $pid)), t('Islandora'));
+  }
 
-    $this->drupalLogin($user);
-
-    $path = 'islandora/object/' . $pid . '/manage/properties';
-    $edit = array();
-    $this->drupalPost($path, $edit, t('Delete Collection'));
-    $path = $this->url;
-    $this->drupalPost($path, $edit, t('Delete'));
-    $this->assertPattern('/Deleted (\w+) children from/', t('Deleted collection directly via PID %pid', array('%pid' => $pid)), t('Islandora'));
-
-    if ($current_user) {
-      $this->drupalLogin($current_user);
+  /**
+   * Asserts that an image can be created via the string output of a datastream.
+   *
+   * @param string $object
+   *   The PID of the object
+   * @param array $datastreams
+   *   An array of strings containing datastream names
+   */
+  public function assertImageDatastreams($object, array $datastreams) {
+    $this->drupalGet('islandora/object/' . $object);
+    $base_url = $this->url;
+    foreach ($datastreams as $datastream) {
+      if (isset($object[$datastream])) {
+        $image = $object[$datastream]->content;
+        if (imagecreatefromstring($image)) {
+          $this->pass("{$datastream} from PID {$object->id} is a valid image.", 'Islandora');
+        }
+        else {
+          $this->fail("{$datastream} from PID {$object->id} is not a valid image.", 'Islandora');
+        }
+      }
     }
-    else {
-      $this->drupalLogout();
+  }
+
+  /**
+   * Asserts that an array of image datastreams contain a provided imagetype.
+   *
+   * Indended to be used for image formats that can't be created with
+   * imagecreatefromstring(). Less accurate than assertImageDatastreams, but
+   * more compatible.
+   *
+   * @param string $object
+   *   The PID of the object
+   * @param array $datastreams
+   *   An array containing pairs of datastream names and imagetypes.
+   */
+  public function assertImageDatastreamType($object, array $datastreams) {
+    $this->drupalGet('islandora/object/' . $object);
+    $base_url = $this->url;
+    foreach ($datastreams as $datastream) {
+      if (isset($object[$datastream[0]])) {
+        $image = $object[$datastream[0]]->content;
+        $path = '/tmp/' . $object->createdDate . '.' . $datastream[0];
+        file_put_contents($path, $image);
+        $type = exif_imagetype($path);
+        if ($type == $datastream[1]) {
+          $this->pass("{$datastream[0]} from PID {$object->id} matches expected type value ({$datastream[1]}).", 'Islandora');
+        }
+        else {
+          $this->fail("{$datastream[0]} from PID {$object->id} contains unexpected type {$type}.", 'Islandora');
+        }
+      }
     }
   }
 }
