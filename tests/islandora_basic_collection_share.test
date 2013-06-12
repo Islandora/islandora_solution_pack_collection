@@ -48,8 +48,15 @@ class IslandoraShareCollectionTestCase extends IslandoraCollectionWebTestCase {
     // Let's create some random collections.
     $collection_1 = 'islandora:' . $this->randomName(16);
     $collection_2 = 'islandora:' . $this->randomName(16);
-    $this->createTestCollection('00000_Collection 1', 'islandora:collectionCModel', $collection_1);
-    $this->createTestCollection('00000_Collection 2', 'islandora:collectionCModel', $collection_2);
+    // Rather than attempt the nasty business of flipping through pages of
+    // objects to find our test collections, we're just going to append 01_ and
+    // 02_ to the start of the first object in the root collection.
+    $root_objects = islandora_basic_collection_get_objects(islandora_object_load('islandora:root'));
+    $label_suffix = $root_objects[0]['title']['value'];
+    $collection_1_label = '01_' . $label_suffix;
+    $collection_2_label = '01_' . $label_suffix;
+    $this->createTestCollection($collection_1_label, 'islandora:collectionCModel', $collection_1);
+    $this->createTestCollection($collection_2_label, 'islandora:collectionCModel', $collection_2);
 
     // Now try to add collection 2 to collection 1.
     $path = "islandora/object/islandora:root/manage/collection";
@@ -61,7 +68,7 @@ class IslandoraShareCollectionTestCase extends IslandoraCollectionWebTestCase {
 
     // First, check that Collection 2 shows up in Collection 1.
     $this->drupalGet("islandora/object/{$collection_1}");
-    $this->assertLink('00000_Collection 2', 0, 'Shared object shows up in second collection', 'Islandora');
+    $this->assertLink($collection_2_label, 0, 'Shared object shows up in second collection', 'Islandora');
     // Then, check that Collection 2's RELS-EXT is properly made.
     $rels_ext = islandora_object_load($collection_2)['RELS-EXT']->content;
     $this->assertTrue(strpos($rels_ext, '<fedora:isMemberOfCollection rdf:resource="info:fedora/islandora:root"></fedora:isMemberOfCollection>'), 'RELS-EXT datastream asserts that shared object isMemberOfCollection islandora:root', 'Islandora');

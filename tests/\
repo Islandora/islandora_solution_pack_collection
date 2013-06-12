@@ -5,7 +5,7 @@
  * Attempts to share a collection object.
  */
 
-class IslandoraMigrateCollectionTestCase extends IslandoraCollectionWebTestCase {
+class IslandoraShareCollectionTestCase extends IslandoraCollectionWebTestCase {
 
   /**
    * Get test information.
@@ -14,8 +14,8 @@ class IslandoraMigrateCollectionTestCase extends IslandoraCollectionWebTestCase 
    */
   public static function getInfo() {
     return array(
-      'name' => 'Migrate Object',
-      'description' => 'Generates two random collections, migrating the first one from the root collection to the second collection and asserting that it now only shows up in the second collection.',
+      'name' => 'Share Object',
+      'description' => 'Generates two random collections, sharing one and asserting that it now shows up in two places.',
       'group' => 'Islandora Basic Collection',
     );
   }
@@ -49,32 +49,30 @@ class IslandoraMigrateCollectionTestCase extends IslandoraCollectionWebTestCase 
     $collection_1 = 'islandora:' . $this->randomName(16);
     $collection_2 = 'islandora:' . $this->randomName(16);
     $root_objects = islandora_basic_collection_get_objects(islandora_object_load('islandora:root'));
-    $label_suffix = $root_objects[0]['title']['value'];
-    $collection_1_label = '01_' . $label_suffix;
-    $collection_2_label = '02_' . $label_suffix;
+    $this->pass($root_objects);
+    $collection_1_label = "Collection 1";
+    $collection_2_label = "Collection 2";
     $this->createTestCollection($collection_1_label, 'islandora:collectionCModel', $collection_1);
     $this->createTestCollection($collection_2_label, 'islandora:collectionCModel', $collection_2);
 
-    // Now try to move collection 2 to collection 1.
+    // Now try to add collection 2 to collection 1.
     $path = "islandora/object/islandora:root/manage/collection";
     $edit = array(
       "collection" => $collection_1,
       "children[{$collection_2}]" => TRUE,
     );
-    $this->drupalPost($path, $edit, 'Migrate selected objects', array(), array(), 'islandora-basic-collection-migrate-children-form');
+    $this->drupalPost($path, $edit, 'Share selected objects', array(), array(), 'islandora-basic-collection-share-children-form');
 
     // First, check that Collection 2 shows up in Collection 1.
     $this->drupalGet("islandora/object/{$collection_1}");
     $this->assertLink($collection_2_label, 0, 'Shared object shows up in second collection', 'Islandora');
-    // Next, check that Collection 2 is no longer in the root collection.
-    $this->drupalGet("islandora");
-    $this->assertNoLink($collection_2_label, 'Shared object no longer shows up in root collection', 'Islandora');
-    // Lastly, check that Collection 2's RELS-EXT is properly made.
+    // Then, check that Collection 2's RELS-EXT is properly made.
     $rels_ext = islandora_object_load($collection_2)['RELS-EXT']->content;
-    $this->assertFalse(strpos($rels_ext, '<fedora:isMemberOfCollection rdf:resource="info:fedora/islandora:root"></fedora:isMemberOfCollection>'), 'RELS-EXT datastream no longer contains isMemberOfCollection reference to islandora:root', 'Islandora');
+    $this->assertTrue(strpos($rels_ext, '<fedora:isMemberOfCollection rdf:resource="info:fedora/islandora:root"></fedora:isMemberOfCollection>'), 'RELS-EXT datastream asserts that shared object isMemberOfCollection islandora:root', 'Islandora');
     $this->assertTrue(strpos($rels_ext, "<fedora:isMemberOfCollection rdf:resource=\"info:fedora/{$collection_1}\"></fedora:isMemberOfCollection>"), "RELS-EXT datastream asserts that shared object isMemberOf shared collection {$collection_1}", 'Islandora');
 
     // Get rid of the collections.
     $this->deleteTestCollection($collection_1);
+    $this->deleteTestCollection($collection_2);
   }
 }
