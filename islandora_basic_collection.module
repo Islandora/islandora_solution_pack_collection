@@ -48,7 +48,15 @@ function islandora_basic_collection_menu() {
 }
 
 /**
- * Access callback for ingest
+ * Access callback for ingest.
+ *
+ * @param AbstractObject $object
+ *   The object to test if we're allowed to ingest... Check that it actually
+ *   a collection and we have sufficient info to show the form.
+ *
+ * @return bool
+ *   TRUE if $object represents a collection, we can show the ingest form and
+ *   we have permission to ingest; otherwise, FALSE.
  */
 function islandora_basic_collection_ingest_access(AbstractObject $object) {
   $collection_models = islandora_basic_collection_get_collection_content_models();
