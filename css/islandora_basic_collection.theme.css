@@ -1,4 +1,4 @@
-/* 
+/*
     Document   : islandora_basic_collection.theme
     Created on : May 23, 2012, 11:23:56 AM
     Description: Theme css, like margins, padding, borders, colors, etc
@@ -43,4 +43,3 @@
 #islandora-collection-migrate-form table th.select-all {
   width: 20px;
 }
-
