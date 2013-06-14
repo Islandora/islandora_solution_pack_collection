@@ -1,9 +1,9 @@
-/* 
+/*
     Document   : islandora_basic_collection.base.css
     Created on : May 23, 2012, 11:22:04 AM
-    Description: Base css, for structural layout, 
+    Description: Base css, for structural layout,
     positioning, and to generally make things function in
-    the most basic form. 
+    the most basic form.
 */
 
 /* List - Displays lists using a dt on the left and dd on the right */
@@ -26,8 +26,7 @@
 }
 
 /* Grid - Displays grid using dl formatted inline */
-.islandora-basic-collection-grid dl
-{
+.islandora-basic-collection-grid dl {
   width: 20%;
   min-width: 100px;
   min-height: 180px;
@@ -40,8 +39,7 @@
   _height: 180px;
 }
 
-.islandora-basic-collection-grid dd
-{
+.islandora-basic-collection-grid dd {
   margin: 0;
   padding: 0;
 }

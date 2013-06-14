@@ -44,13 +44,14 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
       'class' => array('islandora-view-grid'),
     ),
   );
-  $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
 
   if ($display == 'grid') {
     $grid_link['attributes']['class'][] = 'active';
+    $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
   }
   else {
     $list_link['attributes']['class'][] = 'active';
+    $collection_content = theme('islandora_basic_collection', array('islandora_object' => $islandora_object, 'collection_results' => $results));
   }
 
   $variables['view_links'] = array($grid_link, $list_link);
