@@ -193,22 +193,48 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_overview_object(AbstractObject $object) {
   $rows = array();
-  $members = islandora_basic_collection_get_objects($object);
-  foreach ($members as $member) {
-    $content_model = islandora_object_load($member['content']['value']);
-    if (isset($rows[$content_model->id])) {
-      $rows[$content_model->id][1]++;
+  $model_query = islandora_basic_collection_get_query_info(array(
+    'object' => $object,
+    'page_size' => -1,
+    'page_number' => 0,
+    'vars' => '?model',
+    'order_by' => FALSE,
+  ));
+  $models = (array) $object->repository->ri->query($model_query['query'], $model_query['type']);
+  $ignore_models = array(
+    'fedora-system:FedoraObject-3.0',
+  );
+  foreach ($models as $model) {
+    $model_pid = $model['model']['value'];
+    if (in_array($model_pid, $ignore_models)) {
+      continue;
     }
-    else {
-      $link = l($content_model->label, "islandora/object/{$content_model->id}");
-      $rows[$content_model->id] = array($link, 1);
-    }
+    $model_count_query = islandora_basic_collection_get_query_info(array(
+      'object' => $object,
+      'page_size' => -1,
+      'page_number' => 0,
+      'order_by' => FALSE,
+      'model' => "<info:fedora/$model_pid>",
+    ));
+    $model_object = islandora_object_load($model_pid);
+    $rows[$model_pid] = array(
+      ($model_object ?
+        l($model_object->label, "islandora/object/{$model_object->id}") :
+        $model_pid),
+      $object->repository->ri->countQuery($model_count_query['query'], $model_count_query['type']),
+    );
   }
+
+  list($total_count, $all_results) = islandora_basic_collection_get_member_objects($object, 0, 0);
+
   $content = array(
-    'total' => array('#markup' => t('Total members: %total', array('%total' => count($members)))),
+    'total' => array('#markup' => t('Total members: %total', array('%total' => $total_count))),
     'table' => array(
       '#theme' => 'table',
-      '#header' => array('type' => array('data' => t('Type')), 'count' => array('data' => t('Count'))),
+      '#header' => array(
+        'type' => array('data' => t('Type')),
+        'count' => array('data' => t('Count')),
+      ),
       '#rows' => $rows,
       '#empty' => t('Collection is empty.')),
   );
@@ -238,6 +264,101 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
 }
 
 /**
+ * Get the query to get child objects.
+ *
+ * @param array $params
+ *   An array containing all the parameters, at least:
+ *   - object: An AbstractObject we're querying for.
+ *   - page_size: The size of the page/number of results to return.
+ *   - page_number: An integer representing the offset as a multiple of
+ *     page_size.
+ *   - vars: A string containing the list of variables to select. Defaults to
+ *     "?object ?title".
+ *   - order_by: A string indicating which variable by which to sort. Defaults
+ *     to "?title". May be set to FALSE to avoid sorting.
+ *
+ * @return array
+ *   An array containing a number of keys used to describe the query,
+ *   including all the values from $params (which haven't been unset in the
+ *   alter), in addition to:
+ *   - query: The actual query string.
+ *   - type: A string containing the type of query, likely one of:
+ *     - itql; or,
+ *     - sparql.
+ *   - pid: The pid of the collection being queried.
+ */
+function islandora_basic_collection_get_query_info(array $params) {
+  // Add in defaults.
+  $params += array(
+    'page_number' => 0,
+    'page_size' => 10,
+    'vars' => '?object ?title',
+    'order_by' => '?title',
+    'model' => '?model',
+  );
+
+  $object = $params['object'];
+
+  $query = <<<EOQ
+SELECT !vars
+FROM <#ri>
+WHERE {
+  !statements .
+  !filters
+}
+EOQ;
+
+  $filters = array();
+  foreach (module_invoke_all('islandora_basic_collection_get_query_filters') as $filter) {
+    $filters[] = "FILTER($filter)";
+  }
+  $query = format_string($query, array(
+    '!statements' => implode(' . ', module_invoke_all('islandora_basic_collection_get_query_statements')),
+    '!filters' => implode(' ', $filters),
+  ));
+
+  $query = format_string($query, array(
+    '!vars' => $params['vars'],
+    '!pid' => $object->id,
+    '!model' => $params['model'],
+  ));
+
+  if ($params['order_by']) {
+    $query .= <<<EOQO
+ORDER BY {$params['order_by']}
+EOQO;
+  }
+
+  $query_array = $params + array(
+    'query' => $query,
+    'type' => 'sparql',
+    'pid' => $object->id,
+  );
+  drupal_alter('islandora_basic_collection_query', $query_array);
+
+  return $query_array;
+}
+
+/**
+ * Implements hook_islandora_basic_collection_get_query_statements().
+ */
+function islandora_basic_collection_islandora_basic_collection_get_query_statements() {
+  return <<<EOQ
+  ?object ?collection_predicate <info:fedora/!pid> ;
+          <fedora-model:label> ?title ;
+          <fedora-model:hasModel> !model ;
+          <fedora-model:state> <fedora-model:Active>
+EOQ;
+}
+
+/**
+ * Implements hook_islandora_basic_collection_get_query_filters().
+ */
+function islandora_basic_collection_islandora_basic_collection_get_query_filters() {
+  return 'sameTerm(?collection_predicate, <fedora-rels-ext:isMemberOfCollection>) || sameTerm(?collection_predicate, <fedora-rels-ext:isMemberOf>)';
+}
+
+/**
  * Get objects associated with this object.
  *
  * Currently, we are only concerned with the with isMemberOf and
@@ -250,46 +371,91 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
  * @param int $page_size
  *   The number of results per page page from the query for members.
  *
- * @return array
- *   Query results.
+ * @return array|bool
+ *   An array containing two values:
+ *   - An integer representing the total number of tuples which can be
+ *     selected with the given parameters.
+ *   - The tuples in the slice according to $page_number and $page_size.
+ *   or boolean FALSE if the query fails.
  */
-function islandora_basic_collection_get_objects(AbstractObject $object, $page_number = 1, $page_size = 5) {
-  module_load_include('inc', 'islandora', 'includes/utilities');
-  $query = 'SELECT $object $title $content
-     FROM <#ri>
-     WHERE {
-            $object $collection_predicate <info:fedora/' . $object->id . '> ;
-                   <fedora-model:label> $title ;
-                   <fedora-model:hasModel> $content ;
-                   <fedora-model:state> <fedora-model:Active> .
-            FILTER(sameTerm($collection_predicate, <fedora-rels-ext:isMemberOfCollection>) || sameTerm($collection_predicate, <fedora-rels-ext:isMemberOf>))
-            FILTER (!sameTerm($content, <info:fedora/fedora-system:FedoraObject-3.0>))';
-  $enforced = variable_get('islandora_namespace_restriction_enforced', FALSE);
-  if ($enforced) {
-    $namespace_array = islandora_get_allowed_namespaces();
-    $namespace_sparql = implode('|', $namespace_array);
-    $query .= 'FILTER(regex(str(?object), "info:fedora/(' . $namespace_sparql . '):"))';
-  }
-  $query .= '} ORDER BY $title';
-  $query_array = array(
-    'query' => $query,
-    'type' => 'sparql',
-    'pid' => $object->id,
-    // Seems as though this is ignored completely.
-    'page_size' => $page_size,
-    'page_number' => $page_number,
-  );
-  drupal_alter('islandora_basic_collection_query', $query_array);
+function islandora_basic_collection_get_member_objects(AbstractObject $object, $page_number = 0, $page_size = 20) {
+  $query_array = islandora_basic_collection_get_query_info(array_combine(
+    array('object', 'page_number', 'page_size'),
+    func_get_args()
+  ));
+
   try {
+    $count = $object->repository->ri->countQuery($query_array['query'], $query_array['type']);
+
+    $is_itql = strcasecmp('itql', $query_array['type']) === 0;
+
+    if ($is_itql && ($page_number > 0 || $page_size >= 0)) {
+      // Strip the final semi-colon(s) of any itql query, where they exist.
+      $query = trim($query_array['query']);
+      while (strpos($query, -1) == ';') {
+        $query = substr($query, 0, -1);
+      }
+      $query_array['query'] = $query;
+    }
+
+    if ($page_number > 0 && $page_size > 0) {
+      // Add in the offset somehow.
+      $offset = $page_number * $page_size;
+      $query_array['query'] .= " offset $offset";
+    }
+    if ($page_size >= 0) {
+      // Add in the limit somehow.
+      $query_array['query'] .= " limit $page_size";
+    }
+
+    if ($is_itql) {
+      // Add in the final semi-colon.
+      $query_array['query'] .= ';';
+    }
+
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
   }
   catch (Exception $e) {
+    return FALSE;
+  }
+  return array($count, $results);
+}
+
+/**
+ * Get objects associated with this object.
+ *
+ * Currently, we are only concerned with the with isMemberOf and
+ * isMemberOfCollection relationships.
+ *
+ * @deprecated
+ *   Deprecated in favour of islandora_basic_collection_get_member_objects(),
+ *   which should actually be able to page through results.
+ *
+ * @param AbstractObject $object
+ *   The collection object whose members will be fetched.
+ * @param int $page_number
+ *   The page number in the query for members.
+ * @param int $page_size
+ *   The number of results per page page from the query for members.
+ *
+ * @return array|string
+ *   The array of query results as provided by
+ *   RepositoryQuery::parseSparqlResults().
+ */
+function islandora_basic_collection_get_objects(AbstractObject $object, $page_number = 0, $page_size = -1) {
+  module_load_include('inc', 'islandora', 'includes/utilities');
+  $message = islandora_deprecated('7.x-1.2', 'Use islandora_basic_collection_get_member_objects() to page and avoid potential memory issues with large collections.');
+  trigger_error(filter_xss($message), E_USER_DEPRECATED);
+
+  $new_results = islandora_basic_collection_get_member_objects($object, $page_number, $page_size);
+  if ($new_results) {
+    return $new_results[1];
+  }
+  else {
     drupal_set_message(t('Error getting related objects for %s', array('%s' => $object->id)), 'error');
     return '';
   }
-  return $results;
 }
-
 /**
  * Get all existing collections.
  *

@@ -19,8 +19,8 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
   $page_size = (empty($_GET['pagesize'])) ? variable_get('islandora_basic_collection_page_size', '10') : $_GET['pagesize'];
   $islandora_object = $variables['islandora_object'];
-  $results = islandora_basic_collection_get_objects($islandora_object, $page_number, $page_size);
-  $total_count = count($results);
+  list($total_count, $results) = islandora_basic_collection_get_member_objects($islandora_object, $page_number, $page_size);
+
   pager_default_initialize($total_count, $page_size);
   $variables['collection_pager'] = theme('pager', array('quantity' => 10));
   $display = (empty($_GET['display'])) ? variable_get('islandora_basic_collection_default_view', 'grid') : $_GET['display'];

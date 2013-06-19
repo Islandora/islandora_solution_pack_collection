@@ -22,7 +22,10 @@
 function islandora_basic_collection_get_content_models_as_form_options(array $content_models) {
   $map_content_models_to_options = function($o) {
     $label = isset($o['label']) ? $o['label'] : $o['name'];
-    return "{$o['pid']} ~ {$label}";
+    return format_string('!pid ~ !label', array(
+      '!pid' => $o['pid'],
+      '!label' => $label,
+    ));
   };
   return array_map($map_content_models_to_options, $content_models);
 }
@@ -91,10 +94,10 @@ function islandora_basic_collection_get_namespace_form_element($default_value) {
 function islandora_basic_collection_get_children_select_table_form_element(AbstractObject $object, array $pager_options) {
   // Assumes all results are returned although the function description
   // states otherwise.
-  $results = islandora_basic_collection_get_objects($object);
   $limit = 10;
-  $page = pager_default_initialize(count($results), $limit, $pager_options['element']);
-  $results = array_slice($results, $page * $limit, $limit);
+  $page = pager_find_page($pager_options['element']);
+  list($count, $results) = islandora_basic_collection_get_member_objects($object, $page, $limit);
+  $page = pager_default_initialize($count, $limit, $pager_options['element']);
   $rows = array();
   foreach ($results as $result) {
     $pid = $result['object']['value'];
@@ -133,16 +136,26 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
  *   The list of child PIDs.
  */
 function islandora_basic_collection_get_child_pids(AbstractObject $object, $type = NULL) {
-  $results = islandora_basic_collection_get_objects($object);
+  module_load_include('inc', 'islandora', 'includes/utilities');
+  $message = islandora_deprecated('7.x-1.2', 'Code should be made to page over all objects to avoid potential memory issues with large collections.');
+  trigger_error(filter_xss($message), E_USER_DEPRECATED);
+
+  $params = array(
+    'object' => $object,
+    'page_size' => -1,
+  );
+
   if (isset($type)) {
-    $filter_type = function($o) use($type) {
-      return $o['content']['value'] == $type;
-    };
-    $results = array_filter($results, $filter_type);
+    $params['model'] = "<info:fedora/$type>";
   }
+
   $map_results = function($o) {
     return $o['object']['value'];
   };
+
+  $query_info = islandora_basic_collection_get_query_info($params);
+  $results = $object->repository->ri->query($query_info['query'], $query_info['type']);
+
   return array_map($map_results, $results);
 }
 
