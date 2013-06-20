@@ -12,3 +12,4 @@ files[] = tests/islandora_basic_collection_manage_permissions.test
 files[] = tests/islandora_collection_web_test_case.inc
 files[] = tests/islandora_basic_collection_ingest_purge.test
 files[] = tests/islandora_replace_datastream.test
+files[] = tests/hooked_access.test

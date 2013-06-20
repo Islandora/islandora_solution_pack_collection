@@ -48,6 +48,36 @@ function islandora_basic_collection_menu() {
 }
 
 /**
+ * Access callback for ingest.
+ *
+ * @param AbstractObject $object
+ *   The object to test if we're allowed to ingest... Check that it actually
+ *   a collection and we have sufficient info to show the form.
+ *
+ * @return bool
+ *   TRUE if $object represents a collection, we can show the ingest form and
+ *   we have permission to ingest; otherwise, FALSE.
+ */
+function islandora_basic_collection_ingest_access(AbstractObject $object) {
+  $collection_models = islandora_basic_collection_get_collection_content_models();
+  $is_a_collection = (
+    (count(array_intersect($collection_models, $object->models)) > 0) &&
+    isset($object['COLLECTION_POLICY'])
+  );
+
+  if (!$is_a_collection) {
+    return FALSE;
+  }
+
+  module_load_include('inc', 'islandora', 'includes/ingest.form');
+  module_load_include('inc', 'islandora_basic_collection', 'includes/ingest.form');
+  $configuration = islandora_basic_collection_get_ingest_configuration($object);
+  $has_ingest_steps = islandora_ingest_can_display_ingest_form($configuration);
+
+  return $has_ingest_steps && islandora_object_access(FEDORA_INGEST, $object);
+}
+
+/**
  * Implements hook_menu_alter().
  */
 function islandora_basic_collection_menu_alter(array &$items) {
@@ -102,53 +132,16 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
  *   TRUE if it should be shown, and FALSE if it should not be shown.
  */
 function islandora_basic_collection_manage_access($object = NULL) {
-  if (!is_object($object) || !in_array('islandora:collectionCModel', $object->models)) {
-    return FALSE;
-  }
-  return islandora_basic_collection_ingest_child_collection_access($object) ||
-    user_access(MANAGE_COLLECTION_POLICY) ||
-    user_access(MIGRATE_COLLECTION_MEMBERS) ||
-    islandora_basic_collection_ingest_access($object);
-}
+  $collection_models = islandora_basic_collection_get_collection_content_models();
+  $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
 
-/**
- * Checks if the user has access to ingest a new child collection.
- *
- * @return bool
- *   TRUE if the user has access, FALSE otherwise.
- */
-function islandora_basic_collection_ingest_child_collection_access($object = NULL) {
-  $user_access = user_access(FEDORA_INGEST) && user_access(CREATE_CHILD_COLLECTION);
-  $is_collection = is_object($object) && in_array('islandora:collectionCModel', $object->models);
-  $has_policy = isset($object['COLLECTION_POLICY']);
-  if (!($user_access && $is_collection && $has_policy)) {
-    return FALSE;
-  }
-  $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
-  $policy_content_models = $policy->getContentModels();
-  return isset($policy_content_models['islandora:collectionCModel']);
-}
-
-/**
- * Ingest action access callback.
- *
- * @param AbstractObject $object
- *   Collection object to check if ingestion is possible.
- */
-function islandora_basic_collection_ingest_access($object = NULL) {
-  if (!islandora_user_access($object, array(FEDORA_INGEST), array('islandora:collectionCModel'))) {
-    return FALSE;
-  }
-  module_load_include('inc', 'islandora', 'includes/ingest.form');
-  module_load_include('inc', 'islandora_basic_collection', 'includes/ingest.form');
-  // Reduce need to validate to once per object, as this if often called more
-  // than once per request.
-  static $checked_objects = array();
-  if (!in_array($object->id, array_keys($checked_objects))) {
-    $configuration = islandora_basic_collection_get_ingest_configuration($object);
-    $checked_objects[$object->id] = islandora_ingest_can_display_ingest_form($configuration);
-  }
-  return $checked_objects[$object->id];
+  return $is_a_collection && (
+    islandora_object_access(CREATE_CHILD_COLLECTION, $object) ||
+    islandora_object_access(MANAGE_COLLECTION_POLICY, $object) ||
+    islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object) ||
+    islandora_object_access(FEDORA_INGEST, $object) ||
+    islandora_object_access(FEDORA_PURGE, $object)
+  );
 }
 
 /**
@@ -462,4 +455,58 @@ function islandora_basic_collection_islandora_ingest_steps_alter(array &$steps, 
       );
     }
   }
+}
+
+/**
+ * Get the content models which can should be treated as collections.
+ *
+ * @return array
+ *   An array of strings, each of which represents the PID of a content model.
+ */
+function islandora_basic_collection_get_collection_content_models() {
+  return array(
+    'islandora:collectionCModel',
+  );
+}
+
+/**
+ * Implements hook_islandora_object_access().
+ *
+ * Maps our three permissions onto those in the Islandora core.
+ */
+function islandora_basic_collection_islandora_object_access($op, $object, $user) {
+  $result = NULL;
+
+  $collection_models = islandora_basic_collection_get_collection_content_models();
+  $is_a_collection = (
+    (count(array_intersect($collection_models, $object->models)) > 0) &&
+    isset($object['COLLECTION_POLICY'])
+  );
+
+  if (in_array($op, array_keys(islandora_basic_collection_permission()))) {
+    if ($is_a_collection) {
+      if ($op == CREATE_CHILD_COLLECTION) {
+        $result = islandora_object_access(FEDORA_INGEST, $object, $user) && islandora_datastream_access(FEDORA_VIEW_OBJECTS, $object['COLLECTION_POLICY'], $user);
+        if ($result) {
+          $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
+          $policy_content_models = $policy->getContentModels();
+          $result = count(array_intersect($collection_models, array_keys($policy_content_models))) > 0;
+        }
+      }
+      elseif ($op == MANAGE_COLLECTION_POLICY) {
+        $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['COLLECTION_POLICY'], $user);
+      }
+      elseif ($op == MIGRATE_COLLECTION_MEMBERS) {
+        // Not sure how much sense this makes... Check that we can modify the
+        // RELS-EXT of the current object, assuming that we'll be able to modify
+        // the children as well...
+        $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['RELS-EXT'], $user);
+      }
+    }
+    else {
+      $result = FALSE;
+    }
+  }
+
+  return $result;
 }
