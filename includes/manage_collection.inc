@@ -23,11 +23,11 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
   drupal_set_title(t('Manage @label Collection', array('@label' => $object->label, '@pid' => $object->id)));
   // Defines accessible elements.
   $access = array(
-    'create_child_collection' => islandora_basic_collection_ingest_child_collection_access($object),
-    'policy_management' => user_access(MANAGE_COLLECTION_POLICY),
-    'share_children' => user_access(MIGRATE_COLLECTION_MEMBERS),
-    'migrate_children' => user_access(MIGRATE_COLLECTION_MEMBERS),
-    'delete_children' => user_access(FEDORA_PURGE),
+    'create_child_collection' => islandora_object_access(CREATE_CHILD_COLLECTION, $object),
+    'policy_management' => islandora_object_access(MANAGE_COLLECTION_POLICY, $object),
+    'share_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
+    'migrate_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
+    'delete_children' => islandora_object_access(FEDORA_PURGE, $object),
   );
   // Build forms for only the accessible elements.
   foreach ($access as $element => $accessible) {

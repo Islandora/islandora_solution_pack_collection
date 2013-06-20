@@ -41,36 +41,42 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
 
     // Test permission FEDORA_VIEW_OBJECTS, CREATE_CHILD_COLLECTION.
     $user = $this->drupalCreateUser(array(
-              FEDORA_VIEW_OBJECTS,
-              FEDORA_INGEST,
-              CREATE_CHILD_COLLECTION));
+      FEDORA_VIEW_OBJECTS,
+      FEDORA_INGEST,
+      CREATE_CHILD_COLLECTION,
+    ));
     $this->drupalLogin($user);
     $this->clickLink(t('Islandora Repository'));
     $this->assertLink('Manage', 0, 'Manage tab is on current page.');
     $this->clickLink(t('Manage'));
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
-    $this->assertNoLink('Datastreams', 'Datastreams tab is not on current page.');
 
     // Test permission FEDORA_VIEW_OBJECTS, MANAGE_COLLECTION_POLICY.
-    $user = $this->drupalCreateUser(array(FEDORA_VIEW_OBJECTS, MANAGE_COLLECTION_POLICY));
+    $user = $this->drupalCreateUser(array(
+      FEDORA_VIEW_OBJECTS,
+      MANAGE_COLLECTION_POLICY,
+      FEDORA_METADATA_EDIT,
+    ));
     $this->drupalLogin($user);
     $this->clickLink(t('Islandora Repository'));
     $this->assertLink('Manage', 0, 'Manage tab is on current page.');
     $this->clickLink(t('Manage'));
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
-    $this->assertNoLink('Datastreams', 'Datastreams tab is not on current page.');
 
     // Test permission FEDORA_VIEW_OBJECTS, MIGRATE_COLLECTION_MEMBERS.
-    $user = $this->drupalCreateUser(array(FEDORA_VIEW_OBJECTS, MIGRATE_COLLECTION_MEMBERS));
+    $user = $this->drupalCreateUser(array(
+      FEDORA_VIEW_OBJECTS,
+      MIGRATE_COLLECTION_MEMBERS,
+      FEDORA_METADATA_EDIT,
+    ));
     $this->drupalLogin($user);
     $this->clickLink(t('Islandora Repository'));
     $this->assertLink('Manage', 0, 'Manage tab is on current page.');
     $this->clickLink(t('Manage'));
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
-    $this->assertNoLink('Datastreams', 'Datastreams tab is not on current page.');
   }
 
 }
