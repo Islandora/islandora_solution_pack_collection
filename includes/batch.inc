@@ -67,24 +67,45 @@ function islandora_basic_collection_batch_finished($success, $results, $operatio
  *   The batch definition.
  */
 function islandora_basic_collection_delete_children_batch(AbstractObject $collection, $children = NULL) {
-  $children = is_array($children) ? $children : islandora_basic_collection_get_child_pids($collection);
-  $parameters = array($collection, $children);
-  $delete_child_operation = array('islandora_basic_collection_delete_children_batch_operation', $parameters);
-  $child_count = count($children);
-  $message_parameters = array('@collection' => $collection->label);
-  return array(
-    'operations' => array($delete_child_operation),
+  $batch = array(
     'finished' => 'islandora_basic_collection_batch_finished',
-    'title' => format_plural($child_count,
-      'Deleting 1 child from @collection ...',
-      'Deleting @count children from @collection ...', $message_parameters),
-    'init_message' => format_plural($child_count,
-      'Preparing to delete 1 child from @collection ...',
-      'Preparing to delete @count children from @collection ...', $message_parameters),
-    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaning @estimate.'),
+    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
     'error_message' => t('An error has occurred.'),
     'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
   );
+
+  $message_parameters = array('@collection' => $collection->label);
+  if (is_array($children)) {
+    $child_count = count($children);
+    $batch += array(
+      'operations' => array(
+        array(
+          'islandora_basic_collection_delete_children_batch_operation',
+          array($collection, $children),
+        ),
+      ),
+      'title' => format_plural($child_count,
+        'Deleting 1 child from @collection ...',
+        'Deleting @count children from @collection ...', $message_parameters),
+      'init_message' => format_plural($child_count,
+        'Preparing to delete 1 child from @collection ...',
+        'Preparing to delete @count children from @collection ...', $message_parameters),
+    );
+  }
+  else {
+    $batch += array(
+      'operations' => array(
+        array(
+          'islandora_basic_collection_delete_all_children_batch_operation',
+          array($collection),
+        ),
+      ),
+      'title' => t('Deleting all children of @collection.', $message_parameters),
+      'init_message' => t('Preparing to delete all children of @collection.', $message_parameters),
+    );
+  }
+
+  return $batch;
 }
 
 /**
@@ -115,6 +136,71 @@ function islandora_basic_collection_delete_children_batch_operation(AbstractObje
   }
   if (islandora_basic_collection_end_operation($context)) {
     drupal_set_message(format_plural(count($children),
+      'Deleted 1 child from <a href="@collection-url">@collection</a>.',
+      'Deleted @count children from <a href="@collection-url">@collection</a>.',
+      array(
+        '@collection' => $collection->label,
+        '@collection-url' => url("islandora/object/{$collection->id}"),
+      )
+    ));
+  }
+}
+
+/**
+ * Batch operation to delete ALL children from the given collection.
+ *
+ * @param AbstractObject $collection
+ *   The collection object to purge the children from.
+ * @param array $context
+ *   The batch context.
+ */
+function islandora_basic_collection_delete_all_children_batch_operation(AbstractObject $collection, &$context) {
+  $query_info = islandora_basic_collection_get_query_info(array(
+    'object' => $collection,
+  ));
+
+  if (!isset($context['sandbox']['total_count'])) {
+    $context['sandbox']['total_count'] = $collection->repository->ri->countQuery($query_info['query'], $query_info['type']);
+    if ($context['sandbox']['total_count'] === 0) {
+      drupal_set_message(t('No objects to delete in @collection.', array(
+        '@collection' => $collection->label,
+      )));
+      $context['finished'] = 1;
+      return;
+    }
+    $context['sandbox']['current'] = 0.0;
+  }
+
+  $results = islandora_basic_collection_get_member_objects($collection, 0, 10);
+  if ($results) {
+    list($count, $members) = $results;
+    foreach ($members as $result) {
+      $child = $result['object']['value'];
+      if ($child && $child = islandora_object_load($child)) {
+        $other_parents = islandora_basic_collection_get_other_parents($child, $collection);
+        // If only one parent, delete the object.
+        if (empty($other_parents)) {
+          islandora_delete_object($child);
+        }
+        else {
+          // If more than one parent, only remove parent relationship.
+          islandora_basic_collection_remove_from_collection($child, $collection);
+        }
+      }
+    }
+
+    $context['sandbox']['current'] += $count;
+
+    if ($count === 0) {
+      $context['finished'] = 1;
+    }
+    else {
+      $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
+    }
+  }
+
+  if (!$results || $context['finished'] == 1) {
+    drupal_set_message(format_plural($context['sandbox']['current'],
       'Deleted 1 child from <a href="@collection-url">@collection</a>.',
       'Deleted @count children from <a href="@collection-url">@collection</a>.',
       array(

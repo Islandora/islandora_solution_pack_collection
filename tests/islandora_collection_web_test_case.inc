@@ -67,7 +67,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
     $this->drupalPost($path, $edit, t('Delete Collection'));
     $path = $this->url;
     $this->drupalPost($path, $edit, t('Delete'));
-    $this->assertPattern('/Deleted (\w+) children from/', t('Deleted collection directly via PID %pid', array('%pid' => $pid)), t('Islandora'));
+    $this->assertPattern('/(Deleted (\w+) children from|No objects to delete in)/', t('Deleted collection directly via PID %pid', array('%pid' => $pid)), t('Islandora'));
 
     if ($current_user) {
       $this->drupalLogin($current_user);
