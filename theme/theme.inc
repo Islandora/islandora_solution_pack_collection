@@ -47,11 +47,17 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
 
   if ($display == 'grid') {
     $grid_link['attributes']['class'][] = 'active';
-    $collection_content = theme('islandora_basic_collection_grid', array('islandora_object' => $islandora_object, 'collection_results' => $results));
+    $collection_content = theme('islandora_basic_collection_grid', array(
+      'islandora_object' => $islandora_object,
+      'collection_results' => $results,
+     ));
   }
   else {
     $list_link['attributes']['class'][] = 'active';
-    $collection_content = theme('islandora_basic_collection', array('islandora_object' => $islandora_object, 'collection_results' => $results));
+    $collection_content = theme('islandora_basic_collection', array(
+      'islandora_object' => $islandora_object,
+      'collection_results' => $results,
+    ));
   }
 
   $variables['view_links'] = array($grid_link, $list_link);
@@ -109,11 +115,9 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
   }
 
   $associated_objects_array = array();
-  $start = $page_size * ($page_number);
-  $end = min($start + $page_size, $total_count);
 
-  for ($i = $start; $i < $end; $i++) {
-    $pid = $results[$i]['object']['value'];
+  foreach ($results as $result) {
+    $pid = $result['object']['value'];
     $fc_object = islandora_object_load($pid);
     if (!is_object($fc_object)) {
       // NULL object so don't show in collection view.
@@ -130,7 +134,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
     }
     $object_url = 'islandora/object/' . $pid;
 
-    $title = $results[$i]['title']['value'];
+    $title = $result['title']['value'];
     $associated_objects_array[$pid]['pid'] = $pid;
     $associated_objects_array[$pid]['path'] = $object_url;
     $associated_objects_array[$pid]['title'] = $title;
