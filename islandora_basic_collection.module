@@ -305,7 +305,7 @@ function islandora_basic_collection_get_query_info(array $params) {
   $object = $params['object'];
 
   $query = <<<EOQ
-SELECT !vars
+SELECT DISTINCT !vars
 FROM <#ri>
 WHERE {
   !statements .
