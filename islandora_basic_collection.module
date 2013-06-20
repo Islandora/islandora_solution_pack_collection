@@ -269,13 +269,18 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
  * @param array $params
  *   An array containing all the parameters, at least:
  *   - object: An AbstractObject we're querying for.
- *   - page_size: The size of the page/number of results to return.
+ *   but may also contain:
+ *   - page_size: The size of the page/number of results to return. Defaults to
+ *     10.
  *   - page_number: An integer representing the offset as a multiple of
- *     page_size.
+ *     page_size. Defaults to 0.
  *   - vars: A string containing the list of variables to select. Defaults to
  *     "?object ?title".
  *   - order_by: A string indicating which variable by which to sort. Defaults
  *     to "?title". May be set to FALSE to avoid sorting.
+ *   - model: A string representing a URI. Defaults to "?model". Could be
+ *     provided as "<info:fedora/cmodel:pid>" if the type of object to query
+ *     should be filtered.
  *
  * @return array
  *   An array containing a number of keys used to describe the query,
@@ -288,6 +293,13 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
  *   - pid: The pid of the collection being queried.
  */
 function islandora_basic_collection_get_query_info(array $params) {
+  if (!isset($params['object'])) {
+    throw new Exception(t('!function requires "!object_parameter" to be given in the array of parameters.', array(
+      '!function' => __FUNCTION__,
+      '!object_parameter' => 'object',
+    )));
+  }
+
   // Add in defaults.
   $params += array(
     'page_number' => 0,
@@ -315,10 +327,10 @@ EOQ;
   $query = format_string($query, array(
     '!statements' => implode(' . ', module_invoke_all('islandora_basic_collection_get_query_statements')),
     '!filters' => implode(' ', $filters),
+    '!vars' => $params['vars'],
   ));
 
   $query = format_string($query, array(
-    '!vars' => $params['vars'],
     '!pid' => $object->id,
     '!model' => $params['model'],
   ));
