@@ -20,7 +20,7 @@ require_once dirname(__FILE__) . '/batch.inc';
  *   A renderable array.
  */
 function islandora_basic_collection_manage_object(AbstractObject $object) {
-  drupal_set_title(t('Manage @label Collection', array('@label' => $object->label, '@pid' => $object->id)));
+
   // Defines accessible elements.
   $access = array(
     'create_child_collection' => islandora_object_access(CREATE_CHILD_COLLECTION, $object),
