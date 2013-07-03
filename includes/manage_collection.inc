@@ -13,21 +13,21 @@ require_once dirname(__FILE__) . '/batch.inc';
  *
  * Defines the actions to appear in the collection section of the Manage tab.
  *
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection object.
  *
  * @return array
  *   A renderable array.
  */
-function islandora_basic_collection_manage_object(FedoraObject $object) {
-  drupal_set_title(t('Manage @label Collection', array('@label' => $object->label, '@pid' => $object->id)));
+function islandora_basic_collection_manage_object(AbstractObject $object) {
+
   // Defines accessible elements.
   $access = array(
-    'create_child_collection' => islandora_basic_collection_ingest_child_collection_access($object),
-    'policy_management' => user_access(MANAGE_COLLECTION_POLICY),
-    'share_children' => user_access(MIGRATE_COLLECTION_MEMBERS),
-    'migrate_children' => user_access(MIGRATE_COLLECTION_MEMBERS),
-    'delete_children' => user_access(FEDORA_PURGE),
+    'create_child_collection' => islandora_object_access(CREATE_CHILD_COLLECTION, $object),
+    'policy_management' => islandora_object_access(MANAGE_COLLECTION_POLICY, $object),
+    'share_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
+    'migrate_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
+    'delete_children' => islandora_object_access(FEDORA_PURGE, $object),
   );
   // Build forms for only the accessible elements.
   foreach ($access as $element => $accessible) {
@@ -89,13 +89,13 @@ function islandora_basic_collection_manage_object(FedoraObject $object) {
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection to add the child collection to.
  *
  * @return array
  *   The Drupal form definition.
  */
-function islandora_basic_collection_create_child_collection_form(array $form, array &$form_state, FedoraObject $object) {
+function islandora_basic_collection_create_child_collection_form(array $form, array &$form_state, AbstractObject $object) {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
   $policy_content_models = $policy->getContentModels();
@@ -109,14 +109,14 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
     'label' => array(
       '#type' => 'textfield',
       '#title' => t('Collection Label'),
-      '#description' => t('Human readable name for this collection'),
+      '#description' => t('Human-readable name for this collection.'),
       '#required' => TRUE,
       '#size' => 25,
     ),
     'pid' => array(
       '#type' => 'textfield',
       '#title' => t('Collection PID'),
-      '#description' => t("Unique PID for this collection. Leave blank for default.<br/>PID's take the general form of namespace:collection (eg. islandora:pamphlets)"),
+      '#description' => t("Unique PID for this collection. Leave blank to use the default.<br/>PIDs take the general form of <strong>namespace:collection</strong> (e.g. islandora:pamphlets)"),
       '#size' => 15,
     ),
     'inherit_policy' => array(
@@ -134,7 +134,7 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
       ),
       'namespace' => islandora_basic_collection_get_namespace_form_element($form_state['default_namespace']),
       'content_models' => array(
-        '#title' => "Choose allowable content models for this collection",
+        '#title' => "Allowable content models",
         '#type' => 'checkboxes',
         '#options' => islandora_basic_collection_get_content_models_as_form_options($content_models),
         '#description' => t("Content models describe the behaviours of objects with which they are associated."),
@@ -160,7 +160,7 @@ function islandora_basic_collection_create_child_collection_form_validate(array 
   if (!empty($form_state['values']['pid'])) {
     $pid = $form_state['values']['pid'];
     if (!islandora_is_valid_pid($pid)) {
-      form_set_error('pid', t('Collection PID is Invalid.'));
+      form_set_error('pid', t('Collection PID is invalid.'));
     }
     elseif (islandora_object_load($pid)) {
       form_set_error('pid', t('Collection PID already exists.'));
@@ -190,9 +190,8 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
                           'pid' => $collection->id,
                           'relationship' => $form_state['default_relationship'])));
   // Add TN datastream.
-  $thumbnail_url = file_create_url(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png');
   $thumbnail_datastream = $child_collection->constructDatastream('TN');
-  $thumbnail_datastream->setContentFromUrl($thumbnail_url);
+  $thumbnail_datastream->setContentFromFile(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png', FALSE);
   $thumbnail_datastream->label = 'Thumbnail';
   $thumbnail_datastream->mimetype = 'image/png';
   $child_collection->ingestDatastream($thumbnail_datastream);
@@ -224,13 +223,13 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection to manipulate.
  *
  * @return array
  *   The Drupal form definition.
  */
-function islandora_basic_collection_policy_management_form(array $form, array &$form_state, FedoraObject $object) {
+function islandora_basic_collection_policy_management_form(array $form, array &$form_state, AbstractObject $object) {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $form_state['collection'] = $object;
   $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
@@ -243,7 +242,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     $content_model_in_policy = isset($policy_content_models[$pid]);
     $namespace = $content_model_in_policy ? $policy_content_models[$pid]['namespace'] : $default_namespace;
     $namespace_element = islandora_basic_collection_get_namespace_form_element($namespace);
-    unset($namespace_element['#title'],$namespace_element['#description']);
+    unset($namespace_element['#title'], $namespace_element['#description']);
     $rows[$pid] = array(
       'selected' => array(
         '#type' => 'checkbox',
@@ -259,7 +258,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     '#action' => request_uri() . '#policy-management',
     'help' => array(
       '#type' => 'item',
-      '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA112/How+to+Manage+Collection+Policies', array()),
+      '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA711/How+to+Manage+Collection+Policies', array()),
     ),
     'table' => array(
       '#tree' => TRUE,
@@ -271,7 +270,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     ),
     'submit' => array(
       '#type' => 'submit',
-      '#value' => t('Update Collection Policy'),
+      '#value' => t('Update collection policy'),
     ),
   );
 }
@@ -296,7 +295,7 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
     $policy->addContentModel($pid, $content_model->label, $properties['namespace']);
   }
   $collection['COLLECTION_POLICY']->content = $policy->getXML();
-  drupal_set_message(t('Updated Collection Policy'));
+  drupal_set_message(t('Updated collection policy'));
 }
 
 /**
@@ -306,13 +305,13 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection to share child objects from.
  *
  * @return array
  *   The Drupal form definition.
  */
-function islandora_basic_collection_share_children_form(array $form, array &$form_state, FedoraObject $object) {
+function islandora_basic_collection_share_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
   $fragment = '#share-children';
   return array(
@@ -357,20 +356,20 @@ function islandora_basic_collection_share_children_form_submit(array $form, arra
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection to move child objects from.
  *
  * @return array
  *   The Drupal form definition.
  */
-function islandora_basic_collection_migrate_children_form(array $form, array &$form_state, FedoraObject $object) {
+function islandora_basic_collection_migrate_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
   $fragment = '#migrate-children';
   return array(
     '#action' => request_uri() . $fragment,
     'collection' => array(
       '#title' => t('Migrate members to collection'),
-      '#description' => t('Removes members from their current collection "%label" and adds them to the selected collection', array('%label' => $object->label)),
+      '#description' => t('Removes members from their current collection (%label) and adds them to the selected collection.', array('%label' => $object->label)),
       '#type' => 'select',
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
@@ -408,13 +407,13 @@ function islandora_basic_collection_migrate_children_form_submit(array $form, ar
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @param FedoraObject $object
+ * @param AbstractObject $object
  *   The collection to add the child collection to.
  *
  * @return array
  *   The Drupal form definition.
  */
-function islandora_basic_collection_delete_children_form(array $form, array &$form_state, FedoraObject $object) {
+function islandora_basic_collection_delete_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
   return array(
     '#action' => request_uri() . '#delete-children',
