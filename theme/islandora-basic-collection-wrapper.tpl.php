@@ -9,6 +9,10 @@
 ?>
 
 <div class="islandora-basic-collection-wrapper">
+  <?php if (!empty($dc_array['dc:description']['value'])): ?>
+    <p><?php print $dc_array['dc:description']['value']; ?></p>
+    <hr />
+  <?php endif; ?>
   <div class="islandora-basic-collection clearfix">
     <span class="islandora-basic-collection-display-switch">
       <ul class="links inline">

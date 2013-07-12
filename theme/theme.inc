@@ -19,6 +19,17 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
   $page_size = (empty($_GET['pagesize'])) ? variable_get('islandora_basic_collection_page_size', '10') : $_GET['pagesize'];
   $islandora_object = $variables['islandora_object'];
+  try {
+    $dc = $islandora_object['DC']->content;
+    $dc_object = DublinCore::importFromXMLString($dc);
+  }
+  catch (Exception $e) {
+    drupal_set_message(t('Error retrieving object %s %t', array('%s' => $islandora_object->id, '%t' => $e->getMessage())), 'error', FALSE);
+  }
+  $variables['islandora_dublin_core'] = isset($dc_object) ? $dc_object : NULL;
+  $variables['dc_array'] = isset($dc_object) ? $dc_object->asArray() : array();
+  $variables['islandora_object_label'] = $islandora_object->label;
+
   list($total_count, $results) = islandora_basic_collection_get_member_objects($islandora_object, $page_number, $page_size);
 
   pager_default_initialize($total_count, $page_size);
