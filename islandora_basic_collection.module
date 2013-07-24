@@ -558,8 +558,7 @@ function islandora_basic_collection_form_islandora_delete_object_form_alter(arra
 function islandora_basic_collection_islandora_delete_object_form_delete_children_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
   // @todo This should be recursive.
-  $children = islandora_basic_collection_get_child_pids($form_state['object']);
-  batch_set(islandora_basic_collection_delete_children_batch($form_state['object'], $children));
+  batch_set(islandora_basic_collection_delete_children_batch($form_state['object']));
   // Called from within this submit handler rather than from the Drupal Form API
   // as we need the object to exist to generate the pages and if we run this.
   // batch operation from a submit handler any submit handlers to be called
