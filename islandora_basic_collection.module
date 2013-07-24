@@ -272,6 +272,9 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
  *   - model: A string representing a URI. Defaults to "?model". Could be
  *     provided as "<info:fedora/cmodel:pid>" if the type of object to query
  *     should be filtered.
+ * @param string $type
+ *   Either 'view' or 'manage', its meant to repersent how the objects will be
+ *   used.
  *
  * @return array
  *   An array containing a number of keys used to describe the query,
@@ -283,7 +286,7 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
  *     - sparql.
  *   - pid: The pid of the collection being queried.
  */
-function islandora_basic_collection_get_query_info(array $params) {
+function islandora_basic_collection_get_query_info(array $params, $type = 'view') {
   if (!isset($params['object'])) {
     throw new Exception(t('!function requires "!object_parameter" to be given in the array of parameters.', array(
       '!function' => __FUNCTION__,
@@ -312,11 +315,11 @@ WHERE {
 EOQ;
 
   $filters = array();
-  foreach (module_invoke_all('islandora_basic_collection_get_query_filters') as $filter) {
+  foreach (module_invoke_all('islandora_basic_collection_get_query_filters', $type) as $filter) {
     $filters[] = "FILTER($filter)";
   }
   $query = format_string($query, array(
-    '!statements' => implode(' . ', module_invoke_all('islandora_basic_collection_get_query_statements')),
+    '!statements' => implode(' . ', module_invoke_all('islandora_basic_collection_get_query_statements', $type)),
     '!filters' => implode(' ', $filters),
     '!vars' => $params['vars'],
   ));
@@ -373,6 +376,9 @@ function islandora_basic_collection_islandora_basic_collection_get_query_filters
  *   The page number in the query for members.
  * @param int $page_size
  *   The number of results per page page from the query for members.
+ * @param string $type
+ *   Either 'view' or 'manage', its meant to repersent how the objects will be
+ *   used.
  *
  * @return array|bool
  *   An array containing two values:
@@ -381,12 +387,11 @@ function islandora_basic_collection_islandora_basic_collection_get_query_filters
  *   - The tuples in the slice according to $page_number and $page_size.
  *   or boolean FALSE if the query fails.
  */
-function islandora_basic_collection_get_member_objects(AbstractObject $object, $page_number = 0, $page_size = 20) {
-  $query_array = islandora_basic_collection_get_query_info(array_combine(
-    array('object', 'page_number', 'page_size'),
-    func_get_args()
-  ));
-
+function islandora_basic_collection_get_member_objects(AbstractObject $object, $page_number = 0, $page_size = 20, $type = 'view') {
+  $query_array = islandora_basic_collection_get_query_info(array(
+                   'object' => $object,
+                   'page_number' => $page_number,
+                   'page_size' => $page_size), $type);
   try {
     $count = $object->repository->ri->countQuery($query_array['query'], $query_array['type']);
 
@@ -553,7 +558,8 @@ function islandora_basic_collection_form_islandora_delete_object_form_alter(arra
 function islandora_basic_collection_islandora_delete_object_form_delete_children_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
   // @todo This should be recursive.
-  batch_set(islandora_basic_collection_delete_children_batch($form_state['object']));
+  $children = islandora_basic_collection_get_child_pids($form_state['object']);
+  batch_set(islandora_basic_collection_delete_children_batch($form_state['object'], $children));
   // Called from within this submit handler rather than from the Drupal Form API
   // as we need the object to exist to generate the pages and if we run this.
   // batch operation from a submit handler any submit handlers to be called
