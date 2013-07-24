@@ -60,13 +60,14 @@ function islandora_basic_collection_batch_finished($success, $results, $operatio
  *
  * @param AbstractObject $collection
  *   The collection object to purge the children from.
- * @param array $children
- *   The PID's of the children to delete.
+ * @param mixed $children
+ *   An array of PID's of the children to delete.  Defualts to NULL.  If NULL
+ *   all children will be deleted.
  *
  * @return array
  *   The batch definition.
  */
-function islandora_basic_collection_delete_children_batch(AbstractObject $collection, array $children) {
+function islandora_basic_collection_delete_children_batch(AbstractObject $collection, $children = NULL) {
   $batch = array(
     'finished' => 'islandora_basic_collection_batch_finished',
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
@@ -214,9 +215,6 @@ function islandora_basic_collection_delete_all_children_batch_operation(Abstract
 /**
  * Migrate the given child objects from the source to destination collection.
  *
- * If no child objects are given its assumed all child objects are to be
- * migrated.
- *
  * @param AbstractObject $source
  *   The source collection object.
  * @param AbstractObject $destination
@@ -276,9 +274,6 @@ function islandora_basic_collection_migrate_children_batch_operation(AbstractObj
 
 /**
  * Share the given child objects from the source with destination collection.
- *
- * If no child objects are given its assumed all child objects are to be
- * shared.
  *
  * @param AbstractObject $source
  *   The source collection object.

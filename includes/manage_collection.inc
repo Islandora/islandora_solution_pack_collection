@@ -23,7 +23,6 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
 
   // Defines accessible elements.
   $access = array(
-    'create_child_collection' => islandora_object_access(CREATE_CHILD_COLLECTION, $object),
     'policy_management' => islandora_object_access(MANAGE_COLLECTION_POLICY, $object),
     'share_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
     'migrate_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
@@ -38,14 +37,6 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
   return array(
     'manage_collection_object' => array(
       '#type' => 'vertical_tabs',
-      'create_child_collection' => array(
-        '#id' => 'create-child-collection',
-        '#group' => 'manage_collection_object',
-        '#access' => $access['create_child_collection'],
-        '#title' => t('Create child collection'),
-        '#type' => 'fieldset',
-        'form' => $forms['create_child_collection'],
-      ),
       'policy_management' => array(
         '#id' => 'policy-management',
         '#group' => 'manage_collection_object',
@@ -89,21 +80,25 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @param AbstractObject $object
- *   The collection to add the child collection to.
  *
  * @return array
  *   The Drupal form definition.
  */
-function islandora_basic_collection_create_child_collection_form(array $form, array &$form_state, AbstractObject $object) {
+function islandora_basic_collection_create_child_collection_form(array $form, array &$form_state) {
   module_load_include('inc', 'islandora', 'includes/utilities');
-  $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
+  $parent_object = islandora_object_load($form_state['islandora']['shared_storage']['parent']);
+
+  // Permissions handling.
+  if (!user_access(CREATE_CHILD_COLLECTION)) {
+    drupal_set_message(t('You do not have permissions to create collections.'), 'error');
+    drupal_goto('islandora/object/' . $parent_object->id);
+  }
+
+  $policy = new CollectionPolicy($parent_object['COLLECTION_POLICY']->content);
   $policy_content_models = $policy->getContentModels();
   $content_models = islandora_get_content_models();
-  $form_state['collection'] = $object;
   $form_state['content_models'] = $content_models;
-  $form_state['default_namespace'] = islandora_get_namespace($policy_content_models['islandora:collectionCModel']['namespace']);
-  $form_state['default_relationship'] = $policy->getRelationship();
+  $default_namespace = islandora_get_namespace($policy_content_models['islandora:collectionCModel']['namespace']);
   return array(
     '#action' => request_uri() . '#create-child-collection',
     'label' => array(
@@ -132,17 +127,13 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
           ':input[name="inherit_policy"]' => array('checked' => FALSE),
         ),
       ),
-      'namespace' => islandora_basic_collection_get_namespace_form_element($form_state['default_namespace']),
+      'namespace' => islandora_basic_collection_get_namespace_form_element($default_namespace),
       'content_models' => array(
         '#title' => "Allowable content models",
         '#type' => 'checkboxes',
         '#options' => islandora_basic_collection_get_content_models_as_form_options($content_models),
         '#description' => t("Content models describe the behaviours of objects with which they are associated."),
       ),
-    ),
-    'submit' => array(
-      '#type' => 'submit',
-      '#value' => t('Create collection'),
     ),
   );
 }
@@ -180,24 +171,17 @@ function islandora_basic_collection_create_child_collection_form_validate(array 
  */
 function islandora_basic_collection_create_child_collection_form_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora', 'includes/utilities');
-  $collection = $form_state['collection'];
-  $pid = empty($form_state['values']['pid']) ? $form_state['default_namespace'] : $form_state['values']['pid'];
   // Prepare Object.
-  $child_collection = islandora_prepare_new_object($pid, $form_state['values']['label'],
-                      array(),
-                      array('islandora:collectionCModel'),
-                      array(array(
-                          'pid' => $collection->id,
-                          'relationship' => $form_state['default_relationship'])));
-  // Add TN datastream.
-  $thumbnail_datastream = $child_collection->constructDatastream('TN');
-  $thumbnail_datastream->setContentFromFile(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png', FALSE);
-  $thumbnail_datastream->label = 'Thumbnail';
-  $thumbnail_datastream->mimetype = 'image/png';
-  $child_collection->ingestDatastream($thumbnail_datastream);
+  $new_collection = $form_state['islandora']['objects'][0];
+  if (!empty($form_state['values']['pid'])) {
+    $new_collection->id = $form_state['values']['pid'];
+  }
+  $new_collection->label = $form_state['values']['label'];
+
   // Add COLLECTION_POLICY datastream.
+  $parent_collection = islandora_object_load($form_state['islandora']['shared_storage']['parent']);
   if ($form_state['values']['inherit_policy']) {
-    $collection_policy = $collection['COLLECTION_POLICY']->content;
+    $collection_policy = $parent_collection['COLLECTION_POLICY']->content;
   }
   else {
     $policy = CollectionPolicy::emptyPolicy();
@@ -207,13 +191,10 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
     }
     $collection_policy = $policy->getXML();
   }
-  $policy_datastream = $child_collection->constructDatastream('COLLECTION_POLICY', 'X');
+  $policy_datastream = $new_collection->constructDatastream('COLLECTION_POLICY', 'X');
   $policy_datastream->setContentFromString($collection_policy);
   $policy_datastream->label = 'Collection policy';
-  $child_collection->ingestDatastream($policy_datastream);
-  // Ingest the new object.
-  islandora_add_object($child_collection);
-  drupal_goto('islandora/object/' . $child_collection->id);
+  $new_collection->ingestDatastream($policy_datastream);
 }
 
 /**

@@ -27,19 +27,20 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
       'view fedora repository objects',
       'create child collection',
       'ingest fedora objects',
+      'add fedora datastreams',
     ));
     $this->drupalLogin($user);
 
     $this->drupalGet('islandora');
     $root = $this->url;
-    $path = $root . '/manage/collection';
+    $path = $root . '/manage/overview/ingest';
     $edit = array(
       'label' => $label,
       'pid' => $pid,
       'inherit_policy' => FALSE,
       'content_models[' . $model . ']' => TRUE,
     );
-    $this->drupalPost($path, $edit, t('Create collection'), array(), array(), 'islandora-basic-collection-create-child-collection-form');
+    $this->drupalPost($path, $edit, t('Ingest'));
     $this->assertText($label, t('Created collection %label using the content model %model', array('%label' => $label, '%model' => $model)), 'Islandora');
 
     if ($current_user) {
