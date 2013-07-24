@@ -80,8 +80,6 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @param AbstractObject $object
- *   The collection to add the child collection to.
  *
  * @return array
  *   The Drupal form definition.
@@ -179,7 +177,6 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
     $new_collection->id = $form_state['values']['pid'];
   }
   $new_collection->label = $form_state['values']['label'];
-
 
   // Add COLLECTION_POLICY datastream.
   $parent_collection = islandora_object_load($form_state['islandora']['shared_storage']['parent']);

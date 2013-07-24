@@ -703,8 +703,8 @@ function islandora_basic_collection_islandora_collectioncmodel_islandora_ingest_
 }
 
 /**
-* Implements hook_CMODEL_PID_islandora_object_ingested().
-*/
+ * Implements hook_CMODEL_PID_islandora_object_ingested().
+ */
 function islandora_basic_collection_islandora_collectioncmodel_islandora_object_ingested(AbstractObject $fedora_object) {
 
   // Add TN datastream.
