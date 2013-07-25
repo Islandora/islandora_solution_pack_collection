@@ -84,7 +84,6 @@ function islandora_basic_collection_menu_alter(array &$items) {
   // We want to add more permissions to the access arguments for the manage tab.
   $current_access_arguments = $items['islandora/object/%islandora_object/manage']['access arguments'][0];
   $new_access_arguments = array(
-    CREATE_CHILD_COLLECTION,
     MANAGE_COLLECTION_POLICY,
     MIGRATE_COLLECTION_MEMBERS,
   );
@@ -136,7 +135,6 @@ function islandora_basic_collection_manage_access($object = NULL) {
   $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
 
   return $is_a_collection && (
-    islandora_object_access(CREATE_CHILD_COLLECTION, $object) ||
     islandora_object_access(MANAGE_COLLECTION_POLICY, $object) ||
     islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object) ||
     islandora_object_access(FEDORA_INGEST, $object) ||
@@ -560,8 +558,7 @@ function islandora_basic_collection_form_islandora_delete_object_form_alter(arra
 function islandora_basic_collection_islandora_delete_object_form_delete_children_submit(array $form, array &$form_state) {
   module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
   // @todo This should be recursive.
-  $children = islandora_basic_collection_get_child_pids($form_state['object']);
-  batch_set(islandora_basic_collection_delete_children_batch($form_state['object'], $children));
+  batch_set(islandora_basic_collection_delete_children_batch($form_state['object']));
   // Called from within this submit handler rather than from the Drupal Form API
   // as we need the object to exist to generate the pages and if we run this.
   // batch operation from a submit handler any submit handlers to be called
@@ -693,4 +690,32 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
   }
 
   return $result;
+}
+
+/**
+ * Implements hook_islandora_ingest_steps().
+ */
+function islandora_basic_collection_islandora_collectioncmodel_islandora_ingest_steps() {
+  return array(
+    'islandora_basic_collection' => array(
+      'weight' => -11,
+      'type' => 'form',
+      'form_id' => 'islandora_basic_collection_create_child_collection_form',
+      'module' => 'islandora_basic_collection',
+      'file' => 'includes/manage_collection.inc',
+    ),
+  );
+}
+
+/**
+ * Implements hook_CMODEL_PID_islandora_object_ingested().
+ */
+function islandora_basic_collection_islandora_collectioncmodel_islandora_object_ingested(AbstractObject $fedora_object) {
+
+  // Add TN datastream.
+  $thumbnail_datastream = $fedora_object->constructDatastream('TN');
+  $thumbnail_datastream->setContentFromFile(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png', FALSE);
+  $thumbnail_datastream->label = 'Thumbnail';
+  $thumbnail_datastream->mimetype = 'image/png';
+  $fedora_object->ingestDatastream($thumbnail_datastream);
 }
