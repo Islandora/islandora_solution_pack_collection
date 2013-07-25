@@ -25,6 +25,10 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
     $this->drupalGet('islandora');
     $root = $this->url;
     $path = $root . '/manage/overview/ingest';
+    if (!isset($pid)) {
+      $pid_suffix = randomName(16);
+      $pid = 'islandora:' . $pid_suffix;
+    }
     $edit = array(
       'label' => $label,
       'pid' => $pid,
@@ -32,7 +36,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
       'content_models[' . $model . ']' => TRUE,
     );
     $this->drupalPost($path, $edit, t('Ingest'));
-    $this->assertText($label, t('Created collection %label using the content model %model', array('%label' => $label, '%model' => $model)), 'Islandora');
+    $this->assertTrue(islandora_object_load($pid), t('Created collection %label using the content model %model', array('%label' => $label, '%model' => $model)), 'Islandora');
   }
 
   /**
