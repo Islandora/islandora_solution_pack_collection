@@ -22,15 +22,6 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    * @see IslandoraWebTestCase::deleteRootTestCollection()
    */
   public function createTestCollection($label, $model, $pid = '') {
-    $current_user = $this->loggedInUser;
-    $user = $this->drupalCreateUser(array(
-      'view fedora repository objects',
-      'create child collection',
-      'ingest fedora objects',
-      'add fedora datastreams',
-    ));
-    $this->drupalLogin($user);
-
     $this->drupalGet('islandora');
     $root = $this->url;
     $path = $root . '/manage/overview/ingest';
@@ -42,13 +33,6 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
     );
     $this->drupalPost($path, $edit, t('Ingest'));
     $this->assertText($label, t('Created collection %label using the content model %model', array('%label' => $label, '%model' => $model)), 'Islandora');
-
-    if ($current_user) {
-      $this->drupalLogin($current_user);
-    }
-    else {
-      $this->drupalLogout();
-    }
   }
 
   /**
@@ -58,23 +42,11 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    *   The PID of the collection to be deleted
    */
   public function deleteTestCollection($pid) {
-    $current_user = $this->loggedInUser;
-    $user = $this->drupalCreateUser(array('manage object properties', 'delete fedora objects and datastreams'));
-
-    $this->drupalLogin($user);
-
     $path = 'islandora/object/' . $pid . '/manage/properties';
     $edit = array();
     $this->drupalPost($path, $edit, t('Delete Collection'));
     $path = $this->url;
     $this->drupalPost($path, $edit, t('Delete'));
-    $this->assertPattern('/(Deleted (\w+) children from|No objects to delete in)/', t('Deleted collection directly via PID %pid', array('%pid' => $pid)), t('Islandora'));
-
-    if ($current_user) {
-      $this->drupalLogin($current_user);
-    }
-    else {
-      $this->drupalLogout();
-    }
+    $this->assertFalse(islandora_object_load($pid), t("Collection deleted directly via pid %pid.", array('%pid' => $pid)), 'Islandora');
   }
 }
