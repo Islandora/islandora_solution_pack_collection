@@ -54,7 +54,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
       $this->fail(t("Tuque reports that the object %pid still exists after attempting to purge it through the interface. This test will attempt to purge the collection directly through tuque.", array('%pid' => $pid)), 'Islandora');
       islandora_delete_object($object);
       if (isset($object->label)) {
-	$label = $object->label;
+        $label = $object->label;
       }
       else {
         $label = "unknown";
