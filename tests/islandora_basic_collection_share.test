@@ -35,14 +35,7 @@ class IslandoraShareCollectionTestCase extends IslandoraCollectionWebTestCase {
    * Attempts to share a collection with another collection.
    */
   public function testShareObject() {
-    $user = $this->drupalCreateUser(array(
-      'view fedora repository objects',
-      'create child collection',
-      'ingest fedora objects',
-      'delete fedora objects and datastreams',
-      'add fedora datastreams',
-      'migrate collection members',
-    ));
+    $user = $this->drupalCreateUser(array_keys(module_invoke_all('permission')));
     $this->drupalLogin($user);
 
     // Let's create some random collections.
