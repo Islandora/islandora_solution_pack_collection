@@ -44,10 +44,16 @@ class IslandoraShareCollectionTestCase extends IslandoraCollectionWebTestCase {
     // Rather than attempt the nasty business of flipping through pages of
     // objects to find our test collections, we're just going to append 01_ and
     // 02_ to the start of the first object in the root collection.
-    $root_objects = islandora_basic_collection_get_objects(islandora_object_load('islandora:root'));
-    $label_suffix = $root_objects[0]['title']['value'];
-    $collection_1_label = '01_' . $label_suffix;
-    $collection_2_label = '01_' . $label_suffix;
+    $root_objects = islandora_basic_collection_get_member_objects(islandora_object_load('islandora:root'));
+    if (isset($root_objects[1][0])) {
+      $label_suffix = $root_objects[1][0]['title']['value'];
+      $collection_1_label = '01_' . $label_suffix;
+      $collection_2_label = '01_' . $label_suffix;
+    }
+    else {
+      $collection_1_label = $this->randomName(16);
+      $collection_2_label = $this->randomName(16);
+    }
     $this->createTestCollection($collection_1_label, 'islandora:collectionCModel', $collection_1);
     $this->createTestCollection($collection_2_label, 'islandora:collectionCModel', $collection_2);
 
@@ -63,7 +69,8 @@ class IslandoraShareCollectionTestCase extends IslandoraCollectionWebTestCase {
     $this->drupalGet("islandora/object/{$collection_1}");
     $this->assertLink($collection_2_label, 0, 'Shared object shows up in second collection', 'Islandora');
     // Then, check that Collection 2's RELS-EXT is properly made.
-    $rels_ext = islandora_object_load($collection_2)['RELS-EXT']->content;
+    $collection_object_2 = islandora_object_load($collection_2);
+    $rels_ext = $collection_object_2['RELS-EXT']->content;
     $this->assertTrue(strpos($rels_ext, '<fedora:isMemberOfCollection rdf:resource="info:fedora/islandora:root"></fedora:isMemberOfCollection>'), 'RELS-EXT datastream asserts that shared object isMemberOfCollection islandora:root', 'Islandora');
     $this->assertTrue(strpos($rels_ext, "<fedora:isMemberOfCollection rdf:resource=\"info:fedora/{$collection_1}\"></fedora:isMemberOfCollection>"), "RELS-EXT datastream asserts that shared object isMemberOf shared collection {$collection_1}", 'Islandora');
 
