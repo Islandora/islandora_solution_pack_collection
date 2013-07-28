@@ -49,7 +49,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
   public function deleteTestCollection($pid) {
     $path = 'islandora/object/' . $pid . '/delete';
     $this->drupalPost($path, array(), t('Delete'));
-    $cache = new SimpleCache;
+    $cache = new SimpleCache();
     $cache->delete($pid);
     $object = islandora_object_load($pid);
     if (is_object($object)) {

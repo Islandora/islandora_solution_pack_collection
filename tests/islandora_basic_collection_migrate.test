@@ -34,7 +34,7 @@ class IslandoraMigrateCollectionTestCase extends IslandoraCollectionWebTestCase 
   /**
    * Attempts to share a collection with another collection.
    */
-  public function testShareObject() {
+  public function testMigrateObject() {
     $user = $this->drupalCreateUser(array_keys(module_invoke_all('permission')));
     $this->drupalLogin($user);
 
