@@ -49,7 +49,8 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
   public function deleteTestCollection($pid) {
     $path = 'islandora/object/' . $pid . '/delete';
     $this->drupalPost($path, array(), t('Delete'));
-    SimpleCache::delete($pid);
+    $cache = new SimpleCache;
+    $cache->delete($pid);
     $object = islandora_object_load($pid);
     if (is_object($object)) {
       $this->fail(t("Tuque reports that the collection object %pid still exists after attempting to purge it through the interface. This test will attempt to purge the collection directly through tuque.", array('%pid' => $pid)), 'Islandora');
