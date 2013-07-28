@@ -52,7 +52,7 @@ function islandora_basic_collection_menu() {
  *
  * @param AbstractObject $object
  *   The object to test if we're allowed to ingest... Check that it actually
- *   a collection and we have sufficient info to show the form.
+ *   is a collection and we have sufficient info to show the form.
  *
  * @return bool
  *   TRUE if $object represents a collection, we can show the ingest form and
