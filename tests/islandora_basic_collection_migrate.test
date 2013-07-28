@@ -42,7 +42,7 @@ class IslandoraMigrateCollectionTestCase extends IslandoraCollectionWebTestCase 
     $collection_1 = 'islandora:' . $this->randomName(16);
     $collection_2 = 'islandora:' . $this->randomName(16);
     $root_objects = islandora_basic_collection_get_member_objects(islandora_object_load('islandora:root'));
-    if (isset($root_objects[1][0]) {
+    if (isset($root_objects[1][0])) {
       $label_suffix = $root_objects[1][0]['title']['value'];
       $collection_1_label = '01_' . $label_suffix;
       $collection_2_label = '02_' . $label_suffix;
