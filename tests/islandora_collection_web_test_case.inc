@@ -60,7 +60,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
       catch (Exception $e) {
         $this->fail(t("Tuque reports that it was unable to purge the collection %pid directly. This likely means that it does not actually exist. If verbose messaging is enabled in the testing module, you can check the last verbose message before this error to see whether or not it was actually purged.", array('%pid' => $pid)), 'Islandora');
       }
-    $this->fail(t("Collection object %pid reports that deletion via tuque has failed. It may need to be deleted manually.", array('%pid' => $pid)), 'Islandora');
+      $this->fail(t("Collection object %pid reports that deletion via tuque has failed. It may need to be deleted manually.", array('%pid' => $pid)), 'Islandora');
     }
     else {
       $this->pass(t("Collection object %pid successfully deleted.", array('%pid' => $pid)), 'Islandora');
