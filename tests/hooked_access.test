@@ -22,7 +22,7 @@ class IslandoraBasicCollectionHookedAccessTestCase extends IslandoraWebTestCase 
     return array(
       'name' => 'Islandora Collection Solution Pack Hooked Access Hook Implementation',
       'description' => 'Ensure that the hooked access callback returns appropriate results.',
-      'group' => 'Islandora',
+      'group' => 'Islandora Basic Collection',
     );
   }
 
