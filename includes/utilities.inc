@@ -180,10 +180,12 @@ function islandora_basic_collection_get_parent_pids(AbstractObject $object) {
 }
 
 /**
- * Gets a list of all parent pids exluding the given parent.
+ * Gets a list of all parent pids excluding the given parent.
  *
  * @param AbstractObject $object
  *   The object.
+ * @param AbstractObject $parent
+ *   The parent of the object.
  *
  * @return array
  *   The list of parent PIDs.
