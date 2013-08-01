@@ -170,6 +170,9 @@ function islandora_basic_collection_preprocess_islandora_basic_collection(&$vari
  *
  * @param array $variables
  *   Variables passed to this theme function.
+ *
+ * @return string
+ *   Markup representing the table for rendering.
  */
 function theme_islandora_basic_collection_policy_management_table(array $variables) {
   // Manually add the table select javascript as we are using a custom table.

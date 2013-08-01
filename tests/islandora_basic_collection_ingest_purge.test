@@ -36,6 +36,8 @@ class IslandoraBasicCollectionIngestTestCase extends IslandoraCollectionWebTestC
    * Creates an administrative user and attempts to ingest a test image.
    */
   public function testIngestPurgeBasicCollection() {
+    $user = $this->drupalCreateUser(array_keys(module_invoke_all('permission')));
+    $this->drupalLogin($user);
     $label = $this->randomName(16);
     $suffix = $this->randomName(16);
     $collectionpid = 'islandora:' . $suffix;

@@ -28,6 +28,9 @@ function islandora_basic_collection_start_operation(array $operands, array &$con
  *
  * @param array $context
  *   The context of this batch operation.
+ *
+ * @return bool
+ *   TRUE or FALSE depending on the context of the batch.
  */
 function islandora_basic_collection_end_operation(array &$context) {
   $context['sandbox']['progress']++;
