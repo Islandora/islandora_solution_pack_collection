@@ -40,13 +40,7 @@ class IslandoraReplaceDatastreamTestCase extends IslandoraCollectionWebTestCase 
   public function testReplaceDatastream() {
 
     // Sets up the testing space.
-    $user = $this->drupalCreateUser(array(
-      'view fedora repository objects',
-      'create child collection',
-      'ingest fedora objects',
-      'delete fedora objects and datastreams',
-      'add fedora datastreams',
-    ));
+    $user = $this->drupalCreateUser(array_keys(module_invoke_all('permission')));
     $this->drupalLogin($user);
 
     $label = $this->randomName(16);
