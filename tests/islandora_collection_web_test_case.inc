@@ -39,7 +39,6 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
     if (is_array($models)) {
       foreach ($models as $model) {
 	$edit['content_models[' . $model . ']'] = TRUE;
-	$this->pass('whatever');      
       }
     }
     else {
