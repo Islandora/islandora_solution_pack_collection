@@ -21,7 +21,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    *
    * @see IslandoraWebTestCase::deleteRootTestCollection()
    */
-  public function createTestCollection($label, $model, $pid = '') {
+  public function createTestCollection($label, $models, $pid = '') {
     $this->drupalGet('islandora');
     $root = $this->url;
     $path = $root . '/manage/overview/ingest';
@@ -33,11 +33,28 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
       'label' => $label,
       'pid' => $pid,
       'inherit_policy' => FALSE,
-      'content_models[' . $model . ']' => TRUE,
     );
+
+    // Figure out enabling content models.
+    if (is_array($models)) {
+      foreach ($models as $model) {
+	$edit['content_models[' . $model . ']'] = TRUE;
+	$this->pass('whatever');      
+      }
+    }
+    else {
+      $edit['content_models[' . $models . ']'] = TRUE;
+    }
+
     $this->drupalPost($path, $edit, t('Ingest'));
     $object = islandora_object_load($pid);
-    $this->assertTrue(is_object($object), t('Created collection %label using the content model %model', array('%label' => $label, '%model' => $model)), 'Islandora');
+    if (is_array($models)) {
+      $model_list = implode(', ', $models);
+    }
+    else {
+      $model_list = $models;
+    }
+    $this->assertTrue(is_object($object), t('Created collection %label using the content model(s) %model_list', array('%label' => $label, '%model_list' => $model_list)), 'Islandora');
   }
 
   /**
