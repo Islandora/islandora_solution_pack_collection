@@ -14,8 +14,8 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    *
    * @param string $label
    *   The label that should be assigned to the collection
-   * @param string $model
-   *   The content model the collection should use
+   * @param array $models
+   *   The collection's content models; also accepts a single-model string
    * @param string $pid
    *   The PID that should be assigned to the collection
    *
