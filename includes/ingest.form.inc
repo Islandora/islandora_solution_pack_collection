@@ -6,7 +6,12 @@
  */
 
 // Constants.
-define('FAKE_PID', 'fake:pid');
+define('ISLANDORA_BASIC_COLLECTION_FAKE_PID', 'fake:pid');
+
+// @codingStandardsIgnoreStart
+// XXX: This should be removed at some point in the future.
+define('FAKE_PID', ISLANDORA_BASIC_COLLECTION_FAKE_PID);
+// @codingStandardsIgnoreEnd
 
 /**
  * Manage action that for ingestion of an object into the given collection.
@@ -42,9 +47,9 @@ function islandora_basic_collection_get_ingest_configuration(AbstractObject $col
   if (!$is_collection_object || !$has_policy) {
     return array();
   }
-  // The FAKE_PID is needed such that constructObject() won't call
+  // The ISLANDORA_BASIC_COLLECTION_FAKE_PID is needed such that constructObject() won't call
   // getNextIdentifier(), needlessly.
-  $object = $collection->repository->constructObject(FAKE_PID);
+  $object = $collection->repository->constructObject(ISLANDORA_BASIC_COLLECTION_FAKE_PID);
   $object->label = 'New Object';
 
   module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
@@ -187,7 +192,7 @@ function islandora_basic_collection_ingest_form_select_model(array &$form_state,
   // Ideally we wouldn't have to do this, we could have the identifier generated
   // at ingest time. Hell ideally Fedora would do it when just provided with a
   // namespace at ingest time.
-  if ($object->id == FAKE_PID || islandora_get_namespace($object->id) !== $namespace) {
+  if ($object->id == ISLANDORA_BASIC_COLLECTION_FAKE_PID || islandora_get_namespace($object->id) !== $namespace) {
     $object->id = $object->repository->getNextIdentifier($namespace, variable_get('islandora_basic_collection_generate_uuid', FALSE));
   }
   // Limit the list of models to the selected model. We may not want to do this
