@@ -47,8 +47,8 @@ function islandora_basic_collection_get_ingest_configuration(AbstractObject $col
   if (!$is_collection_object || !$has_policy) {
     return array();
   }
-  // The ISLANDORA_BASIC_COLLECTION_FAKE_PID is needed such that constructObject() won't call
-  // getNextIdentifier(), needlessly.
+  // The ISLANDORA_BASIC_COLLECTION_FAKE_PID is needed such that
+  // constructObject() won't call getNextIdentifier(), needlessly.
   $object = $collection->repository->constructObject(ISLANDORA_BASIC_COLLECTION_FAKE_PID);
   $object->label = 'New Object';
 

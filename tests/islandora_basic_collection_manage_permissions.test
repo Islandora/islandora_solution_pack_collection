@@ -39,7 +39,8 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->clickLink(t('Islandora Repository'));
     $this->assertNoLink('Manage', 'Manage tab is not on current page.');
 
-    // Test permission ISLANDORA_VIEW_OBJECTS, ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION.
+    // Test permission ISLANDORA_VIEW_OBJECTS,
+    // ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION.
     $user = $this->drupalCreateUser(array(
       ISLANDORA_VIEW_OBJECTS,
       ISLANDORA_INGEST,
@@ -52,7 +53,8 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
 
-    // Test permission ISLANDORA_VIEW_OBJECTS, ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY.
+    // Test permission ISLANDORA_VIEW_OBJECTS,
+    // ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY.
     $user = $this->drupalCreateUser(array(
       ISLANDORA_VIEW_OBJECTS,
       ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY,
@@ -65,7 +67,8 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
 
-    // Test permission ISLANDORA_VIEW_OBJECTS, ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS.
+    // Test permission ISLANDORA_VIEW_OBJECTS,
+    // ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS.
     $user = $this->drupalCreateUser(array(
       ISLANDORA_VIEW_OBJECTS,
       ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS,
