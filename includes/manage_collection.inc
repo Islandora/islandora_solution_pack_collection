@@ -26,7 +26,7 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
     'policy_management' => islandora_object_access(MANAGE_COLLECTION_POLICY, $object),
     'share_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
     'migrate_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
-    'delete_children' => islandora_object_access(FEDORA_PURGE, $object),
+    'delete_children' => islandora_object_access(ISLANDORA_PURGE, $object),
   );
   // Build forms for only the accessible elements.
   foreach ($access as $element => $accessible) {

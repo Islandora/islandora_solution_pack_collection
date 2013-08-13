@@ -74,7 +74,7 @@ function islandora_basic_collection_ingest_access(AbstractObject $object) {
   $configuration = islandora_basic_collection_get_ingest_configuration($object);
   $has_ingest_steps = islandora_ingest_can_display_ingest_form($configuration);
 
-  return $has_ingest_steps && islandora_object_access(FEDORA_INGEST, $object);
+  return $has_ingest_steps && islandora_object_access(ISLANDORA_INGEST, $object);
 }
 
 /**
@@ -137,8 +137,8 @@ function islandora_basic_collection_manage_access($object = NULL) {
   return $is_a_collection && (
     islandora_object_access(MANAGE_COLLECTION_POLICY, $object) ||
     islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object) ||
-    islandora_object_access(FEDORA_INGEST, $object) ||
-    islandora_object_access(FEDORA_PURGE, $object)
+    islandora_object_access(ISLANDORA_INGEST, $object) ||
+    islandora_object_access(ISLANDORA_PURGE, $object)
   );
 }
 
@@ -667,7 +667,7 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
   if (in_array($op, array_keys(islandora_basic_collection_permission()))) {
     if ($is_a_collection) {
       if ($op == CREATE_CHILD_COLLECTION) {
-        $result = islandora_object_access(FEDORA_INGEST, $object, $user) && islandora_datastream_access(FEDORA_VIEW_OBJECTS, $object['COLLECTION_POLICY'], $user);
+        $result = islandora_object_access(ISLANDORA_INGEST, $object, $user) && islandora_datastream_access(ISLANDORA_VIEW_OBJECTS, $object['COLLECTION_POLICY'], $user);
         if ($result) {
           $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
           $policy_content_models = $policy->getContentModels();
@@ -675,13 +675,13 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
         }
       }
       elseif ($op == MANAGE_COLLECTION_POLICY) {
-        $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['COLLECTION_POLICY'], $user);
+        $result = islandora_datastream_access(ISLANDORA_METADATA_EDIT, $object['COLLECTION_POLICY'], $user);
       }
       elseif ($op == MIGRATE_COLLECTION_MEMBERS) {
         // Not sure how much sense this makes... Check that we can modify the
         // RELS-EXT of the current object, assuming that we'll be able to modify
         // the children as well...
-        $result = islandora_datastream_access(FEDORA_METADATA_EDIT, $object['RELS-EXT'], $user);
+        $result = islandora_datastream_access(ISLANDORA_METADATA_EDIT, $object['RELS-EXT'], $user);
       }
     }
     else {

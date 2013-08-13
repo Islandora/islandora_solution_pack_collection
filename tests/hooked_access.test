@@ -40,16 +40,16 @@ class IslandoraBasicCollectionHookedAccessTestCase extends IslandoraWebTestCase 
     $this->management_ops = array(
       MIGRATE_COLLECTION_MEMBERS => array(
         MIGRATE_COLLECTION_MEMBERS,
-        FEDORA_METADATA_EDIT,
+        ISLANDORA_METADATA_EDIT,
       ),
       MANAGE_COLLECTION_POLICY => array(
         MANAGE_COLLECTION_POLICY,
-        FEDORA_METADATA_EDIT,
+        ISLANDORA_METADATA_EDIT,
       ),
       CREATE_CHILD_COLLECTION => array(
         CREATE_CHILD_COLLECTION,
-        FEDORA_INGEST,
-        FEDORA_VIEW_OBJECTS,
+        ISLANDORA_INGEST,
+        ISLANDORA_VIEW_OBJECTS,
       ),
     );
     $this->purgeTestObjects();
