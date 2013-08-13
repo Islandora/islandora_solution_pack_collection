@@ -6,9 +6,16 @@
  */
 
 // Constants.
-define('CREATE_CHILD_COLLECTION', 'create child collection');
-define('MANAGE_COLLECTION_POLICY', 'manage collection policy');
-define('MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
+define('ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION', 'create child collection');
+define('ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY', 'manage collection policy');
+define('ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
+
+// @codingStandardsIgnoreStart
+// XXX: These should be removed at somepoint in the future.
+define('CREATE_CHILD_COLLECTION', ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION);
+define('MANAGE_COLLECTION_POLICY', ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY);
+define('MIGRATE_COLLECTION_MEMBERS', ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS);
+// @codingStandardsIgnoreEnd
 
 /**
  * Implements hook_menu().
@@ -84,8 +91,8 @@ function islandora_basic_collection_menu_alter(array &$items) {
   // We want to add more permissions to the access arguments for the manage tab.
   $current_access_arguments = $items['islandora/object/%islandora_object/manage']['access arguments'][0];
   $new_access_arguments = array(
-    MANAGE_COLLECTION_POLICY,
-    MIGRATE_COLLECTION_MEMBERS,
+    ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY,
+    ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS,
   );
   $new_access_arguments = array_merge($current_access_arguments, $new_access_arguments);
   $items['islandora/object/%islandora_object/manage']['access arguments'] = array($new_access_arguments, 2);
@@ -135,8 +142,8 @@ function islandora_basic_collection_manage_access($object = NULL) {
   $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
 
   return $is_a_collection && (
-    islandora_object_access(MANAGE_COLLECTION_POLICY, $object) ||
-    islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object) ||
+    islandora_object_access(ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY, $object) ||
+    islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object) ||
     islandora_object_access(ISLANDORA_INGEST, $object) ||
     islandora_object_access(ISLANDORA_PURGE, $object)
   );
@@ -511,15 +518,15 @@ function islandora_basic_collection_islandora_undeletable_datastreams($models) {
  */
 function islandora_basic_collection_permission() {
   return array(
-    CREATE_CHILD_COLLECTION => array(
+    ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION => array(
       'title' => t('Create child collections'),
       'description' => t('Create new collections within an existing collection.'),
     ),
-    MANAGE_COLLECTION_POLICY => array(
+    ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY => array(
       'title' => t('Manage collection policies'),
       'description' => t('Define which content models are available for each collection.'),
     ),
-    MIGRATE_COLLECTION_MEMBERS => array(
+    ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS => array(
       'title' => t('Migrate collection members'),
       'description' => t('Move objects from one collection to another.'),
     ),
@@ -666,7 +673,7 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
 
   if (in_array($op, array_keys(islandora_basic_collection_permission()))) {
     if ($is_a_collection) {
-      if ($op == CREATE_CHILD_COLLECTION) {
+      if ($op == ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION) {
         $result = islandora_object_access(ISLANDORA_INGEST, $object, $user) && islandora_datastream_access(ISLANDORA_VIEW_OBJECTS, $object['COLLECTION_POLICY'], $user);
         if ($result) {
           $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
@@ -674,10 +681,10 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
           $result = count(array_intersect($collection_models, array_keys($policy_content_models))) > 0;
         }
       }
-      elseif ($op == MANAGE_COLLECTION_POLICY) {
+      elseif ($op == ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY) {
         $result = islandora_datastream_access(ISLANDORA_METADATA_EDIT, $object['COLLECTION_POLICY'], $user);
       }
-      elseif ($op == MIGRATE_COLLECTION_MEMBERS) {
+      elseif ($op == ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS) {
         // Not sure how much sense this makes... Check that we can modify the
         // RELS-EXT of the current object, assuming that we'll be able to modify
         // the children as well...

@@ -47,7 +47,7 @@ class IslandoraBasicCollectionUsagePermissionsTestCase extends IslandoraCollecti
     // Creates a test collection.
     $user = $this->drupalCreateUser(array(
       ISLANDORA_VIEW_OBJECTS,
-      CREATE_CHILD_COLLECTION,
+      ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION,
       ISLANDORA_MANAGE_PROPERTIES,
       ISLANDORA_INGEST));
     $this->drupalLogin($user);
