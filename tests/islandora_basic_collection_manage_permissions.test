@@ -33,17 +33,18 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
    * Test the permissions the module provides.
    */
   public function testManageCollectionPermissions() {
-    // Test permission FEDORA_VIEW_OBJECTS.
-    $user = $this->drupalCreateUser(array(FEDORA_VIEW_OBJECTS));
+    // Test permission ISLANDORA_VIEW_OBJECTS.
+    $user = $this->drupalCreateUser(array(ISLANDORA_VIEW_OBJECTS));
     $this->drupalLogin($user);
     $this->clickLink(t('Islandora Repository'));
     $this->assertNoLink('Manage', 'Manage tab is not on current page.');
 
-    // Test permission FEDORA_VIEW_OBJECTS, CREATE_CHILD_COLLECTION.
+    // Test permission ISLANDORA_VIEW_OBJECTS,
+    // ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION.
     $user = $this->drupalCreateUser(array(
-      FEDORA_VIEW_OBJECTS,
-      FEDORA_INGEST,
-      CREATE_CHILD_COLLECTION,
+      ISLANDORA_VIEW_OBJECTS,
+      ISLANDORA_INGEST,
+      ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION,
     ));
     $this->drupalLogin($user);
     $this->clickLink(t('Islandora Repository'));
@@ -52,11 +53,12 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
 
-    // Test permission FEDORA_VIEW_OBJECTS, MANAGE_COLLECTION_POLICY.
+    // Test permission ISLANDORA_VIEW_OBJECTS,
+    // ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY.
     $user = $this->drupalCreateUser(array(
-      FEDORA_VIEW_OBJECTS,
-      MANAGE_COLLECTION_POLICY,
-      FEDORA_METADATA_EDIT,
+      ISLANDORA_VIEW_OBJECTS,
+      ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY,
+      ISLANDORA_METADATA_EDIT,
     ));
     $this->drupalLogin($user);
     $this->clickLink(t('Islandora Repository'));
@@ -65,11 +67,12 @@ class IslandoraBasicCollectionPermissionsTestCase extends IslandoraWebTestCase {
     $this->assertLink('Collection', 0, 'Collection tab is on current page.');
     $this->assertNoLink('Properties', 'Properties tab is not on current page.');
 
-    // Test permission FEDORA_VIEW_OBJECTS, MIGRATE_COLLECTION_MEMBERS.
+    // Test permission ISLANDORA_VIEW_OBJECTS,
+    // ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS.
     $user = $this->drupalCreateUser(array(
-      FEDORA_VIEW_OBJECTS,
-      MIGRATE_COLLECTION_MEMBERS,
-      FEDORA_METADATA_EDIT,
+      ISLANDORA_VIEW_OBJECTS,
+      ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS,
+      ISLANDORA_METADATA_EDIT,
     ));
     $this->drupalLogin($user);
     $this->clickLink(t('Islandora Repository'));
