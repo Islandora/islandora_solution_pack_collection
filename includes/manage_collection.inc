@@ -49,10 +49,10 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
 function islandora_basic_collection_islandora_build_manage_object(array $form_state, AbstractObject $object) {
   // Defines accessible elements.
   $access = array(
-    'policy_management' => islandora_object_access(MANAGE_COLLECTION_POLICY, $object),
-    'share_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
-    'migrate_children' => islandora_object_access(MIGRATE_COLLECTION_MEMBERS, $object),
-    'delete_children' => islandora_object_access(FEDORA_PURGE, $object),
+    'policy_management' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY, $object),
+    'share_children' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
+    'migrate_children' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
+    'delete_children' => islandora_object_access(ISLANDORA_PURGE, $object),
   );
   // Build forms for only the accessible elements.
   foreach ($access as $element => $accessible) {
@@ -109,7 +109,7 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
   module_load_include('inc', 'islandora', 'includes/utilities');
   $parent_object = islandora_object_load($form_state['islandora']['shared_storage']['parent']);
   // Permissions handling.
-  if (!user_access(CREATE_CHILD_COLLECTION)) {
+  if (!user_access(ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION)) {
     drupal_set_message(t('You do not have permissions to create collections.'), 'error');
     drupal_goto('islandora/object/' . $parent_object->id);
   }
