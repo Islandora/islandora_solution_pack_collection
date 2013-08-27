@@ -72,4 +72,6 @@ function hook_islandora_basic_collection_get_query_filters() {
  *   - type: The type of the query ('sparql' by default).
  *   - pid: The identifier associated with 'object'.
  */
-function hook_islandora_basic_collection_query_alter(array &$params) {}
+function hook_islandora_basic_collection_query_alter(array &$params) {
+
+}

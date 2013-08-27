@@ -8,6 +8,9 @@
 require_once dirname(__FILE__) . '/utilities.inc';
 require_once dirname(__FILE__) . '/batch.inc';
 
+// Hook definition.
+define('ISLANDORA_BUILD_MANAGE_OBJECT_HOOK', 'islandora_build_manage_object');
+
 /**
  * Manage Collection local task.
  *
@@ -20,7 +23,30 @@ require_once dirname(__FILE__) . '/batch.inc';
  *   A renderable array.
  */
 function islandora_basic_collection_manage_object(AbstractObject $object) {
+  $return_form = array(
+    'manage_collection_object' => array(
+      '#type' => 'vertical_tabs',
+    ),
+  );
+  return islandora_invoke_hook_list(ISLANDORA_BUILD_MANAGE_OBJECT_HOOK,
+    $object->models, array(
+      $return_form,
+      $object)
+  );
+}
 
+/**
+ * Implements islandora_build_manage_object_hook().
+ *
+ * @param array $form_state
+ *   The Form state of the form.
+ * @param AbstractObject $object
+ *   The Islandora object being processed.
+ *
+ * @return array
+ *   Returning the built form.
+ */
+function islandora_basic_collection_islandora_build_manage_object(array $form_state, AbstractObject $object) {
   // Defines accessible elements.
   $access = array(
     'policy_management' => islandora_object_access(MANAGE_COLLECTION_POLICY, $object),
@@ -33,46 +59,41 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
     $form = "islandora_basic_collection_{$element}_form";
     $forms[$element] = $accessible ? drupal_get_form($form, $object) : NULL;
   }
-  // Determine the default element to display.
-  return array(
-    'manage_collection_object' => array(
-      '#type' => 'vertical_tabs',
-      'policy_management' => array(
-        '#id' => 'policy-management',
-        '#group' => 'manage_collection_object',
-        '#access' => $access['policy_management'],
-        '#type' => 'fieldset',
-        '#title' => t('Manage collection policy'),
-        'form' => $forms['policy_management'],
-      ),
-      'share_children' => array(
-        '#id' => 'share-children',
-        '#group' => 'manage_collection_object',
-        '#access' => $access['share_children'],
-        '#type' => 'fieldset',
-        '#title' => t('Share members'),
-        'form' => $forms['share_children'],
-      ),
-      'migrate_children' => array(
-        '#id' => 'migrate-children',
-        '#group' => 'manage_collection_object',
-        '#access' => $access['migrate_children'],
-        '#type' => 'fieldset',
-        '#title' => t('Migrate members'),
-        'form' => $forms['migrate_children'],
-      ),
-      'delete_children' => array(
-        '#id' => 'delete-children',
-        '#group' => 'manage_collection_object',
-        '#access' => $access['delete_children'],
-        '#type' => 'fieldset',
-        '#title' => t('Delete members of this collection'),
-        'form' => $forms['delete_children'],
-      ),
-    ),
+  $return_form['manage_collection_object']['policy_management'] = array(
+    '#id' => 'policy-management',
+    '#group' => 'manage_collection_object',
+    '#access' => $access['policy_management'],
+    '#type' => 'fieldset',
+    '#title' => t('Manage collection policy'),
+    'form' => $forms['policy_management'],
   );
-}
+  $return_form['manage_collection_object']['share_children'] = array(
+    '#id' => 'share-children',
+    '#group' => 'manage_collection_object',
+    '#access' => $access['share_children'],
+    '#type' => 'fieldset',
+    '#title' => t('Share members'),
+    'form' => $forms['share_children'],
+  );
+  $return_form['manage_collection_object']['migrate_children'] = array(
+    '#id' => 'migrate-children',
+    '#group' => 'manage_collection_object',
+    '#access' => $access['migrate_children'],
+    '#type' => 'fieldset',
+    '#title' => t('Migrate members'),
+    'form' => $forms['migrate_children'],
+  );
+  $return_form['manage_collection_object']['delete_children'] = array(
+    '#id' => 'delete-children',
+    '#group' => 'manage_collection_object',
+    '#access' => $access['delete_children'],
+    '#type' => 'fieldset',
+    '#title' => t('Delete members of this collection'),
+    'form' => $forms['delete_children'],
+  );
 
+  return $return_form;
+}
 /**
  * Define child collection form.
  *
@@ -87,13 +108,11 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
 function islandora_basic_collection_create_child_collection_form(array $form, array &$form_state) {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $parent_object = islandora_object_load($form_state['islandora']['shared_storage']['parent']);
-
   // Permissions handling.
   if (!user_access(CREATE_CHILD_COLLECTION)) {
     drupal_set_message(t('You do not have permissions to create collections.'), 'error');
     drupal_goto('islandora/object/' . $parent_object->id);
   }
-
   $policy = new CollectionPolicy($parent_object['COLLECTION_POLICY']->content);
   $policy_content_models = $policy->getContentModels();
   $content_models = islandora_get_content_models();
@@ -111,7 +130,7 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
     'pid' => array(
       '#type' => 'textfield',
       '#title' => t('Collection PID'),
-      '#description' => t("Unique PID for this collection. Leave blank to use the default.<br/>PIDs take the general form of <strong>namespace:collection</strong> (e.g. islandora:pamphlets)"),
+      '#description' => t("Unique PID for this collection. Leave blank to use the default.<br/>PIDs take the general form of <strong>namespace:collection</strong> (e.g., islandora:pamphlets)"),
       '#size' => 15,
     ),
     'inherit_policy' => array(
@@ -195,6 +214,7 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
   $policy_datastream->setContentFromString($collection_policy);
   $policy_datastream->label = 'Collection policy';
   $new_collection->ingestDatastream($policy_datastream);
+
 }
 
 /**

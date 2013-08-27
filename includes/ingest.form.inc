@@ -68,8 +68,6 @@ function islandora_basic_collection_get_ingest_configuration(AbstractObject $col
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
- * @param array $models
- *   An array of content model PIDs.
  *
  * @return array
  *   The Drupal form definition.
@@ -83,7 +81,7 @@ function islandora_basic_collection_select_content_model_form(array $form, array
   $model = isset($form_state['values']['models']) ? $form_state['values']['models'] : key($options);
   $shared_storage = &islandora_ingest_form_get_shared_storage($form_state);
   $shared_storage['models'] = array($model);
-  return array(
+  $return_form = array(
     '#prefix' => '<div id="islandora-select-content-model-wrapper">',
     '#suffix' => '</div>',
     'models' => array(
@@ -99,6 +97,7 @@ function islandora_basic_collection_select_content_model_form(array $form, array
       ),
     ),
   );
+  return $return_form;
 }
 
 /**
