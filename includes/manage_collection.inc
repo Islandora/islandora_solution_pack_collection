@@ -9,7 +9,7 @@ require_once dirname(__FILE__) . '/utilities.inc';
 require_once dirname(__FILE__) . '/batch.inc';
 
 // Hook definition.
-define('ISLANDORA_BUILD_MANAGE_OBJECT_HOOK', 'islandora_build_manage_object');
+define('ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK', 'islandora_basic_collection_build_manage_object');
 
 /**
  * Manage Collection local task.
@@ -28,7 +28,7 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
       '#type' => 'vertical_tabs',
     ),
   );
-  return islandora_invoke_hook_list(ISLANDORA_BUILD_MANAGE_OBJECT_HOOK,
+  return islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK,
     $object->models, array(
       $return_form,
       $object)
@@ -36,7 +36,7 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
 }
 
 /**
- * Implements islandora_build_manage_object_hook().
+ * Implements islandora_basic_collection_build_manage_object_hook().
  *
  * @param array $form_state
  *   The Form state of the form.
@@ -46,7 +46,7 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
  * @return array
  *   Returning the built form.
  */
-function islandora_basic_collection_islandora_build_manage_object(array $form_state, AbstractObject $object) {
+function islandora_basic_collection_islandora_basic_collection_build_manage_object(array $form_state, AbstractObject $object) {
   // Defines accessible elements.
   $access = array(
     'policy_management' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY, $object),
