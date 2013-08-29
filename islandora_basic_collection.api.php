@@ -46,6 +46,15 @@ function hook_islandora_basic_collection_get_query_filters() {
 }
 
 /**
+ * Hook into the manage object page.
+ *
+ * @param array $form_state
+ * @param AbstractObject $object
+ */
+function hook_islandora_basic_collection_build_manage_object($form_state, $object) {
+}
+
+/**
  * Allow altering of the built query.
  *
  * Note that this is only called after the query is fully build, so changes to
