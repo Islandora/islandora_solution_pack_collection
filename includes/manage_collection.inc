@@ -59,7 +59,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     $form = "islandora_basic_collection_{$element}_form";
     $forms[$element] = $accessible ? drupal_get_form($form, $object) : NULL;
   }
-  $return_form['manage_collection_object']['policy_management'] = array(
+  $form_state['manage_collection_object']['policy_management'] = array(
     '#id' => 'policy-management',
     '#group' => 'manage_collection_object',
     '#access' => $access['policy_management'],
@@ -67,7 +67,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     '#title' => t('Manage collection policy'),
     'form' => $forms['policy_management'],
   );
-  $return_form['manage_collection_object']['share_children'] = array(
+  $form_state['manage_collection_object']['share_children'] = array(
     '#id' => 'share-children',
     '#group' => 'manage_collection_object',
     '#access' => $access['share_children'],
@@ -75,7 +75,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     '#title' => t('Share members'),
     'form' => $forms['share_children'],
   );
-  $return_form['manage_collection_object']['migrate_children'] = array(
+  $form_state['manage_collection_object']['migrate_children'] = array(
     '#id' => 'migrate-children',
     '#group' => 'manage_collection_object',
     '#access' => $access['migrate_children'],
@@ -83,7 +83,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     '#title' => t('Migrate members'),
     'form' => $forms['migrate_children'],
   );
-  $return_form['manage_collection_object']['delete_children'] = array(
+  $form_state['manage_collection_object']['delete_children'] = array(
     '#id' => 'delete-children',
     '#group' => 'manage_collection_object',
     '#access' => $access['delete_children'],
@@ -92,7 +92,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     'form' => $forms['delete_children'],
   );
 
-  return $return_form;
+  return $form_state;
 }
 /**
  * Define child collection form.
