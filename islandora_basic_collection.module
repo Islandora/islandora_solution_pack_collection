@@ -356,21 +356,17 @@ EOQO;
  * Implements hook_islandora_basic_collection_get_query_statements().
  */
 function islandora_basic_collection_islandora_basic_collection_get_query_statements($type = 'view') {
+  $to_return = array();
+  $to_return[] = <<<EOQ
+?object ?collection_predicate <info:fedora/!pid> ;
+        <fedora-model:label> ?title ;
+        <fedora-model:hasModel> !model
+EOQ;
+
   if ($type == 'view') {
-    return <<<EOQ
-    ?object ?collection_predicate <info:fedora/!pid> ;
-           <fedora-model:label> ?title ;
-           <fedora-model:hasModel> !model ;
-           <fedora-model:state> <fedora-model:Active>
-EOQ;
+    $to_return[] = '?object <fedora-model:state> <fedora-model:Active>';
   }
-  else {
-    return <<<EOQ
-    ?object ?collection_predicate <info:fedora/!pid> ;
-           <fedora-model:label> ?title ;
-           <fedora-model:hasModel> !model
-EOQ;
-  }
+  return $to_return;
 }
 
 /**
