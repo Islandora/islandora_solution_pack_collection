@@ -24,15 +24,15 @@ define('ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK', 'islandora_basic_c
  */
 function islandora_basic_collection_manage_object(AbstractObject $object) {
   $return_form = array(
-    'manage_collection_object' => array(
-      '#type' => 'vertical_tabs',
-    ),
+    'manage_collection_object' => array(),
   );
-  return islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK,
+  $data = islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK,
     $object->models, array(
       $return_form,
       $object)
   );
+  $data['manage_collection_object']['#type'] = 'vertical_tabs';
+  return $data;
 }
 
 /**
@@ -91,7 +91,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     '#title' => t('Delete members of this collection'),
     'form' => $forms['delete_children'],
   );
-
+dsm($form_state);
   return $form_state;
 }
 /**
