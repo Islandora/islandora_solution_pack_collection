@@ -91,7 +91,6 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     '#title' => t('Delete members of this collection'),
     'form' => $forms['delete_children'],
   );
-dsm($form_state);
   return $form_state;
 }
 /**
