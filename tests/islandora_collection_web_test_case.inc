@@ -14,8 +14,8 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    *
    * @param string $label
    *   The label that should be assigned to the collection
-   * @param string $models
-   *   The content model the collection should use
+   * @param array $models
+   *   The collection's content models; also accepts a single-model string
    * @param string $pid
    *   The PID that should be assigned to the collection
    *
@@ -38,8 +38,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
     // Figure out enabling content models.
     if (is_array($models)) {
       foreach ($models as $model) {
-        $edit['content_models[' . $model . ']'] = TRUE;
-        $this->pass('whatever');
+	$edit['content_models[' . $model . ']'] = TRUE;
       }
     }
     else {
