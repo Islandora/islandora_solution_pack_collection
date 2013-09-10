@@ -322,11 +322,15 @@ WHERE {
 EOQ;
 
   $filters = array();
-  foreach (module_invoke_all('islandora_basic_collection_get_query_filters', $type) as $filter) {
+  $query_filters = module_invoke_all('islandora_basic_collection_get_query_filters', $type);
+  $query_statements = module_invoke_all('islandora_basic_collection_get_query_statements', $type);
+  drupal_alter('islandora_basic_collection_query_param',$query_filters,$query_statements,$params);
+
+  foreach ( $query_filters as $filter) {
     $filters[] = "FILTER($filter)";
   }
   $query = format_string($query, array(
-    '!statements' => implode(' . ', module_invoke_all('islandora_basic_collection_get_query_statements', $type)),
+    '!statements' => implode(' . ', $query_statements),
     '!filters' => implode(' ', $filters),
     '!vars' => $params['vars'],
   ));
@@ -348,7 +352,7 @@ EOQO;
     'pid' => $object->id,
   );
   drupal_alter('islandora_basic_collection_query', $query_array);
-
+  
   return $query_array;
 }
 
@@ -367,7 +371,7 @@ EOQ;
 /**
  * Implements hook_islandora_basic_collection_get_query_filters().
  */
-function islandora_basic_collection_islandora_basic_collection_get_query_filters() {
+function islandora_basic_collection_islandora_basic_collection_get_query_filters($type) {
   return 'sameTerm(?collection_predicate, <fedora-rels-ext:isMemberOfCollection>) || sameTerm(?collection_predicate, <fedora-rels-ext:isMemberOf>)';
 }
 
@@ -402,6 +406,7 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
     'page_number' => $page_number,
     'page_size' => $page_size,
   );
+
   if (isset($cmodel)) {
     $params['model'] = "<info:fedora/$cmodel>";
   }

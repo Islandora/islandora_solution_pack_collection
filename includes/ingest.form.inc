@@ -73,6 +73,8 @@ function islandora_basic_collection_get_ingest_configuration(AbstractObject $col
  *   The Drupal form definition.
  * @param array $form_state
  *   The Drupal form state.
+ * @param array $models
+ *   The models to include in the form.
  *
  * @return array
  *   The Drupal form definition.
