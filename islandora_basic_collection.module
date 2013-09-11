@@ -324,9 +324,9 @@ EOQ;
   $filters = array();
   $query_filters = module_invoke_all('islandora_basic_collection_get_query_filters', $type);
   $query_statements = module_invoke_all('islandora_basic_collection_get_query_statements', $type);
-  drupal_alter('islandora_basic_collection_query_param',$query_filters,$query_statements,$params);
+  drupal_alter('islandora_basic_collection_query_param', $query_filters, $query_statements, $params);
 
-  foreach ( $query_filters as $filter) {
+  foreach ($query_filters as $filter) {
     $filters[] = "FILTER($filter)";
   }
   $query = format_string($query, array(
@@ -352,7 +352,7 @@ EOQO;
     'pid' => $object->id,
   );
   drupal_alter('islandora_basic_collection_query', $query_array);
-  
+
   return $query_array;
 }
 
