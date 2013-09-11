@@ -161,7 +161,7 @@ function islandora_basic_collection_delete_children_batch_operation(AbstractObje
 function islandora_basic_collection_delete_all_children_batch_operation(AbstractObject $collection, &$context) {
   $query_info = islandora_basic_collection_get_query_info(array(
     'object' => $collection,
-  ));
+  ), 'manage');
 
   if (!isset($context['sandbox']['total_count'])) {
     $context['sandbox']['total_count'] = $collection->repository->ri->countQuery($query_info['query'], $query_info['type']);
@@ -175,7 +175,7 @@ function islandora_basic_collection_delete_all_children_batch_operation(Abstract
     $context['sandbox']['current'] = 0.0;
   }
 
-  $results = islandora_basic_collection_get_member_objects($collection, 0, 10);
+  $results = islandora_basic_collection_get_member_objects($collection, 0, 10, 'manage');
   if ($results) {
     list($count, $members) = $results;
     foreach ($members as $result) {
