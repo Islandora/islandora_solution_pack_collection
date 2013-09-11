@@ -27,6 +27,8 @@ function hook_islandora_basic_collection_get_query_statements() {
 EOQ;
 }
 
+function islandora_basic_collection_query_param_alter(array $filters, array $statements, array $params) {
+}
 /**
  * Hook to get a number of Sparql filters, to build the collection query.
  *
@@ -43,6 +45,26 @@ EOQ;
  */
 function hook_islandora_basic_collection_get_query_filters() {
   return 'sameTerm(?collection_predicate, <fedora-rels-ext:isMemberOfCollection>) || sameTerm(?collection_predicate, <fedora-rels-ext:isMemberOf>)';
+}
+
+/**
+ * Hook into the manage object page.
+ *
+ * @param array $form_state
+ * @param AbstractObject $object
+ */
+function hook_islandora_basic_collection_build_manage_object($form_state, $object) {
+  //Example implementation.
+  $form_state['manage_collection_object']['manage_obj_lock'] = array(
+    '#id' => 'manage-obj-lock',
+    '#group' => 'manage_obj_object',
+    '#access' => TRUE,
+    '#type' => 'fieldset',
+    '#title' => t('Manage lock objects'),
+    'form' => drupal_get_form('islandora_object_lock_length_manage_lock_form', $object),
+  );
+  $form_state['manage_collection_object']['manage_obj_lock']['form']['#submit'][] = 'islandora_object_lock_length_manage_lock_form_submit';
+  return $form_state;
 }
 
 /**

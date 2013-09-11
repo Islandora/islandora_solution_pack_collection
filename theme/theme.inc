@@ -61,7 +61,8 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
     $collection_content = theme('islandora_basic_collection_grid', array(
       'islandora_object' => $islandora_object,
       'collection_results' => $results,
-     ));
+      )
+    );
   }
   else {
     $list_link['attributes']['class'][] = 'active';
