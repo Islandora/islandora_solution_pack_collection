@@ -322,11 +322,15 @@ WHERE {
 EOQ;
 
   $filters = array();
-  foreach (module_invoke_all('islandora_basic_collection_get_query_filters', $type) as $filter) {
+  $query_filters = module_invoke_all('islandora_basic_collection_get_query_filters', $type);
+  $query_statements = module_invoke_all('islandora_basic_collection_get_query_statements', $type);
+  drupal_alter('islandora_basic_collection_query_param', $query_filters, $query_statements, $params);
+
+  foreach ($query_filters as $filter) {
     $filters[] = "FILTER($filter)";
   }
   $query = format_string($query, array(
-    '!statements' => implode(' . ', module_invoke_all('islandora_basic_collection_get_query_statements', $type)),
+    '!statements' => implode(' . ', $query_statements),
     '!filters' => implode(' ', $filters),
     '!vars' => $params['vars'],
   ));
@@ -372,7 +376,7 @@ EOQ;
 /**
  * Implements hook_islandora_basic_collection_get_query_filters().
  */
-function islandora_basic_collection_islandora_basic_collection_get_query_filters() {
+function islandora_basic_collection_islandora_basic_collection_get_query_filters($type) {
   return 'sameTerm(?collection_predicate, <fedora-rels-ext:isMemberOfCollection>) || sameTerm(?collection_predicate, <fedora-rels-ext:isMemberOf>)';
 }
 
@@ -391,6 +395,8 @@ function islandora_basic_collection_islandora_basic_collection_get_query_filters
  * @param string $type
  *   Either 'view' or 'manage', its meant to repersent how the objects will be
  *   used.
+ * @param string $cmodel
+ *   The content model in which to explicitly select.
  *
  * @return array|bool
  *   An array containing two values:
@@ -399,11 +405,17 @@ function islandora_basic_collection_islandora_basic_collection_get_query_filters
  *   - The tuples in the slice according to $page_number and $page_size.
  *   or boolean FALSE if the query fails.
  */
-function islandora_basic_collection_get_member_objects(AbstractObject $object, $page_number = 0, $page_size = 20, $type = 'view') {
-  $query_array = islandora_basic_collection_get_query_info(array(
-                   'object' => $object,
-                   'page_number' => $page_number,
-                   'page_size' => $page_size), $type);
+function islandora_basic_collection_get_member_objects(AbstractObject $object, $page_number = 0, $page_size = 20, $type = 'view', $cmodel = NULL) {
+  $params = array(
+    'object' => $object,
+    'page_number' => $page_number,
+    'page_size' => $page_size,
+  );
+
+  if (isset($cmodel)) {
+    $params['model'] = "<info:fedora/$cmodel>";
+  }
+  $query_array = islandora_basic_collection_get_query_info($params, $type);
   try {
     $count = $object->repository->ri->countQuery($query_array['query'], $query_array['type']);
 
