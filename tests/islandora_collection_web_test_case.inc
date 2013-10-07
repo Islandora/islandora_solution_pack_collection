@@ -36,21 +36,14 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
     );
 
     // Figure out enabling content models.
-    if (!is_array($models)) {
-      $models = array($models);
-    }
+    $models = (array) $models;
     foreach ($models as $model) {
       $edit['content_models[' . $model . ']'] = TRUE;
     }
 
     $this->drupalPost($path, $edit, t('Ingest'));
     $object = islandora_object_load($pid);
-    if (is_array($models)) {
-      $model_list = implode(',', $models);
-    }
-    else {
-      $model_list = $models;
-    }
+    $model_list = implode(',', $models);
     $this->assertTrue(is_object($object), t('Created collection %label using the content model(s) %model_list', array('%label' => $label, '%model_list' => $model_list)), 'Islandora');
   }
 
