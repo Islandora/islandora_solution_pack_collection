@@ -14,7 +14,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    *
    * @param string $label
    *   The label that should be assigned to the collection
-   * @param array $models
+   * @param string|array $models
    *   The collection's content models; also accepts a single-model string
    * @param string $pid
    *   The PID that should be assigned to the collection
@@ -36,13 +36,11 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
     );
 
     // Figure out enabling content models.
-    if (is_array($models)) {
-      foreach ($models as $model) {
-        $edit['content_models[' . $model . ']'] = TRUE;
-      }
+    if (!is_array($models)) {
+      $models = array($models);
     }
-    else {
-      $edit['content_models[' . $models . ']'] = TRUE;
+    foreach ($models as $model) {
+      $edit['content_models[' . $model . ']'] = TRUE;
     }
 
     $this->drupalPost($path, $edit, t('Ingest'));
