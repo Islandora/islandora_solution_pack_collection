@@ -46,7 +46,7 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
     $this->drupalPost($path, $edit, t('Ingest'));
     $object = islandora_object_load($pid);
     if (is_array($models)) {
-      $model_list = implode(', ', $models);
+      $model_list = implode(',', $models);
     }
     else {
       $model_list = $models;
