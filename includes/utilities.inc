@@ -48,7 +48,7 @@ function islandora_basic_collection_get_content_models_as_form_options(array $co
  */
 function islandora_basic_collection_get_other_collections_as_form_options(AbstractObject $object) {
   $map_options = function($o) {
-    return $o['label'];
+    return filter_xss($o['label']);
   };
   $options = array_map($map_options, islandora_basic_collection_get_collections());
   // Ignore given collection.
@@ -101,7 +101,7 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   $rows = array();
   foreach ($results as $result) {
     $pid = $result['object']['value'];
-    $label = empty($result['title']['value']) ? t('Untitled') : $result['title']['value'];
+    $label = empty($result['title']['value']) ? t('Untitled') : filter_xss($result['title']['value']);
     $rows[$pid] = array(
       'label' => array(
         'data' => array(
