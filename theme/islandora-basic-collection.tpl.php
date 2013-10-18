@@ -20,12 +20,12 @@
             </dt>
             <dd class="collection-value <?php print isset($associated_object['dc_array']['dc:title']['class']) ? $associated_object['dc_array']['dc:title']['class'] : ''; ?> <?php print $row_field == 0 ? ' first' : ''; ?>">
               <?php if (isset($associated_object['thumb_link'])): ?>
-                <strong><?php print $associated_object['title_link']; ?></strong>
+                <strong><?php print filter_xss($associated_object['title_link']); ?></strong>
               <?php endif; ?>
             </dd>
             <?php if (isset($associated_object['dc_array']['dc:description']['value'])): ?>
               <dd class="collection-value <?php print $associated_object['dc_array']['dc:description']['class']; ?>">
-                <?php print $associated_object['dc_array']['dc:description']['value']; ?>
+                <?php print filter_xss($associated_object['dc_array']['dc:description']['value']); ?>
               </dd>
             <?php endif; ?>
         </dl>
