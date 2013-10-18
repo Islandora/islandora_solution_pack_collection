@@ -448,6 +448,14 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
   }
   catch (Exception $e) {
+    $variables = array(
+      '@message' => $e->getMessage(),
+      '@stack' => $e->getTraceAsString(),
+    );
+    watchdog('islandora_basic_collection',
+     'Islandora basic collection failed to retrieve associated objects.<br/>Error:<br/>@message<br/>Stack: <br/>@stack',
+      $variables,
+      WATCHDOG_ERROR);
     return FALSE;
   }
   return array($count, $results);
