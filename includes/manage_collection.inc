@@ -4,7 +4,6 @@
  * @file
  * Handles the management of collection objects and their children.
  */
-
 require_once dirname(__FILE__) . '/utilities.inc';
 require_once dirname(__FILE__) . '/batch.inc';
 
@@ -26,10 +25,9 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
   $return_form = array(
     'manage_collection_object' => array(),
   );
-  $data = islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK,
-    $object->models, array(
-      $return_form,
-      $object)
+  $data = islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK, $object->models, array(
+    $return_form,
+    $object)
   );
   $data['manage_collection_object']['#type'] = 'vertical_tabs';
   return $data;
@@ -49,6 +47,7 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
 function islandora_basic_collection_islandora_basic_collection_build_manage_object(array $form_state, AbstractObject $object) {
   // Defines accessible elements.
   $access = array(
+    'config_collection' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
     'policy_management' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY, $object),
     'share_children' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
     'migrate_children' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
@@ -59,6 +58,14 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     $form = "islandora_basic_collection_{$element}_form";
     $forms[$element] = $accessible ? drupal_get_form($form, $object) : NULL;
   }
+  $form_state['manage_collection_object']['config_collection'] = array(
+    '#id' => 'config-collection',
+    '#group' => 'manage_collection_object',
+    '#access' => $access['config_collection'],
+    '#type' => 'fieldset',
+    '#title' => t('Config collection'),
+    'form' => $forms['config_collection'],
+  );
   $form_state['manage_collection_object']['policy_management'] = array(
     '#id' => 'policy-management',
     '#group' => 'manage_collection_object',
@@ -93,6 +100,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
   );
   return $form_state;
 }
+
 /**
  * Define child collection form.
  *
@@ -213,7 +221,6 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
   $policy_datastream->setContentFromString($collection_policy);
   $policy_datastream->label = 'Collection policy';
   $new_collection->ingestDatastream($policy_datastream);
-
 }
 
 /**
@@ -276,6 +283,46 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
 }
 
 /**
+ * Define config collection form.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @param AbstractObject $object
+ *   The collection to manipulate.
+ *
+ * @return array
+ *   The Drupal form definition.
+ */
+function islandora_basic_collection_config_collection_form(array $form, array &$form_state, AbstractObject $object) {
+  return array(
+    '#action' => request_uri() . '#config-collection',
+    'disable_count_object' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Disable count object'),
+      '#default_value' => variable_get('disable_count_object', FALSE),
+    ),
+    'submit' => array(
+      '#type' => 'submit',
+      '#value' => t('Submit'),
+    ),
+  );
+}
+
+/**
+ * Submit handler for config collection form.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_basic_collection_config_collection_form_submit(array $form, array &$form_state) {
+  variable_set('disable_count_object', $form['disable_count_object']['#value']);
+}
+
+/**
  * Submit handler for collection policy management form.
  *
  * @param array $form
@@ -286,8 +333,8 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
 function islandora_basic_collection_policy_management_form_submit(array $form, array &$form_state) {
   $collection = $form_state['collection'];
   $filter_selected = function($o) {
-    return $o['selected'];
-  };
+        return $o['selected'];
+      };
   $selected = array_filter($form_state['values']['table']['rows'], $filter_selected);
   $policy = CollectionPolicy::emptyPolicy();
   foreach ($selected as $pid => $properties) {
@@ -323,9 +370,9 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 0,
-                  'fragment' => $fragment,
-                )),
+      'element' => 0,
+      'fragment' => $fragment,
+    )),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Share selected objects'),
@@ -374,9 +421,9 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 1,
-                  'fragment' => $fragment,
-                )),
+      'element' => 1,
+      'fragment' => $fragment,
+    )),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Migrate selected objects'),
@@ -418,9 +465,9 @@ function islandora_basic_collection_delete_children_form(array $form, array &$fo
   return array(
     '#action' => request_uri() . '#delete-children',
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 2,
-                  'fragment' => '#delete-children',
-                )),
+      'element' => 2,
+      'fragment' => '#delete-children',
+    )),
     'description' => array(
       '#type' => 'item',
       '#markup' => t('Are you sure you want to delete the selected objects?<br/>This action cannot be undone.'),
