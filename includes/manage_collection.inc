@@ -319,7 +319,7 @@ function islandora_basic_collection_config_collection_form(array $form, array &$
  *   The Drupal form state.
  */
 function islandora_basic_collection_config_collection_form_submit(array $form, array &$form_state) {
-  variable_set('islandora_basic_collection_disable_count_object', $form['disable_count_object']['#value']);
+  variable_set('islandora_basic_collection_disable_count_object', $form_state['values']['disable_count_object']);
 }
 
 /**
