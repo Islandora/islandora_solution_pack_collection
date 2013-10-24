@@ -215,12 +215,21 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
       'model' => "<info:fedora/$model_pid>",
     ));
     $model_object = islandora_object_load($model_pid);
-    $rows[$model_pid] = array(
-      ($model_object ?
-        l($model_object->label, "islandora/object/{$model_object->id}") :
-        $model_pid),
-        variable_get('islandora_basic_collection_disable_count_object', FALSE)?0:$object->repository->ri->countQuery($model_count_query['query'], $model_count_query['type']),
-    );
+    if (variable_get('islandora_basic_collection_disable_count_object', FALSE)) {
+      $rows[$model_pid] = array(
+        ($model_object ?
+            l($model_object->label, "islandora/object/{$model_object->id}") :
+            $model_pid),
+      );
+    }
+    else {
+      $rows[$model_pid] = array(
+        ($model_object ?
+            l($model_object->label, "islandora/object/{$model_object->id}") :
+            $model_pid),
+        $object->repository->ri->countQuery($model_count_query['query'], $model_count_query['type']),
+      );
+    }
   }
 
   list($total_count, $all_results) = islandora_basic_collection_get_member_objects($object, 0, 0);
@@ -236,6 +245,10 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
       '#rows' => $rows,
       '#empty' => t('Collection is empty.')),
   );
+  if (variable_get('islandora_basic_collection_disable_count_object', FALSE)) {
+    unset($content['total']);
+    unset($content['table']['#header']['count']);
+  }
   return array(
     'collection' => drupal_render($content),
   );
