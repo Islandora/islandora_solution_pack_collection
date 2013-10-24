@@ -219,7 +219,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
       ($model_object ?
         l($model_object->label, "islandora/object/{$model_object->id}") :
         $model_pid),
-        variable_get('disable_count_object')?0:$object->repository->ri->countQuery($model_count_query['query'], $model_count_query['type']),
+        variable_get('islandora_basic_collection_disable_count_object', FALSE)?0:$object->repository->ri->countQuery($model_count_query['query'], $model_count_query['type']),
     );
   }
 
@@ -417,7 +417,7 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
   }
   $query_array = islandora_basic_collection_get_query_info($params, $type);
   try {
-    $count = variable_get('disable_count_object')?0:$object->repository->ri->countQuery($query_array['query'], $query_array['type']);
+    $count = variable_get('islandora_basic_collection_disable_count_object', FALSE)?0:$object->repository->ri->countQuery($query_array['query'], $query_array['type']);
     $is_itql = strcasecmp('itql', $query_array['type']) === 0;
 
     if ($is_itql && ($page_number > 0 || $page_size >= 0)) {

@@ -301,7 +301,7 @@ function islandora_basic_collection_config_collection_form(array $form, array &$
     'disable_count_object' => array(
       '#type' => 'checkbox',
       '#title' => t('Disable count object'),
-      '#default_value' => variable_get('disable_count_object', FALSE),
+      '#default_value' => variable_get('islandora_basic_collection_disable_count_object', FALSE),
     ),
     'submit' => array(
       '#type' => 'submit',
@@ -319,7 +319,7 @@ function islandora_basic_collection_config_collection_form(array $form, array &$
  *   The Drupal form state.
  */
 function islandora_basic_collection_config_collection_form_submit(array $form, array &$form_state) {
-  variable_set('disable_count_object', $form['disable_count_object']['#value']);
+  variable_set('islandora_basic_collection_disable_count_object', $form['disable_count_object']['#value']);
 }
 
 /**
