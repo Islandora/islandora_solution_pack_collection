@@ -47,7 +47,6 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
 function islandora_basic_collection_islandora_basic_collection_build_manage_object(array $form_state, AbstractObject $object) {
   // Defines accessible elements.
   $access = array(
-    'config_collection' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
     'policy_management' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY, $object),
     'share_children' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
     'migrate_children' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
@@ -58,14 +57,6 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     $form = "islandora_basic_collection_{$element}_form";
     $forms[$element] = $accessible ? drupal_get_form($form, $object) : NULL;
   }
-  $form_state['manage_collection_object']['config_collection'] = array(
-    '#id' => 'config-collection',
-    '#group' => 'manage_collection_object',
-    '#access' => $access['config_collection'],
-    '#type' => 'fieldset',
-    '#title' => t('Config collection'),
-    'form' => $forms['config_collection'],
-  );
   $form_state['manage_collection_object']['policy_management'] = array(
     '#id' => 'policy-management',
     '#group' => 'manage_collection_object',
@@ -280,46 +271,6 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
       '#value' => t('Update collection policy'),
     ),
   );
-}
-
-/**
- * Define config collection form.
- *
- * @param array $form
- *   The Drupal form definition.
- * @param array $form_state
- *   The Drupal form state.
- * @param AbstractObject $object
- *   The collection to manipulate.
- *
- * @return array
- *   The Drupal form definition.
- */
-function islandora_basic_collection_config_collection_form(array $form, array &$form_state, AbstractObject $object) {
-  return array(
-    '#action' => request_uri() . '#config-collection',
-    'disable_count_object' => array(
-      '#type' => 'checkbox',
-      '#title' => t('Disable count object'),
-      '#default_value' => variable_get('islandora_basic_collection_disable_count_object', FALSE),
-    ),
-    'submit' => array(
-      '#type' => 'submit',
-      '#value' => t('Submit'),
-    ),
-  );
-}
-
-/**
- * Submit handler for config collection form.
- *
- * @param array $form
- *   The Drupal form definition.
- * @param array $form_state
- *   The Drupal form state.
- */
-function islandora_basic_collection_config_collection_form_submit(array $form, array &$form_state) {
-  variable_set('islandora_basic_collection_disable_count_object', $form_state['values']['disable_count_object']);
 }
 
 /**

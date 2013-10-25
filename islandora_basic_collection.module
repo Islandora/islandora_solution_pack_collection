@@ -4,7 +4,6 @@
  * @file
  * Provides functionality for creating/managing/deleting/viewing collections.
  */
-
 // Constants.
 define('ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION', 'create child collection');
 define('ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY', 'manage collection policy');
@@ -68,9 +67,9 @@ function islandora_basic_collection_menu() {
 function islandora_basic_collection_ingest_access(AbstractObject $object) {
   $collection_models = islandora_basic_collection_get_collection_content_models();
   $is_a_collection = (
-    (count(array_intersect($collection_models, $object->models)) > 0) &&
-    isset($object['COLLECTION_POLICY'])
-  );
+      (count(array_intersect($collection_models, $object->models)) > 0) &&
+      isset($object['COLLECTION_POLICY'])
+      );
 
   if (!$is_a_collection) {
     return FALSE;
@@ -142,11 +141,11 @@ function islandora_basic_collection_manage_access($object = NULL) {
   $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
 
   return $is_a_collection && (
-    islandora_object_access(ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY, $object) ||
-    islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object) ||
-    islandora_object_access(ISLANDORA_INGEST, $object) ||
-    islandora_object_access(ISLANDORA_PURGE, $object)
-  );
+      islandora_object_access(ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY, $object) ||
+      islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object) ||
+      islandora_object_access(ISLANDORA_INGEST, $object) ||
+      islandora_object_access(ISLANDORA_PURGE, $object)
+      );
 }
 
 /**
@@ -261,15 +260,15 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
   module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
   if (!in_array('islandora:collectionCModel', $object->models)) {
     $map_to_row = function($o) {
-      $o = islandora_object_load($o);
-      return array(l($o->label, "islandora/object/{$o->id}"));
-    };
+          $o = islandora_object_load($o);
+          return array(l($o->label, "islandora/object/{$o->id}"));
+        };
     $pids = islandora_basic_collection_get_parent_pids($object);
     $rows = array_map($map_to_row, $pids);
     $table = theme('table', array(
-               'header' => array(t('Parent Collections')),
-               'rows' => $rows,
-               'empty' => t('No parent collections')));
+      'header' => array(t('Parent Collections')),
+      'rows' => $rows,
+      'empty' => t('No parent collections')));
     return array('collection' => $table);
   }
 }
@@ -430,7 +429,7 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
   }
   $query_array = islandora_basic_collection_get_query_info($params, $type);
   try {
-    $count = variable_get('islandora_basic_collection_disable_count_object', FALSE)?0:$object->repository->ri->countQuery($query_array['query'], $query_array['type']);
+    $count = variable_get('islandora_basic_collection_disable_count_object', FALSE) ? 0 : $object->repository->ri->countQuery($query_array['query'], $query_array['type']);
     $is_itql = strcasecmp('itql', $query_array['type']) === 0;
 
     if ($is_itql && ($page_number > 0 || $page_size >= 0)) {
@@ -458,16 +457,12 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
     }
 
     $results = $object->repository->ri->query($query_array['query'], $query_array['type']);
-  }
-  catch (Exception $e) {
+  } catch (Exception $e) {
     $variables = array(
       '@message' => $e->getMessage(),
       '@stack' => $e->getTraceAsString(),
     );
-    watchdog('islandora_basic_collection',
-     'Islandora basic collection failed to retrieve associated objects.<br/>Error:<br/>@message<br/>Stack: <br/>@stack',
-      $variables,
-      WATCHDOG_ERROR);
+    watchdog('islandora_basic_collection', 'Islandora basic collection failed to retrieve associated objects.<br/>Error:<br/>@message<br/>Stack: <br/>@stack', $variables, WATCHDOG_ERROR);
     return FALSE;
   }
   return array($count, $results);
@@ -508,6 +503,7 @@ function islandora_basic_collection_get_objects(AbstractObject $object, $page_nu
     return '';
   }
 }
+
 /**
  * Get all existing collections.
  *
@@ -704,9 +700,9 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
 
   $collection_models = islandora_basic_collection_get_collection_content_models();
   $is_a_collection = (
-    (count(array_intersect($collection_models, $object->models)) > 0) &&
-    isset($object['COLLECTION_POLICY'])
-  );
+      (count(array_intersect($collection_models, $object->models)) > 0) &&
+      isset($object['COLLECTION_POLICY'])
+      );
 
   if (in_array($op, array_keys(islandora_basic_collection_permission()))) {
     if ($is_a_collection) {
