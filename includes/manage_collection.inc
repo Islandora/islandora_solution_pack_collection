@@ -4,6 +4,7 @@
  * @file
  * Handles the management of collection objects and their children.
  */
+
 require_once dirname(__FILE__) . '/utilities.inc';
 require_once dirname(__FILE__) . '/batch.inc';
 
@@ -25,9 +26,10 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
   $return_form = array(
     'manage_collection_object' => array(),
   );
-  $data = islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK, $object->models, array(
-    $return_form,
-    $object)
+  $data = islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK,
+    $object->models, array(
+      $return_form,
+      $object)
   );
   $data['manage_collection_object']['#type'] = 'vertical_tabs';
   return $data;
@@ -212,6 +214,7 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
   $policy_datastream->setContentFromString($collection_policy);
   $policy_datastream->label = 'Collection policy';
   $new_collection->ingestDatastream($policy_datastream);
+  
 }
 
 /**
@@ -284,8 +287,8 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
 function islandora_basic_collection_policy_management_form_submit(array $form, array &$form_state) {
   $collection = $form_state['collection'];
   $filter_selected = function($o) {
-        return $o['selected'];
-      };
+    return $o['selected'];
+  };
   $selected = array_filter($form_state['values']['table']['rows'], $filter_selected);
   $policy = CollectionPolicy::emptyPolicy();
   foreach ($selected as $pid => $properties) {
@@ -321,9 +324,9 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 0,
-      'fragment' => $fragment,
-    )),
+                  'element' => 0,
+                  'fragment' => $fragment,
+                )),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Share selected objects'),
@@ -372,9 +375,9 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 1,
-      'fragment' => $fragment,
-    )),
+                  'element' => 1,
+                  'fragment' => $fragment,
+                )),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Migrate selected objects'),
@@ -416,9 +419,9 @@ function islandora_basic_collection_delete_children_form(array $form, array &$fo
   return array(
     '#action' => request_uri() . '#delete-children',
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 2,
-      'fragment' => '#delete-children',
-    )),
+                  'element' => 2,
+                  'fragment' => '#delete-children',
+                )),
     'description' => array(
       '#type' => 'item',
       '#markup' => t('Are you sure you want to delete the selected objects?<br/>This action cannot be undone.'),
