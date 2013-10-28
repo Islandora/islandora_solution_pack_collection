@@ -214,7 +214,7 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
   $policy_datastream->setContentFromString($collection_policy);
   $policy_datastream->label = 'Collection policy';
   $new_collection->ingestDatastream($policy_datastream);
-  
+
 }
 
 /**
