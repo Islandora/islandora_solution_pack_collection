@@ -215,12 +215,21 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
       'model' => "<info:fedora/$model_pid>",
     ));
     $model_object = islandora_object_load($model_pid);
-    $rows[$model_pid] = array(
-      ($model_object ?
-        l($model_object->label, "islandora/object/{$model_object->id}") :
-        $model_pid),
-      $object->repository->ri->countQuery($model_count_query['query'], $model_count_query['type']),
-    );
+    if (variable_get('islandora_basic_collection_disable_count_object', FALSE)) {
+      $rows[$model_pid] = array(
+        ($model_object ?
+            l($model_object->label, "islandora/object/{$model_object->id}") :
+            $model_pid),
+      );
+    }
+    else {
+      $rows[$model_pid] = array(
+        ($model_object ?
+            l($model_object->label, "islandora/object/{$model_object->id}") :
+            $model_pid),
+        $object->repository->ri->countQuery($model_count_query['query'], $model_count_query['type']),
+      );
+    }
   }
 
   list($total_count, $all_results) = islandora_basic_collection_get_member_objects($object, 0, 0);
@@ -236,6 +245,10 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
       '#rows' => $rows,
       '#empty' => t('Collection is empty.')),
   );
+  if (variable_get('islandora_basic_collection_disable_count_object', FALSE)) {
+    unset($content['total']);
+    unset($content['table']['#header']['count']);
+  }
   return array(
     'collection' => drupal_render($content),
   );
@@ -417,8 +430,7 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
   }
   $query_array = islandora_basic_collection_get_query_info($params, $type);
   try {
-    $count = $object->repository->ri->countQuery($query_array['query'], $query_array['type']);
-
+    $count = variable_get('islandora_basic_collection_disable_count_object', FALSE) ? 0 : $object->repository->ri->countQuery($query_array['query'], $query_array['type']);
     $is_itql = strcasecmp('itql', $query_array['type']) === 0;
 
     if ($is_itql && ($page_number > 0 || $page_size >= 0)) {
@@ -496,6 +508,7 @@ function islandora_basic_collection_get_objects(AbstractObject $object, $page_nu
     return '';
   }
 }
+
 /**
  * Get all existing collections.
  *

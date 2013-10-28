@@ -93,6 +93,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
   );
   return $form_state;
 }
+
 /**
  * Define child collection form.
  *
