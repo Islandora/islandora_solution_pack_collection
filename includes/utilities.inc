@@ -99,7 +99,6 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   list($count, $results) = islandora_basic_collection_get_member_objects($object, $page, $limit, 'manage');
   $page = pager_default_initialize($count, $limit, $pager_options['element']);
   $rows = array();
-  dsm($results);
   foreach ($results as $result) {
     $pid = $result['object']['value'];
     $label = empty($result['title']['value']) ? t('Untitled') : filter_xss($result['title']['value']);
