@@ -305,7 +305,7 @@ function islandora_basic_collection_get_query_info(array $params, $type = 'view'
   $params += array(
     'page_number' => 0,
     'page_size' => 10,
-    'vars' => '?object ?title',
+    'vars' => '?object ?title ?owner',
     'order_by' => '?title',
     'model' => '?model',
   );
@@ -352,7 +352,6 @@ EOQO;
     'pid' => $object->id,
   );
   drupal_alter('islandora_basic_collection_query', $query_array);
-
   return $query_array;
 }
 
@@ -364,6 +363,7 @@ function islandora_basic_collection_islandora_basic_collection_get_query_stateme
   $to_return[] = <<<EOQ
 ?object ?collection_predicate <info:fedora/!pid> ;
         <fedora-model:label> ?title ;
+        <fedora-model:ownerId> ?owner ;
         <fedora-model:hasModel> !model
 EOQ;
 
@@ -508,9 +508,10 @@ function islandora_basic_collection_get_objects(AbstractObject $object, $page_nu
 function islandora_basic_collection_get_collections() {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $tuque = islandora_get_tuque_connection();
-  $query = 'select $object $label from <#ri> where (
-            $object <fedora-model:label> $label and
+  $query = 'select $object $label $owner from <#ri> where (
             $object <info:fedora/fedora-system:def/model#hasModel> <info:fedora/islandora:collectionCModel> and
+            $object <fedora-model:ownerId> $owner and
+            $object <fedora-model:label> $label and
             $object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)
             order by $label';
   $results = $tuque->repository->ri->itqlQuery($query, 'unlimited');
@@ -521,6 +522,7 @@ function islandora_basic_collection_get_collections() {
       $collections[$pid] = array(
         'pid' => $pid,
         'label' => $result['label']['value'],
+        'owner' => $result['owner']['value'],
       );
     }
   }
