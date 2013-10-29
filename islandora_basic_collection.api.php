@@ -26,7 +26,9 @@ function hook_islandora_basic_collection_get_query_statements() {
           <fedora-model:state> <fedora-model:Active>
 EOQ;
 }
-
+/**
+ * Hook to modify query.
+ */
 function islandora_basic_collection_query_param_alter(array $filters, array $statements, array $params) {
 }
 /**
@@ -51,10 +53,12 @@ function hook_islandora_basic_collection_get_query_filters() {
  * Hook into the manage object page.
  *
  * @param array $form_state
+ *   Current form state.
  * @param AbstractObject $object
+ *   Form object.
  */
 function hook_islandora_basic_collection_build_manage_object($form_state, $object) {
-  //Example implementation.
+  // Example implementation.
   $form_state['manage_collection_object']['manage_obj_lock'] = array(
     '#id' => 'manage-obj-lock',
     '#group' => 'manage_obj_object',
@@ -94,4 +98,5 @@ function hook_islandora_basic_collection_build_manage_object($form_state, $objec
  *   - type: The type of the query ('sparql' by default).
  *   - pid: The identifier associated with 'object'.
  */
-function hook_islandora_basic_collection_query_alter(array &$params) {}
+function hook_islandora_basic_collection_query_alter(array &$params) {
+}

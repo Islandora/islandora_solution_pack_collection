@@ -102,7 +102,13 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   foreach ($results as $result) {
     $pid = $result['object']['value'];
     $label = empty($result['title']['value']) ? t('Untitled') : filter_xss($result['title']['value']);
+    $owner = empty($result['owner']['value']) ? t('Unowned') : filter_xss($result['owner']['value']);
     $rows[$pid] = array(
+      'owner' => array(
+        'data' => array(
+          '#markup' => '<div>' . $owner . '</div>',
+        ),
+      ),
       'label' => array(
         'data' => array(
           '#type' => 'link',
@@ -116,7 +122,7 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   $pager = preg_replace($pattern, $replace, $pager);
   return array(
     '#type' => 'tableselect',
-    '#header' => array('label' => array('data' => t('Label'))),
+    '#header' => array('label' => array('data' => t('Label')), 'owner' => array('data' => t('Owner'))),
     '#options' => $rows,
     '#empty' => t('Collection is empty.'),
     '#prefix' => $pager,
