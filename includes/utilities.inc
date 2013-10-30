@@ -109,12 +109,12 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
         'data' => array(
           '#markup' => '<div>' . $owner . '</div>',
         ),
-    ),
-     'date_modified' => array(
-       'data' => array(
+      ),
+      'date_modified' => array(
+        'data' => array(
           '#markup' => '<div>' . $date_modified . '</div>',
         ),
-    ),
+      ),
       'label' => array(
         'data' => array(
           '#type' => 'link',
@@ -128,7 +128,10 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   $pager = preg_replace($pattern, $replace, $pager);
   return array(
     '#type' => 'tableselect',
-    '#header' => array('label' => array('data' => t('Label')), 'owner' => array('data' => t('Owner')), 'date_modified' => array('data' => t('Date Modified'))),
+    '#header' => array(
+      'label' => array('data' => t('Label')),
+      'owner' => array('data' => t('Owner')),
+      'date_modified' => array('data' => t('Date Modified'))),
     '#options' => $rows,
     '#empty' => t('Collection is empty.'),
     '#prefix' => $pager,
