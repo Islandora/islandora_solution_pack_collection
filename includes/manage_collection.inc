@@ -349,18 +349,15 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
 function islandora_basic_collection_share_children_form_submit(array $form, array &$form_state) {
   $collection = $form_state['collection'];
   $new_collection = islandora_object_load($form_state['values']['collection']);
-  if ($form_state['clicked_button']['#id'] == 'edit-submit-all') {
-    $children = array();
-    $object_list = islandora_basic_collection_get_member_objects($collection, 0, -1);
-    foreach ($object_list[1] as $child_object) {
-      $children[] = $child_object['object']['value'];
-    }
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  if ($clicked_button == 'submit_all') {
+    $batch = islandora_basic_collection_share_children_batch($collection, $new_collection, NULL);
   }
   else {
     $children = array_keys(array_filter($form_state['values']['children']));
+    $batch = islandora_basic_collection_share_children_batch($collection, $new_collection, $children);
   }
 
-  $batch = islandora_basic_collection_share_children_batch($collection, $new_collection, $children);
   batch_set($batch);
 }
 
@@ -414,19 +411,14 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
 function islandora_basic_collection_migrate_children_form_submit(array $form, array &$form_state) {
   $collection = $form_state['collection'];
   $new_collection = islandora_object_load($form_state['values']['collection']);
-
-  if ($form_state['clicked_button']['#id'] == 'edit-submit-all') {
-    $children = array();
-    $object_list = islandora_basic_collection_get_member_objects($collection, 0, -1);
-    foreach ($object_list[1] as $child_object) {
-      $children[] = $child_object['object']['value'];
-    }
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  if ($clicked_button == 'submit_all') {
+      $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, NULL);
   }
   else {
     $children = array_keys(array_filter($form_state['values']['children']));
+    $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, $children);
   }
-
-  $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, $children);
   batch_set($batch);
 }
 
