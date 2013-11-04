@@ -413,7 +413,7 @@ function islandora_basic_collection_migrate_children_form_submit(array $form, ar
   $new_collection = islandora_object_load($form_state['values']['collection']);
   $clicked_button = end($form_state['clicked_button']['#parents']);
   if ($clicked_button == 'submit_all') {
-      $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, NULL);
+    $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, NULL);
   }
   else {
     $children = array_keys(array_filter($form_state['values']['children']));

@@ -440,13 +440,11 @@ function islandora_basic_collection_migrate_all_children_batch_operation(Abstrac
  *   The batch context.
  */
 function islandora_basic_collection_share_all_children_batch_operation(AbstractObject $source, AbstractObject $destination, array &$context) {
-
-
   $results = islandora_basic_collection_get_member_objects($source, $context['sandbox']['page'], 10, 'manage');
   $context['sandbox']['page']++;
   if ($results) {
     list ($count, $members) = $results;
-      if (!isset($context['sandbox']['current'])) {
+    if (!isset($context['sandbox']['current'])) {
       $context['sandbox']['total_count'] = $count;
       $context['sandbox']['current'] = 0;
     }
