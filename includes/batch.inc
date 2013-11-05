@@ -376,7 +376,7 @@ function islandora_basic_collection_share_children_batch(AbstractObject $source,
  * @param array $context
  *   The batch context.
  */
-function islandora_basic_collection_share_children_batch_operation(AbstractObject $source, AbstractObject $destination, array $children, array &$context) {
+function islandora_basic_collection_share_children_batch_operation(AbstractObject $source, AbstractObject $destination, array $children, &$context) {
   $child = islandora_basic_collection_start_operation($children, $context);
   if ($child && $child = islandora_object_load($child)) {
     islandora_basic_collection_add_to_collection($child, $destination);
@@ -405,7 +405,7 @@ function islandora_basic_collection_share_children_batch_operation(AbstractObjec
  * @param array $context
  *   The batch context.
  */
-function islandora_basic_collection_migrate_all_children_batch_operation(AbstractObject $source, AbstractObject $destination, array &$context) {
+function islandora_basic_collection_migrate_all_children_batch_operation(AbstractObject $source, AbstractObject $destination, &$context) {
   $results = islandora_basic_collection_get_member_objects($source, 0, 10, 'manage');
   if ($results) {
     list($count, $members) = $results;
@@ -423,10 +423,7 @@ function islandora_basic_collection_migrate_all_children_batch_operation(Abstrac
     }
   }
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
-  if ($context['finished'] == 1) {
-    drupal_set_message(
-      'Migrated' . $context['sandbox']['current'] . 'children.'
-    );
+  $context['message'] = 'Migrated' . $context['sandbox']['current'] . 'children.';
   }
 }
 /**
@@ -439,7 +436,7 @@ function islandora_basic_collection_migrate_all_children_batch_operation(Abstrac
  * @param array $context
  *   The batch context.
  */
-function islandora_basic_collection_share_all_children_batch_operation(AbstractObject $source, AbstractObject $destination, array &$context) {
+function islandora_basic_collection_share_all_children_batch_operation(AbstractObject $source, AbstractObject $destination, &$context) {
   $results = islandora_basic_collection_get_member_objects($source, $context['sandbox']['page'], 10, 'manage');
   $context['sandbox']['page']++;
   if ($results) {
@@ -458,10 +455,5 @@ function islandora_basic_collection_share_all_children_batch_operation(AbstractO
   }
 
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
-
-  if ($context['finished'] == 1) {
-    drupal_set_message(
-      'Shared ' . $context['sandbox']['current'] . ' children from' . $source->label . 'to' . $destination->label
-      );
-  }
+  $context['message'] =  'Shared ' . $context['sandbox']['current'] . ' children from' . $source->label . 'to' . $destination->label ;
 }
