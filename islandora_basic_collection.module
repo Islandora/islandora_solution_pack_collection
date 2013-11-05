@@ -199,9 +199,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
     'order_by' => FALSE,
   ));
   $models = (array) $object->repository->ri->query($model_query['query'], $model_query['type']);
-  $ignore_models = array(
-    'fedora-system:FedoraObject-3.0',
-  );
+  $ignore_models = array('fedora-system:FedoraObject-3.0');
   foreach ($models as $model) {
     $model_pid = $model['model']['value'];
     if (in_array($model_pid, $ignore_models)) {
@@ -262,7 +260,9 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
   if (!in_array('islandora:collectionCModel', $object->models)) {
     $map_to_row = function($o) {
       $o = islandora_object_load($o);
-      return array(l($o->label, "islandora/object/{$o->id}"));
+      if ($o) {
+        return array(l($o->label, "islandora/object/{$o->id}"));
+      }
     };
     $pids = islandora_basic_collection_get_parent_pids($object);
     $rows = array_map($map_to_row, $pids);
@@ -691,9 +691,7 @@ function islandora_basic_collection_islandora_ingest_steps_alter(array &$steps, 
  *   An array of strings, each of which represents the PID of a content model.
  */
 function islandora_basic_collection_get_collection_content_models() {
-  return array(
-    'islandora:collectionCModel',
-  );
+  return array('islandora:collectionCModel');
 }
 
 /**
