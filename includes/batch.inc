@@ -242,7 +242,6 @@ function islandora_basic_collection_migrate_children_batch(AbstractObject $sourc
   );
   if (is_array($children)) {
     $child_count = count($children);
-    file_put_contents('/tmp/tst2', serialize($children), FILE_APPEND);
     $batch += array(
       'operations' => array(
         array(

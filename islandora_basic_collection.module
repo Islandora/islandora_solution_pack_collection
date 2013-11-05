@@ -30,6 +30,25 @@ function islandora_basic_collection_menu() {
     'access callback' => 'islandora_basic_collection_ingest_access',
     'access arguments' => array(2),
   );
+  $share_object_menu_item = array(
+    'title' => 'Share this Object with another collection',
+    'page callback' => 'islandora_basic_collection_share_action',
+    'page arguments' => array(2),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'includes/share.form.inc',
+    'access callback' => 'islandora_basic_collection_share_access',
+    'access arguments' => array(2),
+  );
+  $migrate_object_menu_item = array(
+    'title' => 'Migrate this Object to another collection',
+    'page callback' => 'islandora_basic_collection_migrate_action',
+    'page arguments' => array(2),
+    'type' => MENU_LOCAL_ACTION,
+    'file' => 'includes/migrate.form.inc',
+    'access callback' => 'islandora_basic_collection_migrate_access',
+    'access arguments' => array(2),
+  );
+
   return array(
     'admin/islandora/basic_collection' => array(
       'title' => 'Core Collection',
@@ -49,6 +68,29 @@ function islandora_basic_collection_menu() {
       'access callback' => 'islandora_basic_collection_manage_access',
       'access arguments' => array(2),
     ),
+    'islandora/basic_collection/search_models' => array(
+      'title' => 'Ajax CModel Search',
+      'page callback' => 'islandora_basic_collection_get_collections_filtered',
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/utilities.inc',
+      'access arguments' => array(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS),
+    ),
+    'islandora/basic_collection/migrate_objects' => array(
+      'title' => 'Migrate Object',
+      'page callback' => 'islandora_basic_collection_migrate_object',
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/utilities.inc',
+      'access arguments' => array(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS),
+    ),
+    'islandora/basic_collection/share_objects' => array(
+      'title' => 'Share Object',
+      'page callback' => 'islandora_basic_collection_share_object',
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/utilities.inc',
+      'access arguments' => array(ISLANDORA_BASIC_COLLECTION_SHARE_COLLECTION_MEMBERS),
+    ),
+    'islandora/object/%islandora_object/manage/object/share' => $share_object_menu_item,
+    'islandora/object/%islandora_object/manage/object/migrate' => $migrate_object_menu_item,
     'islandora/object/%islandora_object/manage/collection/ingest' => $ingest_object_menu_item,
     'islandora/object/%islandora_object/manage/overview/ingest' => $ingest_object_menu_item,
   );
@@ -82,6 +124,54 @@ function islandora_basic_collection_ingest_access(AbstractObject $object) {
   $has_ingest_steps = islandora_ingest_can_display_ingest_form($configuration);
 
   return $has_ingest_steps && islandora_object_access(ISLANDORA_INGEST, $object);
+}
+/**
+ * Access callback for ingest.
+ *
+ * @param AbstractObject $object
+ *   The object to test if we're allowed to ingest... Check that it actually
+ *   is a collection and we have sufficient info to show the form.
+ *
+ * @return bool
+ *   TRUE if $object represents a collection, we can show the ingest form and
+ *   we have permission to ingest; otherwise, FALSE.
+ */
+function islandora_basic_collection_share_access(AbstractObject $object) {
+  $collection_models = islandora_basic_collection_get_collection_content_models();
+  $is_a_collection = (
+    (count(array_intersect($collection_models, $object->models)) > 0) &&
+    isset($object['COLLECTION_POLICY'])
+  );
+
+  if ($is_a_collection) {
+    return FALSE;
+  }
+
+  return TRUE;
+}
+/**
+ * Access callback for ingest.
+ *
+ * @param AbstractObject $object
+ *   The object to test if we're allowed to ingest... Check that it actually
+ *   is a collection and we have sufficient info to show the form.
+ *
+ * @return bool
+ *   TRUE if $object represents a collection, we can show the ingest form and
+ *   we have permission to ingest; otherwise, FALSE.
+ */
+function islandora_basic_collection_migrate_access(AbstractObject $object) {
+  $collection_models = islandora_basic_collection_get_collection_content_models();
+  $is_a_collection = (
+    (count(array_intersect($collection_models, $object->models)) > 0) &&
+    isset($object['COLLECTION_POLICY'])
+  );
+
+  if ($is_a_collection) {
+    return FALSE;
+  }
+
+  return TRUE;
 }
 
 /**

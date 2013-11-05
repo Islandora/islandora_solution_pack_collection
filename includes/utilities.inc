@@ -238,3 +238,16 @@ function islandora_basic_collection_remove_from_collection(AbstractObject $membe
   $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
   $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOf', $collection->id);
 }
+
+function islandora_basic_collection_get_collections_filtered($search_value) {
+  $tuque = islandora_get_tuque_connection();
+  $sparql_query = "SELECT ?pid ?label
+      WHERE {
+      ?pid <fedora-model:label> ?label ;
+      <fedora-model:hasModel> <info:fedora/islandora:collectionCModel> .
+      FILTER(regex(?label, '$search_value') || regex(?pid, '$search_value' ))
+      }";
+  $results = $tuque->repository->ri->sparqlQuery($sparql_query);
+  drupal_json_output($results);
+}
+
