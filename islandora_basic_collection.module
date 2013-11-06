@@ -32,8 +32,8 @@ function islandora_basic_collection_menu() {
   );
   $share_object_menu_item = array(
     'title' => 'Share this Object with another collection',
-    'page callback' => 'islandora_basic_collection_share_action',
-    'page arguments' => array(2),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_basic_collection_share_item_form', 2),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'includes/share.form.inc',
     'access callback' => 'islandora_basic_collection_share_access',
