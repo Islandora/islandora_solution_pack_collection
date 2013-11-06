@@ -41,8 +41,8 @@ function islandora_basic_collection_menu() {
   );
   $migrate_object_menu_item = array(
     'title' => 'Migrate this Object to another collection',
-    'page callback' => 'islandora_basic_collection_migrate_action',
-    'page arguments' => array(2),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('islandora_basic_collection_migrate_item_form', 2),
     'type' => MENU_LOCAL_ACTION,
     'file' => 'includes/migrate.form.inc',
     'access callback' => 'islandora_basic_collection_migrate_access',
