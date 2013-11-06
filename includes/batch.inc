@@ -424,7 +424,6 @@ function islandora_basic_collection_migrate_all_children_batch_operation(Abstrac
   }
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
   $context['message'] = 'Migrated ' . $context['sandbox']['current'] . ' children.';
-  }
 }
 /**
  * Shares all children from the current collection to the new collection.
