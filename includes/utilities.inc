@@ -239,6 +239,12 @@ function islandora_basic_collection_remove_from_collection(AbstractObject $membe
   $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOf', $collection->id);
 }
 
+/**
+ * Searches through available collection objects.
+ *
+ * @param string $search_value
+ *   Returns a json array of matching collections.
+ */
 function islandora_basic_collection_get_collections_filtered($search_value) {
   $tuque = islandora_get_tuque_connection();
   $sparql_query = "SELECT ?pid ?label
@@ -248,8 +254,8 @@ function islandora_basic_collection_get_collections_filtered($search_value) {
       FILTER(regex(?label, '$search_value') || regex(?pid, '$search_value' ))
       }";
   $results = $tuque->repository->ri->sparqlQuery($sparql_query);
-  $return = array() ;
-  foreach($results as $objects){
+  $return = array();
+  foreach ($results as $objects) {
     $return[$objects['pid']['value']] = $objects['label']['value'];
   }
   drupal_json_output($return);
