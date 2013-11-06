@@ -260,4 +260,3 @@ function islandora_basic_collection_get_collections_filtered($search_value) {
   }
   drupal_json_output($return);
 }
-
