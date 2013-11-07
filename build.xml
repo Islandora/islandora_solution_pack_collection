@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project name="islandora_solution_pack_collection" default="build">
-  <target name="build" depends="clean,prepare,lint,phploc,code_sniff,phpcpd,pdepend,doxygen,phpcb,test" />
+  <target name="build" depends="clean,prepare,php-eval,lint,phploc,code_sniff,phpcpd,pdepend,doxygen,phpcb,test,cc-process,cc-export" />
 
   <target name="clean" description="Cleanup build artifacts">
       <delete dir="${basedir}/build/test" />
@@ -9,6 +9,7 @@
       <delete dir="${basedir}/build/pdepend" />
       <delete dir="${basedir}/build/api" />
       <delete dir="${basedir}/build/code-browser" />
+      <delete dir="${basedir}/build/code_coverage" />
   </target>
 
   <target name="prepare" description="Prepares workspace for artifacts" >
@@ -17,6 +18,13 @@
     <mkdir dir="${basedir}/build/pdepend" />
     <mkdir dir="${basedir}/build/api" />
     <mkdir dir="${basedir}/build/code-browser" />
+    <mkdir dir="${basedir}/build/code_coverage" />
+  </target>
+  
+  <target name="php-eval" description="Use php-eval to set the code_coverage_filter_files variable">
+    <exec executable="drush">
+      <arg line="php-eval &quot;variable_set('code_coverage_files', array('sites/all/modules/islandora_solution_pack_collection/islandora_basic_collection.module', 'sites/all/modules/islandora_solution_pack_collection/islandora_basic_collection.install', 'sites/all/modules/islandora_solution_pack_collection/islandora_basic_collection.api.php', 'sites/all/modules/islandora_solution_pack_collection/includes/admin.form.inc', 'sites/all/modules/islandora_solution_pack_collection/includes/batch.inc', 'sites/all/modules/islandora_solution_pack_collection/includes/collection_policy.inc', 'sites/all/modules/islandora_solution_pack_collection/includes/ingest.form.inc', 'sites/all/modules/islandora_solution_pack_collection/includes/manage_collection.inc', 'sites/all/modules/islandora_solution_pack_collection/includes/utilities.inc', 'sites/all/modules/islandora_solution_pack_collection/theme/islandora-basic-collection-grid.tpl.php', 'sites/all/modules/islandora_solution_pack_collection/theme/islandora-basic-collection.tpl.php', 'sites/all/modules/islandora_solution_pack_collection/theme/islandora-basic-collection-wrapper.tpl.php', 'sites/all/modules/islandora_solution_pack_collection/theme/theme.inc', 'sites/all/modules/islandora_solution_pack_collection/tests/islandora_collection_web_test_case.inc')); variable_set('code_coverage_modules', array());&quot;"/>
+    </exec>
   </target>
 
   <target name="lint" description="Perform syntax check of sourcecode files">
@@ -79,6 +87,18 @@
   <target name="test">
     <exec executable="drush">
       <arg line="test-run --uri=http://localhost --xml=${basedir}/build/test 'Islandora Basic Collection'" />
+    </exec>
+  </target>
+  
+  <target name="cc-process" description="Processes the code coverage output so it can be exported">
+    <exec executable="drush">
+      <arg line="cc-process all"/>
+    </exec>
+  </target>
+  
+  <target name="cc-export" description="Generate a code coverage report for the simpletest run">
+    <exec executable="drush">
+      <arg line="cc-export latest --html --csv --tag-html --generate-index --path=${basedir}/build/code_coverage"/>
     </exec>
   </target>
 
