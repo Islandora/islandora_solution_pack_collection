@@ -29,7 +29,8 @@ function islandora_basic_collection_menu() {
     'file' => 'includes/ingest.form.inc',
     'access callback' => 'islandora_basic_collection_ingest_access',
     'access arguments' => array(2),
-  );array(
+  );
+  return array(
     'administer/islandora/basic_collection' => array(
       'title' => 'Core Collection',
       'description' => 'Configure the core Islandora collection functionality.',
@@ -107,6 +108,7 @@ function islandora_basic_collection_ingest_access(AbstractObject $object) {
 
   return $has_ingest_steps && islandora_object_access(ISLANDORA_INGEST, $object);
 }
+
 /**
  * Access callback for share/migrate.
  *
@@ -115,8 +117,8 @@ function islandora_basic_collection_ingest_access(AbstractObject $object) {
  *   is a collection and we have sufficient info to show the form.
  *
  * @return bool
- *   TRUE if $object represents a collection, we can show the ingest form and
- *   we have permission to ingest; otherwise, FALSE.
+ *   TRUE if $object represents a collection, we can show the form and
+ *   we have permission to manage object; otherwise, FALSE.
  */
 function islandora_basic_collection_share_migrate_access(AbstractObject $object) {
   $collection_models = islandora_basic_collection_get_collection_content_models();
@@ -124,7 +126,11 @@ function islandora_basic_collection_share_migrate_access(AbstractObject $object)
     (count(array_intersect($collection_models, $object->models)) > 0) &&
     isset($object['COLLECTION_POLICY'])
   );
-  return $is_a_collection ;
+
+  if ($is_a_collection) {
+    return FALSE;
+  }
+  return islandora_object_access(ISLANDORA_MANAGE_PROPERTIES, $object);
 }
 
 /**

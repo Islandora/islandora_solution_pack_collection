@@ -57,7 +57,7 @@ function islandora_basic_collection_migrate_item_form_validate($form, &$form_sta
     form_set_error('new_collection_name', t('Not a valid collection'));
   }
   $has_ingest_permissions = islandora_object_access(ISLANDORA_INGEST, $new_collection);
-  if (!$has_ingest_permissions){
+  if (!$has_ingest_permissions) {
     form_set_errors('new_collection_name', t('You do not have permission to ingest objects to this collection'));
   }
 }
