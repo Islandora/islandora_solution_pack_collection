@@ -453,5 +453,5 @@ function islandora_basic_collection_share_all_children_batch_operation(AbstractO
   }
 
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
-  $context['message'] =  'Shared ' . $context['sandbox']['current'] . ' children from' . $source->label . 'to' . $destination->label ;
+  $context['message'] = 'Shared ' . $context['sandbox']['current'] . ' children from' . $source->label . 'to' . $destination->label;
 }
