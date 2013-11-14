@@ -22,7 +22,7 @@ function islandora_basic_collection_share_item_form($form, &$form_state, $island
     '#title' => t('Share single item'),
   );
   $form['new_collection_name'] = array(
-    '#autocomplete_path' => 'islandora/basic_collection/search_models',
+    '#autocomplete_path' => 'islandora/basic_collection/find_collections',
     '#type' => 'textfield',
     '#title' => t('Name'),
   );

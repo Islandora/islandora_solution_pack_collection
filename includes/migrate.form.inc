@@ -22,7 +22,7 @@ function islandora_basic_collection_migrate_item_form($form, &$form_state, $isla
     '#title' => t('Migrate this item'),
   );
   $form['new_collection_name'] = array(
-    '#autocomplete_path' => 'islandora/basic_collection/search_models',
+    '#autocomplete_path' => 'islandora/basic_collection/find_collections',
     '#type' => 'textfield',
     '#title' => t('New Collection'),
   );
