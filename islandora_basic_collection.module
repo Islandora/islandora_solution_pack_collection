@@ -49,8 +49,8 @@ function islandora_basic_collection_menu() {
       'access callback' => 'islandora_basic_collection_manage_access',
       'access arguments' => array(2),
     ),
-    'islandora/basic_collection/search_models' => array(
-      'title' => 'Ajax CModel Search',
+    'islandora/basic_collection/find_collections' => array(
+      'title' => 'Autocomplete Collection Search',
       'page callback' => 'islandora_basic_collection_get_collections_filtered',
       'type' => MENU_CALLBACK,
       'file' => 'includes/utilities.inc',
