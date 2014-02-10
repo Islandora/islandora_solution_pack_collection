@@ -8,14 +8,14 @@
 /**
  * Implements template_preprocess_HOOK().
  */
-function islandora_basic_collection_preprocess_islandora_basic_collection_grid(&$variables) {
-  islandora_basic_collection_preprocess_islandora_basic_collection($variables);
+function template_preprocess_islandora_basic_collection_grid(&$variables) {
+  template_preprocess_islandora_basic_collection($variables);
 }
 
 /**
  * Implements template_preprocess_HOOK().
  */
-function islandora_basic_collection_preprocess_islandora_basic_collection_wrapper(&$variables) {
+function template_preprocess_islandora_basic_collection_wrapper(&$variables) {
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
   $page_size = (empty($_GET['pagesize'])) ? variable_get('islandora_basic_collection_page_size', '10') : $_GET['pagesize'];
   $islandora_object = $variables['islandora_object'];
@@ -79,7 +79,7 @@ function islandora_basic_collection_preprocess_islandora_basic_collection_wrappe
 /**
  * Implements template_preprocess_HOOK().
  */
-function islandora_basic_collection_preprocess_islandora_basic_collection(&$variables) {
+function template_preprocess_islandora_basic_collection(&$variables) {
   global $base_url;
   global $base_path;
 
