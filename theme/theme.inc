@@ -37,7 +37,6 @@ function template_preprocess_islandora_basic_collection_wrapper(&$variables) {
   $display = (empty($_GET['display'])) ? variable_get('islandora_basic_collection_default_view', 'grid') : $_GET['display'];
   $link_text = (empty($_GET['display'])) ? 'grid' : $_GET['display'];
   $query_params = drupal_get_query_parameters($_GET);
-  global $base_url;
 
   $query_params['display'] = 'list';
   $list_link = array(
@@ -80,9 +79,6 @@ function template_preprocess_islandora_basic_collection_wrapper(&$variables) {
  * Implements template_preprocess_HOOK().
  */
 function template_preprocess_islandora_basic_collection(&$variables) {
-  global $base_url;
-  global $base_path;
-
   $islandora_object = $variables['islandora_object'];
 
   try {
