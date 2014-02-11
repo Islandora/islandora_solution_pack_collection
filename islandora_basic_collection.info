@@ -16,4 +16,4 @@ files[] = tests/islandora_basic_collection_migrate.test
 files[] = tests/islandora_basic_collection_share.test
 files[] = tests/islandora_basic_collection_usage_permissions.test
 files[] = tests/hooked_access.test
-
+files[] = tests/islandora_basic_collection_purge_shared_child.test
