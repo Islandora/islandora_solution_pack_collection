@@ -2,7 +2,8 @@
 
 /**
  * @file
- * Attempts to create and remove a randomly generated image collection
+ * Attempts to create and remove a rels entry between a shared object and 
+ * two collections.
  */
 
 class IslandoraPurgeShareCollectionTestCase extends IslandoraCollectionWebTestCase {
@@ -84,7 +85,7 @@ class IslandoraPurgeShareCollectionTestCase extends IslandoraCollectionWebTestCa
     // We now need to add a relationship to one of the test objects,
     // to ensure it has an isMemberOfCollection relationship with both
     // collections.
-    $object_w_rels = $objects[0];
+    $object_w_rels = $objects[1];
     $object_w_rels->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collectionpid_a);
 
     // Now delete collection_a.
@@ -93,15 +94,14 @@ class IslandoraPurgeShareCollectionTestCase extends IslandoraCollectionWebTestCa
     // Test to be sure the second object, with two
     // 'isMemberOfCollection' rels entries,
     // is still in the '$collectionpid_b' collection.
-    $obj_a = islandora_object_load($obj_a_pid);
+    $obj_b = islandora_object_load($obj_b_pid);
     $deleted_collection = islandora_object_load($collectionpid_a);
 
     // Simple NULL checks on validation should be good enough.
+    $obj_a = islandora_object_load($obj_a_pid);
     $this->assertTrue($obj_a == NULL, "Test object 'a' has been deleted correctly.");
     $this->assertTrue($deleted_collection == NULL, "First deleted collection does not exist.");
-    $obj_b = islandora_object_load($obj_b_pid);
     $this->assertTrue($obj_b != NULL, "Second Test object still exists.");
-
     $obj_b_rels = $obj_b->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection');
 
     // There should be one 'isMemberOfCollection'
