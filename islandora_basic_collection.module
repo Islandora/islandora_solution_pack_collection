@@ -395,7 +395,7 @@ EOQ;
   }
   $query = format_string($query, array(
     '!statements' => implode(' . ', $query_statements),
-    '!optionals' => 'OPTIONAL {{' . implode('} UNION {', $query_optionals) . '}}',
+    '!optionals' => (!empty($query_optionals) ? ('OPTIONAL {{' . implode('} UNION {', $query_optionals) . '}}') : ''),
     '!filters' => implode(' ', $filters),
     '!vars' => $params['vars'],
   ));
