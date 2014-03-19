@@ -379,20 +379,23 @@ SELECT DISTINCT !vars
 FROM <#ri>
 WHERE {
   !statements .
+  !optionals
   !filters
 }
 EOQ;
 
   $filters = array();
   $query_filters = module_invoke_all('islandora_basic_collection_get_query_filters', $type);
+  $query_optionals = module_invoke_all('islandora_basic_collection_get_query_optionals', $type);
   $query_statements = module_invoke_all('islandora_basic_collection_get_query_statements', $type);
-  drupal_alter('islandora_basic_collection_query_param', $query_filters, $query_statements, $params);
+  drupal_alter('islandora_basic_collection_query_param', $query_filters, $query_statements, $params, $query_optionals);
 
   foreach ($query_filters as $filter) {
     $filters[] = "FILTER($filter)";
   }
   $query = format_string($query, array(
     '!statements' => implode(' . ', $query_statements),
+    '!optionals' => (!empty($query_optionals) ? ('OPTIONAL {{' . implode('} UNION {', $query_optionals) . '}}') : ''),
     '!filters' => implode(' ', $filters),
     '!vars' => $params['vars'],
   ));
