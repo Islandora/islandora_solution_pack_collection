@@ -26,11 +26,41 @@ function hook_islandora_basic_collection_get_query_statements() {
           <fedora-model:state> <fedora-model:Active>
 EOQ;
 }
+
+/**
+ * Hook to get a number of optional Sparql statements.
+ *
+ * Really, this shouldn't be necessary--they should be able to be included as
+ * normal statements... There's a bug in Mulgara which prevents OPTIONAL
+ * statements from working properly, though.
+ *
+ * Be mindful if involving two different variables being "SELECTED"/
+ * returned in results, as the manner in which these statements get unioned
+ * together could end up with apparently duplicate results: both where one
+ * variable is bound and another where the variable is unbound.
+ *
+ * @return array|string
+ *   Either an array containing multiple or a string containing a single
+ *   Sparql statement. This is to build up the tuples available to be filtered.
+ *   There are a number of placeholders which may be included for replacement:
+ *   - "!pid": The identifier of the collection object, as
+ *     "namespace:local-name" (no "info:fedora/" bit).
+ *   - "!model": A string representing a URI. Defaults to "?model", but could
+ *     be provided as "<info:fedora/cmodel:pid>" if the type of object to query
+ *     should be filtered.
+ */
+function hook_islandora_basic_collection_get_query_optionals() {
+  // Taken from islandora_compound_object, this would probably be used with a
+  // filter checking if "?compound" is bound.
+  return "?object <fedora-rels-ext:isConstituentOf> ?compound";
+}
+
 /**
  * Hook to modify query.
  */
-function islandora_basic_collection_query_param_alter(array $filters, array $statements, array $params) {
+function islandora_basic_collection_query_param_alter(array $filters, array $statements, array $params, array $optionals) {
 }
+
 /**
  * Hook to get a number of Sparql filters, to build the collection query.
  *
