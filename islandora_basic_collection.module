@@ -311,10 +311,13 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
   if (!in_array('islandora:collectionCModel', $object->models)) {
     $map_to_row = function($o) {
       $o = islandora_object_load($o);
-      return array(l($o->label, "islandora/object/{$o->id}"));
+      return ($o ?
+        array(l($o->label, "islandora/object/{$o->id}")) :
+        FALSE);
     };
     $pids = islandora_basic_collection_get_parent_pids($object);
     $rows = array_map($map_to_row, $pids);
+    $rows = array_filter($rows);
     $table = theme('table', array(
                'header' => array(t('Parent Collections')),
                'rows' => $rows,
