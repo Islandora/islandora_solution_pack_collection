@@ -95,7 +95,7 @@ function islandora_basic_collection_select_content_model_form(array $form, array
       '#type' => 'select',
       '#title' => t('Select a Content Model to Ingest'),
       '#options' => $options,
-      '#default' => $model,
+      '#default_value' => $model,
       '#ajax' => array(
         'callback' => 'islandora_basic_collection_select_content_model_form_ajax_callback',
         'wrapper' => 'islandora-select-content-model-wrapper',

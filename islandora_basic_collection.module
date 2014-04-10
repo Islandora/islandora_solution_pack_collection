@@ -49,6 +49,31 @@ function islandora_basic_collection_menu() {
       'access callback' => 'islandora_basic_collection_manage_access',
       'access arguments' => array(2),
     ),
+    'islandora/basic_collection/find_collections' => array(
+      'title' => 'Autocomplete Collection Search',
+      'page callback' => 'islandora_basic_collection_get_collections_filtered',
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/utilities.inc',
+      'access arguments' => array(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS),
+    ),
+    'islandora/object/%islandora_object/manage/object/share' => array(
+      'title' => 'Share this Object with another collection',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_basic_collection_share_item_form', 2),
+      'type' => MENU_LOCAL_ACTION,
+      'file' => 'includes/share.form.inc',
+      'access callback' => 'islandora_basic_collection_share_migrate_access',
+      'access arguments' => array(2),
+    ),
+    'islandora/object/%islandora_object/manage/object/migrate' => array(
+      'title' => 'Migrate this Object to another collection',
+      'page callback' => 'drupal_get_form',
+      'page arguments' => array('islandora_basic_collection_migrate_item_form', 2),
+      'type' => MENU_LOCAL_ACTION,
+      'file' => 'includes/migrate.form.inc',
+      'access callback' => 'islandora_basic_collection_share_migrate_access',
+      'access arguments' => array(2),
+    ),
     'islandora/object/%islandora_object/manage/collection/ingest' => $ingest_object_menu_item,
     'islandora/object/%islandora_object/manage/overview/ingest' => $ingest_object_menu_item,
   );
@@ -82,6 +107,30 @@ function islandora_basic_collection_ingest_access(AbstractObject $object) {
   $has_ingest_steps = islandora_ingest_can_display_ingest_form($configuration);
 
   return $has_ingest_steps && islandora_object_access(ISLANDORA_INGEST, $object);
+}
+
+/**
+ * Access callback for share/migrate.
+ *
+ * @param AbstractObject $object
+ *   The object to test if we're allowed to ingest... Check that it actually
+ *   is a collection and we have sufficient info to show the form.
+ *
+ * @return bool
+ *   TRUE if $object represents a collection, we can show the form and
+ *   we have permission to manage object; otherwise, FALSE.
+ */
+function islandora_basic_collection_share_migrate_access(AbstractObject $object) {
+  $collection_models = islandora_basic_collection_get_collection_content_models();
+  $is_a_collection = (
+    (count(array_intersect($collection_models, $object->models)) > 0) &&
+    isset($object['COLLECTION_POLICY'])
+  );
+
+  if ($is_a_collection) {
+    return FALSE;
+  }
+  return islandora_object_access(ISLANDORA_MANAGE_PROPERTIES, $object);
 }
 
 /**
@@ -199,7 +248,9 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
     'order_by' => FALSE,
   ));
   $models = (array) $object->repository->ri->query($model_query['query'], $model_query['type']);
-  $ignore_models = array('fedora-system:FedoraObject-3.0');
+  $ignore_models = array(
+    'fedora-system:FedoraObject-3.0',
+  );
   foreach ($models as $model) {
     $model_pid = $model['model']['value'];
     if (in_array($model_pid, $ignore_models)) {
@@ -260,12 +311,13 @@ function islandora_basic_collection_islandora_overview_object(AbstractObject $ob
   if (!in_array('islandora:collectionCModel', $object->models)) {
     $map_to_row = function($o) {
       $o = islandora_object_load($o);
-      if ($o) {
-        return array(l($o->label, "islandora/object/{$o->id}"));
-      }
+      return ($o ?
+        array(l($o->label, "islandora/object/{$o->id}")) :
+        FALSE);
     };
     $pids = islandora_basic_collection_get_parent_pids($object);
     $rows = array_map($map_to_row, $pids);
+    $rows = array_filter($rows);
     $table = theme('table', array(
                'header' => array(t('Parent Collections')),
                'rows' => $rows,
@@ -330,20 +382,23 @@ SELECT DISTINCT !vars
 FROM <#ri>
 WHERE {
   !statements .
+  !optionals
   !filters
 }
 EOQ;
 
   $filters = array();
   $query_filters = module_invoke_all('islandora_basic_collection_get_query_filters', $type);
+  $query_optionals = module_invoke_all('islandora_basic_collection_get_query_optionals', $type);
   $query_statements = module_invoke_all('islandora_basic_collection_get_query_statements', $type);
-  drupal_alter('islandora_basic_collection_query_param', $query_filters, $query_statements, $params);
+  drupal_alter('islandora_basic_collection_query_param', $query_filters, $query_statements, $params, $query_optionals);
 
   foreach ($query_filters as $filter) {
     $filters[] = "FILTER($filter)";
   }
   $query = format_string($query, array(
     '!statements' => implode(' . ', $query_statements),
+    '!optionals' => (!empty($query_optionals) ? ('OPTIONAL {{' . implode('} UNION {', $query_optionals) . '}}') : ''),
     '!filters' => implode(' ', $filters),
     '!vars' => $params['vars'],
   ));
@@ -691,7 +746,9 @@ function islandora_basic_collection_islandora_ingest_steps_alter(array &$steps, 
  *   An array of strings, each of which represents the PID of a content model.
  */
 function islandora_basic_collection_get_collection_content_models() {
-  return array('islandora:collectionCModel');
+  return array(
+    'islandora:collectionCModel',
+  );
 }
 
 /**
