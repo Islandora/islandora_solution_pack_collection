@@ -31,8 +31,8 @@ function islandora_basic_collection_menu() {
     'access arguments' => array(2),
   );
   return array(
-    'admin/islandora/basic_collection' => array(
-      'title' => 'Core Collection',
+    'admin/islandora/solution_pack_config/basic_collection' => array(
+      'title' => 'Collection Solution Pack',
       'description' => 'Configure the core Islandora collection functionality.',
       'page callback' => 'drupal_get_form',
       'access arguments' => array('administer site configuration'),

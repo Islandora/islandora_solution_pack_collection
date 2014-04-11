@@ -1,7 +1,7 @@
 name = "Islandora basic collection"
 description = "Models simple collections"
 dependencies[] = islandora
-package = Islandora
+package = Islandora Solution Packs
 core = 7.x
 version = 7.x-dev
 configure = admin/islandora/basic_collection
