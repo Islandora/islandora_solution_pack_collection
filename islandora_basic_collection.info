@@ -1,10 +1,10 @@
 name = "Islandora basic collection"
 description = "Models simple collections"
 dependencies[] = islandora
-package = Islandora
+package = Islandora Solution Packs
 core = 7.x
 version = 7.x-dev
-configure = admin/islandora/basic_collection
+configure = admin/islandora/solution_pack_config/basic_collection
 stylesheets[all][] = css/islandora_basic_collection.base.css
 stylesheets[all][] = css/islandora_basic_collection.theme.css
 files[] = includes/collection_policy.inc
