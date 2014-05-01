@@ -259,7 +259,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     '#action' => request_uri() . '#policy-management',
     'help' => array(
       '#type' => 'item',
-      '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA711/How+to+Manage+Collection+Policies', array()),
+      '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA713/How+to+Manage+Collection+Policies', array()),
     ),
     'table' => array(
       '#tree' => TRUE,
