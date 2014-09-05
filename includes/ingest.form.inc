@@ -8,11 +8,6 @@
 // Constants.
 define('ISLANDORA_BASIC_COLLECTION_FAKE_PID', 'fake:pid');
 
-// @codingStandardsIgnoreStart
-// XXX: This should be removed at some point in the future.
-define('FAKE_PID', ISLANDORA_BASIC_COLLECTION_FAKE_PID);
-// @codingStandardsIgnoreEnd
-
 /**
  * Manage action that for ingestion of an object into the given collection.
  *
