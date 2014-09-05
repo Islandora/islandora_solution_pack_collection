@@ -10,13 +10,6 @@ define('ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION', 'create child colle
 define('ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY', 'manage collection policy');
 define('ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
 
-// @codingStandardsIgnoreStart
-// XXX: These should be removed at somepoint in the future.
-define('CREATE_CHILD_COLLECTION', ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION);
-define('MANAGE_COLLECTION_POLICY', ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY);
-define('MIGRATE_COLLECTION_MEMBERS', ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS);
-// @codingStandardsIgnoreEnd
-
 /**
  * Implements hook_menu().
  */
@@ -527,42 +520,6 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
     return FALSE;
   }
   return array($count, $results);
-}
-
-/**
- * Get objects associated with this object.
- *
- * Currently, we are only concerned with the with isMemberOf and
- * isMemberOfCollection relationships.
- *
- * @deprecated
- *   Deprecated in favour of islandora_basic_collection_get_member_objects(),
- *   which should actually be able to page through results.
- *
- * @param AbstractObject $object
- *   The collection object whose members will be fetched.
- * @param int $page_number
- *   The page number in the query for members.
- * @param int $page_size
- *   The number of results per page page from the query for members.
- *
- * @return array|string
- *   The array of query results as provided by
- *   RepositoryQuery::parseSparqlResults().
- */
-function islandora_basic_collection_get_objects(AbstractObject $object, $page_number = 0, $page_size = -1) {
-  module_load_include('inc', 'islandora', 'includes/utilities');
-  $message = islandora_deprecated('7.x-1.2', 'Use islandora_basic_collection_get_member_objects() to page and avoid potential memory issues with large collections.');
-  trigger_error(filter_xss($message), E_USER_DEPRECATED);
-
-  $new_results = islandora_basic_collection_get_member_objects($object, $page_number, $page_size);
-  if ($new_results) {
-    return $new_results[1];
-  }
-  else {
-    drupal_set_message(t('Error getting related objects for %s', array('%s' => $object->id)), 'error');
-    return '';
-  }
 }
 
 /**
