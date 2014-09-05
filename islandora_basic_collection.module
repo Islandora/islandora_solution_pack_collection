@@ -157,12 +157,6 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
   $collection_content_model->owner = 'fedoraAdmin';
   $collection_content_model->label = 'Islandora Collection Content Model';
   $collection_content_model->models = 'fedora-system:ContentModel-3.0';
-  // ISLANDORACM Datastream.
-  $datastream = $collection_content_model->constructDatastream('ISLANDORACM', 'X');
-  $datastream->label = 'Islandora content model';
-  $datastream->mimetype = 'text/xml';
-  $datastream->setContentFromFile("$module_path/xml/islandora_basic_collection_content_model.xml", FALSE);
-  $collection_content_model->ingestDatastream($datastream);
   // DS-COMPOSITE-MODEL Datastream.
   $datastream = $collection_content_model->constructDatastream('DS-COMPOSITE-MODEL', 'X');
   $datastream->label = 'DS-COMPOSITE-MODEL';
