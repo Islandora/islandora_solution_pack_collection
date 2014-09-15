@@ -153,7 +153,7 @@ function islandora_basic_collection_islandora_required_objects(IslandoraTuque $c
   // DS-COMPOSITE-MODEL Datastream.
   $datastream = $collection_content_model->constructDatastream('DS-COMPOSITE-MODEL', 'X');
   $datastream->label = 'DS-COMPOSITE-MODEL';
-  $datastream->mimetype = 'text/xml';
+  $datastream->mimetype = 'application/xml';
   $datastream->setContentFromFile("$module_path/xml/islandora_basic_collection_ds_composite_model.xml", FALSE);
   $collection_content_model->ingestDatastream($datastream);
   return array(
