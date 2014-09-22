@@ -2,8 +2,8 @@
 
 /**
  * @file
- * Attempts to create and remove a rels entry between a shared object and 
- * two collections.
+ * Attempts to create and remove a rels entry between a shared object and two
+ * collections.
  */
 
 class IslandoraPurgeShareCollectionTestCase extends IslandoraCollectionWebTestCase {
@@ -35,7 +35,7 @@ class IslandoraPurgeShareCollectionTestCase extends IslandoraCollectionWebTestCa
 
   /**
    * Create two collections, each with one object.
-   * 
+   *
    * One of the objects will have an isMemberOfCollection
    * rels entry for both collections. Test to see it is
    * removed when the first collection is deleted.
