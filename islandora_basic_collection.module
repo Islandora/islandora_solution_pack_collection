@@ -815,9 +815,14 @@ function islandora_basic_collection_block_configure($delta = '') {
         }
       }
     }
+    else {
+      foreach ($formatted_models as $pid => $label) {
+        $default_checked[$pid] = $pid;
+      }
+    }
     $block['content_models'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Content models to exclude:'),
+      '#title' => t('Content models to include:'),
       '#description' => t('When selected objects with a specific content model will not appear in the total count of results.'),
       '#options' => $formatted_models,
       '#default_value' => $default_checked,
@@ -841,7 +846,7 @@ function islandora_basic_collection_block_configure($delta = '') {
     foreach ($models as $pid => $values) {
       $formatted_models[$pid] = $values['label'];
     }
-    $default_cmodel_options = variable_get('islandora_basic_collection_listing_content_models_to_restrict', FALSE);
+    $default_cmodel_options = variable_get('islandora_basic_collection_listing_block_content_models_to_restrict', FALSE);
     $default_checked = array();
     // If we have default values previously set, add them now.
     if ($default_cmodel_options) {
@@ -851,9 +856,14 @@ function islandora_basic_collection_block_configure($delta = '') {
         }
       }
     }
+    else {
+      foreach ($formatted_models as $pid => $label) {
+        $default_checked[$pid] = $pid;
+      }
+    }
     $block['content_models'] = array(
       '#type' => 'checkboxes',
-      '#title' => t('Content models to exclude:'),
+      '#title' => t('Content models to include:'),
       '#description' => t('When selected objects with a specific content model will not appear in the total count of results.'),
       '#options' => $formatted_models,
       '#default_value' => $default_checked,
@@ -872,7 +882,7 @@ function islandora_basic_collection_block_save($delta = '', $edit = array()) {
   }
   if ($delta == 'collection_listing') {
     variable_set('islandora_basic_collection_listing_block_links_to_render', $edit['islandora_basic_collection_links_to_render']);
-    variable_set('islandora_basic_collection_listing_content_models_to_restrict', $edit['content_models']);
+    variable_set('islandora_basic_collection_listing_block_content_models_to_restrict', $edit['content_models']);
   }
 }
 
@@ -895,6 +905,10 @@ function islandora_basic_collection_block_view($delta = '') {
 
 /**
  * Implements hook_islandora_basic_collection_query_param().
+ *
+ * Modifies the passed through filters and statements for our special block
+ * cases. That is, we want to retain all the other present statements and
+ * filters that may be present, for example XACML.
  */
 function islandora_basic_collection_islandora_basic_collection_query_param_alter(&$filters, &$statements, $params, $optionals) {
   if (isset($params['collection_listing']) && $params['collection_listing']) {
@@ -946,11 +960,12 @@ EOQ;
       );
       if ($content_models_to_exclude) {
         $exclude = array_filter($content_models_to_exclude);
+        $included_models = array();
         foreach ($exclude as $cmodel) {
-          $models_to_filter[] = "!sameTerm(?model, <info:fedora/{$cmodel}>)";
+          $included_models[] = "sameTerm(?model, <info:fedora/{$cmodel}>)";
         }
+        $filters[] = implode(' || ', $included_models);
       }
-      $filter_to_add .= implode(' && ', $models_to_filter);
     }
     $statements[] = $base_statement;
     if ($filter_to_remove) {
@@ -959,7 +974,7 @@ EOQ;
     }
 
     if ($filter_to_add) {
-      $filters[] = $filter_to_add;
+      $filters[] = implode(' && ', $models_to_filter);
     }
   }
 }

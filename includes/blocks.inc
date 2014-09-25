@@ -14,12 +14,12 @@ function islandora_basic_collection_object_count_listing_content() {
   $block = array();
   $tuque = islandora_get_tuque_connection();
   $objects_query_array = islandora_basic_collection_get_query_info(array(
-    'object' => islandora_object_load('islandora:root'),
+    'object' => islandora_object_load(variable_get('islandora_repository_pid', 'islandora:root')),
     'collection_listing' => TRUE,
     'all_objects' => TRUE,
   ));
   $collection_query_array = islandora_basic_collection_get_query_info(array(
-    'object' => islandora_object_load('islandora:root'),
+    'object' => islandora_object_load(variable_get('islandora_repository_pid', 'islandora:root')),
     'collection_listing' => TRUE,
     'all_objects' => FALSE,
   ));
@@ -70,7 +70,7 @@ function islandora_basic_collection_collection_listing_content() {
     $collections[$pid] = $pid;
     $stored_collections[$pid] = $collection['title']['value'];
   }
-  $models_to_exclude = variable_get('islandora_basic_collection_listing_content_models_to_restrict', FALSE);
+  $models_to_exclude = variable_get('islandora_basic_collection_listing_block_content_models_to_restrict', FALSE);
   if ($models_to_exclude) {
     $collections = islandora_basic_collection_filter_collection_by_cmodel($collections, array_filter($models_to_exclude));
   }
@@ -85,9 +85,9 @@ function islandora_basic_collection_collection_listing_content() {
     '#type' => 'ul',
   );
   $root_pid = variable_get('islandora_repository_pid', 'islandora:root');
-  $block['see_more'] = array(
+  $block['browse_repository'] = array(
     '#type' => 'item',
-    '#markup' => l(t('See more »'), "islandora/object/$root_pid"),
+    '#markup' => l(t('Browse repository'), "islandora/object/$root_pid"),
     '#attributes' => array(
       'class' => array('islandora-basic-collection-read-more'),
     ),
@@ -97,7 +97,7 @@ function islandora_basic_collection_collection_listing_content() {
 
 
 /**
- * Filter out objects that contain excluded content models in their policy.
+ * Filters out collections that contain excluded content models within them.
  *
  * @param array $collections
  *   An array of PIDs representing collection objects.
@@ -109,19 +109,19 @@ function islandora_basic_collection_collection_listing_content() {
  */
 function islandora_basic_collection_filter_collection_by_cmodel($collections, $models) {
   $collection_filter = function ($collection) use ($models) {
-    $object = islandora_object_load($collection);
+    $tuque = islandora_get_tuque_connection();
     $models_query = <<<EOQ
     SELECT DISTINCT ?model from <#ri> where {
 ?object <fedora-model:hasModel> ?model ;
-        <fedora-rels-ext:isMemberOfCollection> <info:fedora/{$object->id}>
+        <fedora-rels-ext:isMemberOfCollection> <info:fedora/{$collection}>
 }
 EOQ;
-    $models_results = $object->repository->ri->sparqlQuery($models_query);
+    $models_results = $tuque->repository->ri->sparqlQuery($models_query);
     $collection_models = array();
     foreach ($models_results as $result) {
       $collection_models[$result['model']['value']] = $result['model']['value'];
     }
-    return !array_intersect($collection_models, $models);
+    return array_intersect($collection_models, $models);
   };
   $filtered_collections = array_filter($collections, $collection_filter);
   return $filtered_collections;
