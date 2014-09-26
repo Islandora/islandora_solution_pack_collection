@@ -360,6 +360,7 @@ function islandora_basic_collection_get_query_info(array $params, $type = 'view'
     'vars' => '?object ?title ?owner ?date_modified',
     'order_by' => '?title',
     'model' => '?model',
+    'context' => $type,
   );
 
   $object = $params['object'];
@@ -770,4 +771,210 @@ function islandora_basic_collection_islandora_collectioncmodel_islandora_object_
   $thumbnail_datastream->label = 'Thumbnail';
   $thumbnail_datastream->mimetype = 'image/png';
   $fedora_object->ingestDatastream($thumbnail_datastream);
+}
+
+/**
+ * Implements hook_block_info().
+ */
+function islandora_basic_collection_block_info() {
+  $blocks['collection_object_count'] = array(
+    'info' => t('Islandora Collection Object Count Listing'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  $blocks['collection_listing'] = array(
+    'info' => t('Islandora Collection Listing'),
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+ * Implements hook_block_configure().
+ */
+function islandora_basic_collection_block_configure($delta = '') {
+  if ($delta == 'collection_object_count') {
+    $block['islandora_basic_collection_title_phrase'] = array(
+      '#type' => 'textfield',
+      '#title' => t('The sentence to appear to describe the number of objects and collections present.'),
+      '#description' => t('For the number of objects use !objects, for the number of container objects use !collections.'),
+      '#default_value' => variable_get('islandora_basic_collection_object_count_listing_phrase', '!objects Items in !collections Collections'),
+    );
+    module_load_include('inc', 'islandora', 'includes/utilities');
+    $formatted_models = array();
+    $models = islandora_get_content_models();
+    foreach ($models as $pid => $values) {
+      $formatted_models[$pid] = $values['label'];
+    }
+    $default_cmodel_options = variable_get('islandora_basic_collection_object_count_listing_content_models_to_restrict', FALSE);
+    $default_checked = array();
+    // If we have default values previously set, add them now.
+    if ($default_cmodel_options) {
+      foreach ($default_cmodel_options as $pid => $val) {
+        if ($val) {
+          $default_checked[$pid] = $pid;
+        }
+      }
+    }
+    else {
+      foreach ($formatted_models as $pid => $label) {
+        $default_checked[$pid] = $pid;
+      }
+    }
+    $block['content_models'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Content models to include:'),
+      '#description' => t('When selected objects with a specific content model will not appear in the total count of results.'),
+      '#options' => $formatted_models,
+      '#default_value' => $default_checked,
+    );
+    return $block;
+  }
+
+  if ($delta == 'collection_listing') {
+    $block = array();
+    module_load_include('inc', 'islandora', 'includes/utilities');
+    $block['islandora_basic_collection_links_to_render'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Number of collections to display'),
+      '#default_value' => variable_get('islandora_basic_collection_listing_block_links_to_render', 10),
+      '#element_validate' => array(
+        'element_validate_integer_positive',
+      ),
+    );
+    $formatted_models = array();
+    $models = islandora_get_content_models();
+    foreach ($models as $pid => $values) {
+      $formatted_models[$pid] = $values['label'];
+    }
+    $default_cmodel_options = variable_get('islandora_basic_collection_listing_block_content_models_to_restrict', FALSE);
+    $default_checked = array();
+    // If we have default values previously set, add them now.
+    if ($default_cmodel_options) {
+      foreach ($default_cmodel_options as $pid => $val) {
+        if ($val) {
+          $default_checked[$pid] = $pid;
+        }
+      }
+    }
+    else {
+      foreach ($formatted_models as $pid => $label) {
+        $default_checked[$pid] = $pid;
+      }
+    }
+    $block['content_models'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Content models to include:'),
+      '#description' => t('When selected objects with a specific content model will not appear in the total count of results.'),
+      '#options' => $formatted_models,
+      '#default_value' => $default_checked,
+    );
+    return $block;
+  }
+}
+
+/**
+ * Implements hook_block_save().
+ */
+function islandora_basic_collection_block_save($delta = '', $edit = array()) {
+  if ($delta == 'collection_object_count') {
+    variable_set('islandora_basic_collection_object_count_listing_content_models_to_restrict', $edit['content_models']);
+    variable_set('islandora_basic_collection_object_count_listing_phrase', $edit['islandora_basic_collection_title_phrase']);
+  }
+  if ($delta == 'collection_listing') {
+    variable_set('islandora_basic_collection_listing_block_links_to_render', $edit['islandora_basic_collection_links_to_render']);
+    variable_set('islandora_basic_collection_listing_block_content_models_to_restrict', $edit['content_models']);
+  }
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function islandora_basic_collection_block_view($delta = '') {
+  $block = array();
+  if ($delta == 'collection_object_count') {
+    module_load_include('inc', 'islandora_basic_collection', 'includes/blocks');
+    $block['content'] = islandora_basic_collection_object_count_listing_content();
+  }
+  if ($delta == 'collection_listing') {
+    module_load_include('inc', 'islandora_basic_collection', 'includes/blocks');
+    $block['content'] = islandora_basic_collection_collection_listing_content();
+    $block['title'] = t('Collections');
+  }
+  return $block;
+}
+
+/**
+ * Implements hook_islandora_basic_collection_query_param().
+ *
+ * Modifies the passed through filters and statements for our special block
+ * cases. That is, we want to retain all the other present statements and
+ * filters that may be present, for example XACML.
+ */
+function islandora_basic_collection_islandora_basic_collection_query_param_alter(&$filters, &$statements, $params, $optionals) {
+  if (isset($params['collection_listing']) && $params['collection_listing']) {
+    // Need to find the basic collection statement and filter to nuke for our
+    // use.
+    $query_filters = (array) module_invoke('islandora_basic_collection', 'islandora_basic_collection_get_query_filters', $params['context']);
+    $query_statements = module_invoke('islandora_basic_collection', 'islandora_basic_collection_get_query_statements', $params['context']);
+
+    $filter_to_remove = FALSE;
+    foreach ($query_filters as $filter) {
+      if (strpos($filter, '?collection_predicate') !== FALSE) {
+        $filter_to_remove = $filter;
+        break;
+      }
+    }
+
+    $statement_to_remove = FALSE;
+    foreach ($query_statements as $statement) {
+      if (strpos($statement, '?collection_predicate') !== FALSE) {
+        $statement_to_remove = $statement;
+        break;
+      }
+    }
+    if ($statement_to_remove) {
+      $keys = array_keys($statements, $statement_to_remove);
+      $statements = array_diff_key($statements, drupal_map_assoc($keys));
+    }
+    $filter_to_add = FALSE;
+    // If we are not searching for all objects we are getting collections.
+    if (!$params['all_objects']) {
+      $base_statement = <<<EOQ
+?object <fedora-model:label> ?title ;
+        <fedora-model:ownerId> ?owner ;
+        <fedora-view:lastModifiedDate> ?date_modified ;
+        <fedora-model:hasModel> <info:fedora/islandora:collectionCModel>
+EOQ;
+    }
+    else {
+      $base_statement = <<<EOQ
+?object <fedora-model:label> ?title ;
+        <fedora-model:ownerId> ?owner ;
+        <fedora-view:lastModifiedDate> ?date_modified ;
+        <fedora-model:hasModel> ?model
+EOQ;
+      $content_models_to_exclude = variable_get('islandora_basic_collection_object_count_listing_content_models_to_restrict', FALSE);
+      $models_to_filter = array(
+        '!sameTerm(?model, <info:fedora/fedora-system:FedoraObject-3.0>)',
+        '!sameTerm(?model, <info:fedora/fedora-system:ContentModel-3.0>)',
+      );
+      if ($content_models_to_exclude) {
+        $exclude = array_filter($content_models_to_exclude);
+        $included_models = array();
+        foreach ($exclude as $cmodel) {
+          $included_models[] = "sameTerm(?model, <info:fedora/{$cmodel}>)";
+        }
+        $filters[] = implode(' || ', $included_models);
+      }
+    }
+    $statements[] = $base_statement;
+    if ($filter_to_remove) {
+      $keys = array_keys($filters, $filter_to_remove);
+      $filters = array_diff_key($filters, drupal_map_assoc($keys));
+    }
+
+    if ($filter_to_add) {
+      $filters[] = implode(' && ', $models_to_filter);
+    }
+  }
 }
