@@ -97,12 +97,12 @@ function islandora_basic_collection_collection_listing_content() {
 
 
 /**
- * Filters out collections that contain excluded content models within them.
+ * Filters out collections that only contain included content models.
  *
  * @param array $collections
  *   An array of PIDs representing collection objects.
  * @param array $models
- *   An array of content models to be excluded.
+ *   An array of content models to be included.
  *
  * @return array
  *   An array of collections to be used.
