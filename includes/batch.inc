@@ -485,29 +485,47 @@ function islandora_basic_collection_share_all_children_batch_operation(AbstractO
  * @param string[] $dsids
  *   An array of DSIDs representing the derivative destination DSIDs that should
  *   be generated.
+ * @param AbstractObject $collection
+ *   The collection we are generating derivatives for.
  *
  * @return array
  *   A Drupal batch array.
  */
-function islandora_basic_collection_regenerate_derivatives_batch($children, $dsids) {
+function islandora_basic_collection_regenerate_derivatives_batch($children, $dsids, AbstractObject $collection) {
   $batch = array(
     'finished' => 'islandora_basic_collection_derivative_regeneration_batch_finished',
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
     'error_message' => t('An error has occurred.'),
     'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
-    'title' => format_plural(count($children),
-      'Regenerating derivatives for 1 child.',
-      'Regenerating derivatives for @count children.'
-    ),
-    'init_message' => format_plural(count($children),
-      'Preparing to regenerate derivatives for 1 child.',
-      'Preparing to regenerate derivatives for @count children.'
-    ),
   );
-  foreach ($children as $child) {
-    $batch['operations'][] = array(
-      'islandora_basic_collection_regenerate_derivatives_batch_operation',
-      array($child, $dsids),
+  if (is_array($children)) {
+    $batch += array(
+      'title' => format_plural(count($children),
+        'Regenerating derivatives for 1 child.',
+        'Regenerating derivatives for @count children.'
+      ),
+      'init_message' => format_plural(count($children),
+        'Preparing to regenerate derivatives for 1 child.',
+        'Preparing to regenerate derivatives for @count children.'
+      ),
+    );
+    foreach ($children as $child) {
+      $batch['operations'][] = array(
+        'islandora_basic_collection_regenerate_derivatives_batch_operation',
+        array($child, $dsids),
+      );
+    }
+  }
+  else {
+    $batch += array(
+      'title' => 'Regenerating selected derivatives for all children in the collection.',
+      'init_message' => 'Preparing to regenerate derivatives for all children in the collection. Be aware that if one or more DSIDs with longer processing times were selected, this may take a long time.',
+      'operations' => array(
+        array(
+          'islandora_basic_collection_regenerate_all_derivatives_batch_operation',
+          array($dsids, $collection),
+        ),
+      ),
     );
   }
   return $batch;
@@ -547,35 +565,94 @@ function islandora_basic_collection_regenerate_derivatives_batch_operation($chil
 }
 
 /**
+ * Regenerates derivatives for all children in the collection.
+ *
+ * @param array $dsids
+ *   The DSIDs to regenerate derivatives for.
+ * @param AbstractObject $collection
+ *   The collection we are regenerating child derivatives in.
+ * @param array $context
+ *   The batch context.
+ */
+function islandora_basic_collection_regenerate_all_derivatives_batch_operation(array $dsids, AbstractObject $collection, &$context) {
+  module_load_include('inc', 'islandora', 'includes/derivatives');
+  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 10, 'manage');
+  $context['sandbox']['page']++;
+  if ($results) {
+    list ($count, $members) = $results;
+    if (!isset($context['sandbox']['current'])) {
+      $context['sandbox']['total_count'] = $count;
+      $context['sandbox']['current'] = 0;
+    }
+    foreach ($members as $result) {
+      $child = $result['object']['value'];
+      if ($child && $child = islandora_object_load($child)) {
+        foreach ($dsids as $dsid) {
+          $context['results'][] = islandora_do_derivatives($child, array(
+            'force' => TRUE,
+            'destination_dsid' => $dsid,
+          ));
+          $context['sandbox']['current']++;
+        }
+      }
+    }
+  }
+
+  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
+  $context['message'] = t('Regenerated selected derivatives for @current_num children in @source.', array(
+    '@current_num' => $context['sandbox']['current'],
+    '@source' => $collection->label,
+  ));
+}
+
+/**
  * Generates a batch for regenerating DC metadata.
  *
  * @param string[] $children
  *   An array of child PIDS to regenerate DC metadata for.
  * @param string[] $mapping
  *   The metadata mapping strategy to use when regenerating derivatives.
+ * @param AbstractObject $collection
+ *   The collection to perform batch operations on.
  *
  * @return array
  *   A Drupal batch array.
  */
-function islandora_basic_collection_regenerate_metadata_batch($children, $mapping) {
+function islandora_basic_collection_regenerate_metadata_batch($children, $mapping, AbstractObject $collection) {
   $batch = array(
     'finished' => 'islandora_basic_collection_derivative_regeneration_batch_finished',
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
     'error_message' => t('An error has occurred.'),
     'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
-    'title' => format_plural(count($children),
-      'Regenerating DC metadata for 1 child.',
-      'Regenerating DC metadata for @count children.'
-    ),
-    'init_message' => format_plural(count($children),
-      'Preparing to regenerate DC metadata for 1 child.',
-      'Preparing to regenerate DC metadata for @count children.'
-    ),
   );
-  foreach ($children as $child) {
-    $batch['operations'][] = array(
-      'islandora_basic_collection_regenerate_metadata_batch_operation',
-      array($child, $mapping),
+  if (is_array($children)) {
+    $batch += array(
+      'title' => format_plural(count($children),
+        'Regenerating DC metadata for 1 child.',
+        'Regenerating DC metadata for @count children.'
+      ),
+      'init_message' => format_plural(count($children),
+        'Preparing to regenerate DC metadata for 1 child.',
+        'Preparing to regenerate DC metadata for @count children.'
+      ),
+    );
+    foreach ($children as $child) {
+      $batch['operations'][] = array(
+        'islandora_basic_collection_regenerate_metadata_batch_operation',
+        array($child, $mapping),
+      );
+    }
+  }
+  else {
+    $batch += array(
+      'title' => 'Regenerating DC metadata for all children.',
+      'init_message' => 'Preparing to regenerate DC metadata for all children.',
+      'operations' => array(
+        array(
+          'islandora_basic_collection_regenerate_all_metadata_batch_operation',
+          array($mapping, $collection),
+        ),
+      ),
     );
   }
   return $batch;
@@ -606,6 +683,41 @@ function islandora_basic_collection_regenerate_metadata_batch_operation($child, 
     $context['message'] = "Skipping DC metadata regeneration for $child: unable to load object.";
   }
   $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['total'];
+}
+
+/**
+ * Batch operation for regenerating all collection metadata in batch.
+ *
+ * @param string $mapping
+ *   The mapping strategy to use.
+ * @param AbstractObject $collection
+ *   The collection we are regenerating all metadata for.
+ * @param array $context
+ *   The batch context.
+ */
+function islandora_basic_collection_regenerate_all_metadata_batch_operation($mapping, $collection, &$context) {
+  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 10, 'manage');
+  $context['sandbox']['page']++;
+  if ($results) {
+    list ($count, $members) = $results;
+    if (!isset($context['sandbox']['current'])) {
+      $context['sandbox']['total_count'] = $count;
+      $context['sandbox']['current'] = 0;
+    }
+    foreach ($members as $result) {
+      $child = $result['object']['value'];
+      if ($child && $child = islandora_object_load($child)) {
+        islandora_basic_collection_regenerate_dc_metadata($child, $mapping);
+        $context['sandbox']['current']++;
+      }
+    }
+  }
+
+  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
+  $context['message'] = t('Regenerated DC metadata for @current_num children in @source.', array(
+    '@current_num' => $context['sandbox']['current'],
+    '@source' => $collection->label,
+  ));
 }
 
 /**

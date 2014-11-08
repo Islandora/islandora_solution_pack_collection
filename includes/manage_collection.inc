@@ -641,13 +641,13 @@ function islandora_basic_collection_regenerate_derivatives_form_submit(array $fo
   $clicked_button = end($form_state['clicked_button']['#parents']);
   $collection = $form_state['collection'];
   if ($clicked_button === 'submit_all') {
-    $children = islandora_basic_collection_get_child_pids($collection, $form_state['values']['content_model']);
+    $children = NULL;
   }
   else {
     $children = array_keys(array_filter($form_state['values']['children']));
   }
   module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
-  $batch = islandora_basic_collection_regenerate_derivatives_batch($children, array_keys(array_filter($form_state['values']['dsids'])));
+  $batch = islandora_basic_collection_regenerate_derivatives_batch($children, array_keys(array_filter($form_state['values']['dsids'])), $collection);
   batch_set($batch);
 }
 
@@ -791,12 +791,12 @@ function islandora_basic_collection_regenerate_metadata_form_submit(array $form,
   $clicked_button = end($form_state['clicked_button']['#parents']);
   $collection = $form_state['collection'];
   if ($clicked_button === 'submit_all') {
-    $children = islandora_basic_collection_get_child_pids($collection, $form_state['values']['content_model']);
+    $children = NULL;
   }
   else {
     $children = array_keys(array_filter($form_state['values']['children']));
   }
   module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
-  $batch = islandora_basic_collection_regenerate_metadata_batch($children, $form_state['values']['mapping']);
+  $batch = islandora_basic_collection_regenerate_metadata_batch($children, $form_state['values']['mapping'], $collection);
   batch_set($batch);
 }
