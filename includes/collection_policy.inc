@@ -110,10 +110,9 @@ EOT;
   public function addContentModel($pid, $name, $namespace) {
     $content_models_element = $this->xml->getElementsByTagName('content_models');
     $content_model_element = $content_models_element->item(0)->getElementsByTagName('content_model');
-
     $content_model_element = $this->xml->createElement('content_model');
     $content_model_element->setAttribute('name', $name);
-    $content_model_element->setAttribute('dsid', variable_get('Islandora_Content_Model_DSID', 'ISLANDORACM'));
+    $content_model_element->setAttribute('dsid', variable_get('Islandora_Content_Model_DSID', ''));
     $content_model_element->setAttribute('namespace', $namespace);
     $content_model_element->setAttribute('pid', $pid);
     $content_models_element->item(0)->appendChild($content_model_element);

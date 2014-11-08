@@ -41,7 +41,7 @@ class IslandoraBasicCollectionUsagePermissionsTestCase extends IslandoraCollecti
     $edit = array(
       'islandora_basic_collection_page_size' => 5,
     );
-    $this->drupalPost('admin/islandora/basic_collection', $edit, 'Save configuration');
+    $this->drupalPost('admin/islandora/solution_pack_config/basic_collection', $edit, 'Save configuration');
     $this->drupalLogout();
 
     // Creates a test collection.

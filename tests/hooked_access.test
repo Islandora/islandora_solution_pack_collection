@@ -85,7 +85,7 @@ class IslandoraBasicCollectionHookedAccessTestCase extends IslandoraWebTestCase 
 
       $cp = $object->constructDatastream('COLLECTION_POLICY', 'M');
       $cp->label = 'Collection policy shenanigans';
-      $cp->mimetype = 'text/xml';
+      $cp->mimetype = 'application/xml';
       $c = CollectionPolicy::emptyPolicy();
       $c->addContentModel('islandora:collectionCModel', "Collection content model", 'test');
       $cp->content = $c->getXML();

@@ -48,7 +48,7 @@ function islandora_basic_collection_get_content_models_as_form_options(array $co
  */
 function islandora_basic_collection_get_other_collections_as_form_options(AbstractObject $object) {
   $map_options = function($o) {
-    return $o['label'];
+    return filter_xss($o['label']);
   };
   $options = array_map($map_options, islandora_basic_collection_get_collections());
   // Ignore given collection.
@@ -101,8 +101,20 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   $rows = array();
   foreach ($results as $result) {
     $pid = $result['object']['value'];
-    $label = empty($result['title']['value']) ? t('Untitled') : $result['title']['value'];
+    $label = empty($result['title']['value']) ? t('Untitled') : filter_xss($result['title']['value']);
+    $owner = empty($result['owner']['value']) ? t('Unowned') : filter_xss($result['owner']['value']);
+    $date_modified = empty($result['date_modified']['value']) ? t('Unknown') : filter_xss($result['date_modified']['value']);
     $rows[$pid] = array(
+      'owner' => array(
+        'data' => array(
+          '#markup' => '<div>' . $owner . '</div>',
+        ),
+      ),
+      'date_modified' => array(
+        'data' => array(
+          '#markup' => '<div>' . $date_modified . '</div>',
+        ),
+      ),
       'label' => array(
         'data' => array(
           '#type' => 'link',
@@ -116,7 +128,10 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   $pager = preg_replace($pattern, $replace, $pager);
   return array(
     '#type' => 'tableselect',
-    '#header' => array('label' => array('data' => t('Label'))),
+    '#header' => array(
+      'label' => array('data' => t('Label')),
+      'owner' => array('data' => t('Owner')),
+      'date_modified' => array('data' => t('Date Modified'))),
     '#options' => $rows,
     '#empty' => t('Collection is empty.'),
     '#prefix' => $pager,
@@ -222,4 +237,31 @@ function islandora_basic_collection_add_to_collection(AbstractObject $new_member
 function islandora_basic_collection_remove_from_collection(AbstractObject $member, AbstractObject $collection) {
   $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
   $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOf', $collection->id);
+}
+
+/**
+ * Searches through available collection objects.
+ *
+ * @param string $search_value
+ *   Returns a json array of matching collections.
+ */
+function islandora_basic_collection_get_collections_filtered($search_value) {
+  $tuque = islandora_get_tuque_connection();
+  $sparql_query = <<<EOQ
+SELECT ?pid ?label
+WHERE {
+  ?pid <fedora-model:label> ?label ;
+       <fedora-model:hasModel> <info:fedora/islandora:collectionCModel> .
+  FILTER(regex(?label, '$search_value') || regex(str(?pid), '$search_value' ))
+}
+EOQ;
+  $results = $tuque->repository->ri->sparqlQuery($sparql_query);
+  $return = array();
+  foreach ($results as $objects) {
+    $return[$objects['pid']['value']] = t('@label (@pid)', array(
+      '@label' => $objects['label']['value'],
+      '@pid' => $objects['pid']['value'],
+    ));
+  }
+  drupal_json_output($return);
 }

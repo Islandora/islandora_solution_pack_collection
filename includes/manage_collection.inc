@@ -93,6 +93,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
   );
   return $form_state;
 }
+
 /**
  * Define child collection form.
  *
@@ -258,7 +259,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     '#action' => request_uri() . '#policy-management',
     'help' => array(
       '#type' => 'item',
-      '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA711/How+to+Manage+Collection+Policies', array()),
+      '#markup' => l(t('About Collection Policies'), 'https://wiki.duraspace.org/display/ISLANDORA713/How+to+Manage+Collection+Policies', array()),
     ),
     'table' => array(
       '#tree' => TRUE,
@@ -330,6 +331,10 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
       '#type' => 'submit',
       '#value' => t('Share selected objects'),
     ),
+    'submit_all' => array(
+      '#type' => 'submit',
+      '#value' => t('Share All Objects'),
+    ),
   );
 }
 
@@ -344,8 +349,15 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
 function islandora_basic_collection_share_children_form_submit(array $form, array &$form_state) {
   $collection = $form_state['collection'];
   $new_collection = islandora_object_load($form_state['values']['collection']);
-  $children = array_keys(array_filter($form_state['values']['children']));
-  $batch = islandora_basic_collection_share_children_batch($collection, $new_collection, $children);
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  if ($clicked_button == 'submit_all') {
+    $batch = islandora_basic_collection_share_children_batch($collection, $new_collection, NULL);
+  }
+  else {
+    $children = array_keys(array_filter($form_state['values']['children']));
+    $batch = islandora_basic_collection_share_children_batch($collection, $new_collection, $children);
+  }
+
   batch_set($batch);
 }
 
@@ -381,6 +393,10 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#type' => 'submit',
       '#value' => t('Migrate selected objects'),
     ),
+    'submit_all' => array(
+      '#type' => 'submit',
+      '#value' => t('Migrate All Objects'),
+    ),
   );
 }
 
@@ -395,8 +411,14 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
 function islandora_basic_collection_migrate_children_form_submit(array $form, array &$form_state) {
   $collection = $form_state['collection'];
   $new_collection = islandora_object_load($form_state['values']['collection']);
-  $children = array_keys(array_filter($form_state['values']['children']));
-  $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, $children);
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  if ($clicked_button == 'submit_all') {
+    $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, NULL);
+  }
+  else {
+    $children = array_keys(array_filter($form_state['values']['children']));
+    $batch = islandora_basic_collection_migrate_children_batch($collection, $new_collection, $children);
+  }
   batch_set($batch);
 }
 

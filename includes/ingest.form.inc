@@ -8,11 +8,6 @@
 // Constants.
 define('ISLANDORA_BASIC_COLLECTION_FAKE_PID', 'fake:pid');
 
-// @codingStandardsIgnoreStart
-// XXX: This should be removed at some point in the future.
-define('FAKE_PID', ISLANDORA_BASIC_COLLECTION_FAKE_PID);
-// @codingStandardsIgnoreEnd
-
 /**
  * Manage action that for ingestion of an object into the given collection.
  *
@@ -95,7 +90,7 @@ function islandora_basic_collection_select_content_model_form(array $form, array
       '#type' => 'select',
       '#title' => t('Select a Content Model to Ingest'),
       '#options' => $options,
-      '#default' => $model,
+      '#default_value' => $model,
       '#ajax' => array(
         'callback' => 'islandora_basic_collection_select_content_model_form_ajax_callback',
         'wrapper' => 'islandora-select-content-model-wrapper',

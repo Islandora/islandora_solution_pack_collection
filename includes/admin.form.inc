@@ -30,6 +30,12 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
       '#default_value' => variable_get('islandora_basic_collection_disable_collection_policy_delete', TRUE),
       '#description' => t("Disables the 'delete' link for the COLLECTION_POLICY datastream."),
     ),
+    'islandora_basic_collection_disable_count_object' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Disable object count query in collection view'),
+      '#default_value' => variable_get('islandora_basic_collection_disable_count_object', FALSE),
+      '#description' => t("Disabling the object count query can improve performance when viewing large collections"),
+    ),
     'islandora_basic_collection_default_view' => array(
       '#type' => 'select',
       '#title' => t('Default collection view style.'),
