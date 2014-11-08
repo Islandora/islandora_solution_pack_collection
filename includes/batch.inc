@@ -56,6 +56,23 @@ function islandora_basic_collection_batch_finished($success, $results, $operatio
 }
 
 /**
+ * A batch 'finished' callback for derivative regeneration that includes logs.
+ */
+function islandora_basic_collection_derivative_regeneration_batch_finished($success, $results, $operations) {
+  if (!$success) {
+    $error_operation = reset($operations);
+    $message = t('An error occurred while processing %error_operation with arguments: @arguments', array(
+      '%error_operation' => $error_operation[0],
+      '@arguments' => print_r($error_operation[1], TRUE)));
+    drupal_set_message($message, 'error');
+  }
+  module_load_include('inc', 'islandora', 'includes/derivatives');
+  if (!empty($results['logging'])) {
+    islandora_derivative_logging($results['logging']);
+  }
+}
+
+/**
  * Delete the given child objects within the collection.
  *
  * If no child objects are given its assumed all child objects are to be
@@ -458,4 +475,178 @@ function islandora_basic_collection_share_all_children_batch_operation(AbstractO
                         '@source' => $source->label,
                         '@destination' => $destination->label,
                         ));
+}
+
+/**
+ * Generates a batch for regenerating derivatives.
+ *
+ * @param string[] $children
+ *   An array of child PIDS to regenerate derivatives for.
+ * @param string[] $dsids
+ *   An array of DSIDs representing the derivative destination DSIDs that should
+ *   be generated.
+ *
+ * @return array
+ *   A Drupal batch array.
+ */
+function islandora_basic_collection_regenerate_derivatives_batch($children, $dsids) {
+  $batch = array(
+    'finished' => 'islandora_basic_collection_derivative_regeneration_batch_finished',
+    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
+    'error_message' => t('An error has occurred.'),
+    'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
+    'title' => format_plural(count($children),
+      'Regenerating derivatives for 1 child.',
+      'Regenerating derivatives for @count children.'
+    ),
+    'init_message' => format_plural(count($children),
+      'Preparing to regenerate derivatives for 1 child.',
+      'Preparing to regenerate derivatives for @count children.'
+    ),
+  );
+  foreach ($children as $child) {
+    $batch['operations'][] = array(
+      'islandora_basic_collection_regenerate_derivatives_batch_operation',
+      array($child, $dsids),
+    );
+  }
+  return $batch;
+}
+
+/**
+ * Batch operation for the regenerate derivatives batch.
+ *
+ * @param string $child
+ *   The child to perform the regeneration for.
+ * @param string[] $dsids
+ *   The DSIDs to regenerate on the child.
+ * @param array $context
+ *   The batch context.
+ */
+function islandora_basic_collection_regenerate_derivatives_batch_operation($child, array $dsids, &$context) {
+  module_load_include('inc', 'islandora', 'includes/derivatives');
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['total'] = count($dsids);
+  }
+  $child = islandora_object_load($child);
+  if ($child) {
+    foreach ($dsids as $dsid) {
+      $context['results'][] = islandora_do_derivatives($child, array(
+        'force' => TRUE,
+        'destination_dsid' => $dsid,
+      ));
+      $context['sandbox']['progress']++;
+    }
+    $context['message'] = "Regenerated selected derivatives for object {$child->id} ({$child->label})";
+  }
+  else {
+    $context['message'] = "Skipping derivative generation for $child: unable to load object.";
+  }
+  $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['total'];
+}
+
+/**
+ * Generates a batch for regenerating DC metadata.
+ *
+ * @param string[] $children
+ *   An array of child PIDS to regenerate DC metadata for.
+ * @param string[] $mapping
+ *   The metadata mapping strategy to use when regenerating derivatives.
+ *
+ * @return array
+ *   A Drupal batch array.
+ */
+function islandora_basic_collection_regenerate_metadata_batch($children, $mapping) {
+  $batch = array(
+    'finished' => 'islandora_basic_collection_derivative_regeneration_batch_finished',
+    'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
+    'error_message' => t('An error has occurred.'),
+    'file' => drupal_get_path('module', 'islandora_basic_collection') . '/includes/batch.inc',
+    'title' => format_plural(count($children),
+      'Regenerating DC metadata for 1 child.',
+      'Regenerating DC metadata for @count children.'
+    ),
+    'init_message' => format_plural(count($children),
+      'Preparing to regenerate DC metadata for 1 child.',
+      'Preparing to regenerate DC metadata for @count children.'
+    ),
+  );
+  foreach ($children as $child) {
+    $batch['operations'][] = array(
+      'islandora_basic_collection_regenerate_metadata_batch_operation',
+      array($child, $mapping),
+    );
+  }
+  return $batch;
+}
+
+/**
+ * Batch operation for the regenerate metadata batch.
+ *
+ * @param string $child
+ *   The child to perform the regeneration for.
+ * @param string $mapping
+ *   The mapping strategy to use.
+ * @param array $context
+ *   The batch context.
+ */
+function islandora_basic_collection_regenerate_metadata_batch_operation($child, $mapping, &$context) {
+  if (!isset($context['sandbox']['progress'])) {
+    $context['sandbox']['progress'] = 0;
+    $context['sandbox']['total'] = 1;
+  }
+  $child = islandora_object_load($child);
+  if ($child) {
+    islandora_basic_collection_regenerate_dc_metadata($child, $mapping);
+    $context['sandbox']['progress']++;
+    $context['message'] = "Regenerated DC metadata for object {$child->id} ({$child->label})";
+  }
+  else {
+    $context['message'] = "Skipping DC metadata regeneration for $child: unable to load object.";
+  }
+  $context['finished'] = $context['sandbox']['progress'] / $context['sandbox']['total'];
+}
+
+/**
+ * Actual DC metadata regeneration functionality.
+ *
+ * @param AbstractObject $child
+ *   The child to regenerate DC metadata for.
+ * @param string $mapping
+ *   The mapping strategy to use.
+ */
+function islandora_basic_collection_regenerate_dc_metadata(AbstractObject $child, $mapping) {
+  if (variable_get('xml_form_builder_use_default_dc_xslts', FALSE)) {
+    // In the case where default XSLTs are being used.
+    module_load_include('inc', 'xml_form_builder', 'includes/db');
+    $xslt_id = db_select('xml_form_builder_default_xslts', 'xd')
+      ->fields('xd', array('xslt_id'))
+      ->condition('id', $mapping, '=')
+      ->execute()
+      ->fetchField();
+    $transform = db_select('xml_form_builder_xslts', 'xs')
+      ->fields('xs', array('xslt'))
+      ->condition('xslt_id', $xslt_id, '=')
+      ->execute()
+      ->fetchField();
+    $source = db_select('xml_form_builder_default_xslts', 'xd')
+      ->fields('xd', array('dsid'))
+      ->condition('xslt_id', $xslt_id, '=')
+      ->execute()
+      ->fetchField();
+    $xslt = new DOMDocument();
+    if (!$xslt->loadXML($transform)) {
+      return FALSE;
+    }
+  }
+  // In the case where they're not.
+  else {
+    list ($xslt, $source) = explode(":", $mapping);
+  }
+  $document = new DOMDocument();
+  if ($document->loadXML($child[$source]->content)) {
+    return xml_form_builder_update_dc_datastream($child, $xslt, $document);
+  }
+  return FALSE;
 }
