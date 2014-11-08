@@ -774,6 +774,9 @@ function islandora_basic_collection_regenerate_metadata_form_validate(array $for
   if (empty($form_state['values']['children']) && $clicked_button === 'submit') {
     form_set_error('children', t('You must either select at least one child, or regenerate metadata for all objects.'));
   }
+  if (!isset($form_state['values']['mapping'])) {
+    form_set_error('mapping', t('No metadata mapping was selected.'));
+  }
 }
 
 /**
