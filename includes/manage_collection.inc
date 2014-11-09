@@ -533,7 +533,7 @@ function islandora_basic_collection_regenerate_derivatives_form(array $form, arr
         '#empty' => t('No derivative DSIDs for the selected content model.'),
       ),
       'children' => islandora_basic_collection_get_children_select_table_form_element($collection, array(
-                    'element' => 2,
+                    'element' => 3,
                     'fragment' => '#regenerate-derivatives',
                   ), $content_model),
       'submit' => array(
@@ -619,12 +619,14 @@ function islandora_basic_collection_get_current_form_state_content_model(array &
 function islandora_basic_collection_regenerate_derivatives_form_validate(array $form, array &$form_state) {
   $clicked_button = end($form_state['clicked_button']['#parents']);
   // At least one DSID must be selected to continue.
-  if (empty($form_state['values']['dsids'])) {
+  $dsids = array_keys(array_filter($form_state['values']['dsids']));
+  if (empty($dsids)) {
     form_set_error('dsids', t('You must select at least one DSID.'));
   }
   // At least one child must be selected to continue if the regular 'submit'
   // button was clicked instead of 'submit_all'.
-  if (empty($form_state['values']['children']) && $clicked_button === 'submit') {
+  $children = array_keys(array_filter($form_state['values']['dsids']));
+  if (empty($children) && $clicked_button === 'submit') {
     form_set_error('children', t('You must either select at least one child, or regenerate derivatives for all objects.'));
   }
 }
@@ -693,7 +695,7 @@ function islandora_basic_collection_regenerate_metadata_form(array $form, array 
         '#options' => islandora_basic_collection_regenerate_metadata_get_dc_xslts($content_model),
       ),
       'children' => islandora_basic_collection_get_children_select_table_form_element($collection, array(
-        'element' => 2,
+        'element' => 4,
         'fragment' => '#regenerate-metadata',
       ), $content_model),
       'submit' => array(
@@ -771,10 +773,11 @@ function islandora_basic_collection_regenerate_metadata_form_validate(array $for
   $clicked_button = end($form_state['clicked_button']['#parents']);
   // At least one child must be selected to continue if the regular 'submit'
   // button was clicked instead of 'submit_all'.
-  if (empty($form_state['values']['children']) && $clicked_button === 'submit') {
+  $children = array_keys(array_filter($form_state['values']['children']));
+  if (empty($children) && $clicked_button === 'submit') {
     form_set_error('children', t('You must either select at least one child, or regenerate metadata for all objects.'));
   }
-  if (!isset($form_state['values']['mapping'])) {
+  if (!$form_state['values']['mapping']) {
     form_set_error('mapping', t('No metadata mapping was selected.'));
   }
 }
