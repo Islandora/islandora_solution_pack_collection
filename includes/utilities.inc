@@ -125,7 +125,6 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   }
   // Theme pager doesn't support url fragments in D7 so we insert manually.
   $pager = theme('pager', array('quantity' => 10, 'element' => $pager_options['element']));
-  dd($pager);
   $pattern = '/href="([^"]+)"/';
   $replace = $content_model ? 'href="\1' . "&content_model={$content_model}{$pager_options['fragment']}" . '"' : 'href="\1' . $pager_options['fragment'] . '"';
   $pager = preg_replace($pattern, $replace, $pager);
