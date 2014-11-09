@@ -53,6 +53,8 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     'share_children' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
     'migrate_children' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS, $object),
     'delete_children' => islandora_object_access(ISLANDORA_PURGE, $object),
+    'regenerate_derivatives' => islandora_object_access(ISLANDORA_REGENERATE_DERIVATIVES, $object),
+    'regenerate_metadata' => islandora_object_access(ISLANDORA_REGENERATE_DERIVATIVES, $object),
   );
   // Build forms for only the accessible elements.
   foreach ($access as $element => $accessible) {
@@ -91,6 +93,24 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
     '#title' => t('Delete members of this collection'),
     'form' => $forms['delete_children'],
   );
+  $form_state['manage_collection_object']['regenerate_derivatives'] = array(
+    '#id' => 'regenerate-derivatives',
+    '#group' => 'manage_collection_object',
+    '#access' => $access['regenerate_derivatives'],
+    '#type' => 'fieldset',
+    '#title' => t('Regenerate child derivatives'),
+    'form' => $forms['regenerate_derivatives'],
+  );
+  if (module_exists('xml_form_builder')) {
+    $form_state['manage_collection_object']['regenerate_metadata'] = array(
+      '#id' => 'regenerate-metadata',
+      '#group' => 'manage_collection_object',
+      '#access' => $access['regenerate_metadata'],
+      '#type' => 'fieldset',
+      '#title' => t('Regenerate child DC metadata'),
+      'form' => $forms['regenerate_metadata'],
+    );
+  }
   return $form_state;
 }
 
@@ -466,5 +486,332 @@ function islandora_basic_collection_delete_children_form_submit(array $form, arr
   $collection = $form_state['collection'];
   $children = array_keys(array_filter($form_state['values']['children']));
   $batch = islandora_basic_collection_delete_children_batch($collection, $children);
+  batch_set($batch);
+}
+
+/**
+ * Derivative regeneration form.
+ *
+ * @param array $form
+ *   The Drupal form.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @param AbstractObject $collection
+ *   The collection to generate the form for.
+ *
+ * @return array
+ *   A form containing controls to trigger derivative regeneration.
+ */
+function islandora_basic_collection_regenerate_derivatives_form(array $form, array &$form_state, AbstractObject $collection) {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
+  $form_state['collection'] = $collection;
+  $content_models = islandora_basic_collection_get_content_models_as_form_options(islandora_basic_collection_get_child_content_models($collection));
+  $content_model = islandora_basic_collection_get_current_content_model($collection, $form_state);
+  $form = array(
+    'regenerate_derivatives_wrapper' => array(
+      '#action' => request_uri() . "#regenerate-derivatives",
+      '#prefix' => '<div id="regenerate-derivatives-wrapper">',
+      '#suffix' => '</div>',
+      'content_model' => array(
+        '#type' => 'select',
+        '#title' => t('Content model to target'),
+        '#options' => $content_models,
+        '#default_value' => $content_model,
+        '#ajax' => array(
+          'callback' => 'islandora_basic_collection_update_regenerate_derivatives_list',
+          'wrapper' => 'regenerate-derivatives-wrapper',
+          'effect' => 'fade',
+          'event' => 'change',
+          'progress' => array('type' => 'throbber'),
+        ),
+      ),
+      'dsids' => array(
+        '#type' => 'tableselect',
+        '#header' => array(
+          'dsid' => t('DSID'),
+        ),
+        '#options' => islandora_basic_collection_regenerate_derivatives_form_get_derivatives_list($content_model),
+        '#empty' => t('No derivative DSIDs for the selected content model.'),
+      ),
+      'children' => islandora_basic_collection_get_children_select_table_form_element($collection, array(
+                    'element' => 3,
+                    'fragment' => '#regenerate-derivatives',
+                  ), $content_model),
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Regenerate selected derivatives for selected objects'),
+      ),
+      'submit_all' => array(
+        '#type' => 'submit',
+        '#value' => t('Regenerate selected derivatives for all collection objects'),
+      ),
+    ),
+  );
+  $form['regenerate_derivatives_wrapper']['children']['#empty'] = t("No children found for the selected content model.");
+  return $form;
+}
+
+/**
+ * Callback to update the regenerate derivatives form when the cmodel changes.
+ *
+ * @param array $form
+ *   The Drupal form.
+ * @param array $form_state
+ *   The Drupal form state.
+ *
+ * @return array
+ *   The 'regenerate_derivatives_wrapper' section of the form.
+ */
+function islandora_basic_collection_update_regenerate_derivatives_list(array $form, array &$form_state) {
+  return $form["regenerate_derivatives_wrapper"];
+}
+
+/**
+ * Gets a list of derivatives specified by the given content model.
+ *
+ * These are returned in a format appropriate for the regenerate derivatives
+ * 'dsids' tableselect field.
+ *
+ * @param string $content_model
+ *   The content model to retrieve derivatives for.
+ *
+ * @return array
+ *   An array of DSIDs that can be used in the regenerate derivatives 'dsids'
+ *   tableselect field.
+ */
+function islandora_basic_collection_regenerate_derivatives_form_get_derivatives_list($content_model) {
+  $content_model = islandora_object_load($content_model);
+  if ($content_model) {
+    module_load_include('inc', 'islandora', 'includes/utilities');
+    $dsids = array();
+    foreach (islandora_invoke_hook_list(ISLANDORA_DERVIATIVE_CREATION_HOOK, array($content_model), array()) as $derivative_hook) {
+      $dsids[$derivative_hook['destination_dsid']] = array('dsid' => $derivative_hook['destination_dsid']);
+    }
+    return $dsids;
+  }
+  return array();
+}
+
+/**
+ * Gets the currently selected content model in the form state.
+ *
+ * @param AbstractObject $collection
+ *   The collection we are getting the current content model for.
+ * @param array $form_state
+ *   The Drupal form state.
+ *
+ * @return string
+ *   The content model currently selected in the 'content_model' select field
+ *   of the regenerate derivatives form.
+ */
+function islandora_basic_collection_get_current_content_model(AbstractObject $collection, array $form_state) {
+  if (isset($form_state['values'])) {
+    if (isset($form_state['values']['content_model'])) {
+      return $form_state['values']['content_model'];
+    }
+  }
+  $params = drupal_get_query_parameters();
+  if (isset($params['content_model'])) {
+    return $params['content_model'];
+  }
+  $content_models = islandora_basic_collection_get_content_models_as_form_options(islandora_basic_collection_get_child_content_models($collection));
+  reset($content_models);
+  return key($content_models);
+}
+
+/**
+ * Validation for the regenerate derivatives form.
+ *
+ * @param array $form
+ *   The Drupal form.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_basic_collection_regenerate_derivatives_form_validate(array $form, array &$form_state) {
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  // At least one DSID must be selected to continue.
+  $dsids = array_keys(array_filter($form_state['values']['dsids']));
+  if (empty($dsids)) {
+    form_set_error('dsids', t('You must select at least one DSID.'));
+  }
+  // At least one child must be selected to continue if the regular 'submit'
+  // button was clicked instead of 'submit_all'.
+  $children = array_keys(array_filter($form_state['values']['children']));
+  if (empty($children) && $clicked_button === 'submit') {
+    form_set_error('children', t('You must either select at least one child, or regenerate derivatives for all objects.'));
+  }
+}
+
+/**
+ * Submit handler for the regenerate derivatives form.
+ *
+ * @param array $form
+ *   The Drupal form.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_basic_collection_regenerate_derivatives_form_submit(array $form, array &$form_state) {
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  $collection = $form_state['collection'];
+  if ($clicked_button === 'submit_all') {
+    $children = NULL;
+  }
+  else {
+    $children = array_keys(array_filter($form_state['values']['children']));
+  }
+  module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
+  $batch = islandora_basic_collection_regenerate_derivatives_batch($children, array_keys(array_filter($form_state['values']['dsids'])), $collection, $form_state['values']['content_model']);
+  batch_set($batch);
+}
+
+/**
+ * The form for regenerating metadata.
+ *
+ * @param array $form
+ *   The Drupal form.
+ * @param array $form_state
+ *   The Drupal form state.
+ * @param AbstractObject $collection
+ *   The collection to manipulate child metadata for.
+ *
+ * @return array
+ *   A form containing controls for regenerating child metadata.
+ */
+function islandora_basic_collection_regenerate_metadata_form(array $form, array &$form_state, AbstractObject $collection) {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
+  module_load_include('inc', 'xml_form_builder', 'includes/db');
+  $form_state['collection'] = $collection;
+  $content_models = islandora_basic_collection_get_content_models_as_form_options(islandora_basic_collection_get_child_content_models($collection));
+  $content_model = islandora_basic_collection_get_current_content_model($collection, $form_state);
+  $form = array(
+    '#action' => request_uri() . '#regenerate-metadata',
+    'regenerate_metadata_wrapper' => array(
+      '#prefix' => '<div id="regenerate-metadata-wrapper">',
+      '#suffix' => '</div>',
+      'content_model' => array(
+        '#type' => 'select',
+        '#title' => t('Content model to target'),
+        '#options' => $content_models,
+        '#default_value' => $content_model,
+        '#ajax' => array(
+          'callback' => 'islandora_basic_collection_update_regenerate_metadata_list',
+          'wrapper' => 'regenerate-metadata-wrapper',
+          'effect' => 'fade',
+          'event' => 'change',
+          'progress' => array('type' => 'throbber'),
+        ),
+      ),
+      'mapping' => array(
+        '#type' => 'select',
+        '#title' => t('Mapping to use'),
+        '#options' => islandora_basic_collection_regenerate_metadata_get_dc_xslts($content_model),
+      ),
+      'children' => islandora_basic_collection_get_children_select_table_form_element($collection, array(
+        'element' => 4,
+        'fragment' => '#regenerate-metadata',
+      ), $content_model),
+      'submit' => array(
+        '#type' => 'submit',
+        '#value' => t('Regenerate DC metadata for selected objects'),
+      ),
+      'submit_all' => array(
+        '#type' => 'submit',
+        '#value' => t('Regenerate DC metadata for all collection objects'),
+      ),
+    ),
+  );
+  $form['regenerate_metadata_wrapper']['children']['#empty'] = t("No children found for the selected content model.");
+  return $form;
+}
+
+/**
+ * Callback to update the regenerate metadata form when the cmodel changes.
+ *
+ * @param array $form
+ *   The Drupal form.
+ * @param array $form_state
+ *   The Drupal form state.
+ *
+ * @return array
+ *   The 'regenerate_metadata_wrapper' section of the form.
+ */
+function islandora_basic_collection_update_regenerate_metadata_list(array $form, array $form_state) {
+  return $form["regenerate_metadata_wrapper"];
+}
+
+/**
+ * Gets the list of either default DC XSLTs or hooked DC XSLTs.
+ *
+ * @param string $content_model
+ *   The content model to get default DC XSLTs for.
+ *
+ * @return array
+ *   An array of XSLTs for the current content model.
+ */
+function islandora_basic_collection_regenerate_metadata_get_dc_xslts($content_model) {
+  $xslts = array();
+  module_load_include('inc', 'xml_form_builder', 'includes/db');
+  if (variable_get('xml_form_builder_use_default_dc_xslts', FALSE)) {
+    $mappings = xml_form_builder_get_default_dc_xslt_mappings();
+    foreach ($mappings as $mapping) {
+      if ($mapping['content_model'] === $content_model) {
+        $xslts[$mapping['id']] = $mapping['name'];
+      }
+    }
+  }
+  else {
+    $associations = module_invoke_all('islandora_xml_form_builder_form_associations');
+    // @TODO: This is supposed to be deprecated eventually.
+    $associations += module_invoke_all('islandora_content_model_forms_form_associations');
+    foreach ($associations as $association) {
+      if ($association['content_model'] === $content_model) {
+        $xslts["{$association['transform']}:{$association['dsid']}"] = "{$association['transform']} - {$association['dsid']}";
+      }
+    }
+    $xslts = array_unique($xslts);
+  }
+  return $xslts;
+}
+
+/**
+ * Validation for the regenerate metadata form.
+ *
+ * @param array $form
+ *   The Drupal form.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_basic_collection_regenerate_metadata_form_validate(array $form, array &$form_state) {
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  // At least one child must be selected to continue if the regular 'submit'
+  // button was clicked instead of 'submit_all'.
+  $children = array_keys(array_filter($form_state['values']['children']));
+  if (empty($children) && $clicked_button === 'submit') {
+    form_set_error('children', t('You must either select at least one child, or regenerate metadata for all objects.'));
+  }
+  if (!$form_state['values']['mapping']) {
+    form_set_error('mapping', t('No metadata mapping was selected.'));
+  }
+}
+
+/**
+ * Submit handler for the regenerate metadata form.
+ *
+ * @param array $form
+ *   The Drupal form.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_basic_collection_regenerate_metadata_form_submit(array $form, array &$form_state) {
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  $collection = $form_state['collection'];
+  if ($clicked_button === 'submit_all') {
+    $children = NULL;
+  }
+  else {
+    $children = array_keys(array_filter($form_state['values']['children']));
+  }
+  module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
+  $batch = islandora_basic_collection_regenerate_metadata_batch($children, $form_state['values']['mapping'], $collection, $form_state['values']['content_model']);
   batch_set($batch);
 }

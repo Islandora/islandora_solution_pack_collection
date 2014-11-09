@@ -87,16 +87,18 @@ function islandora_basic_collection_get_namespace_form_element($default_value) {
  *   An associative array containing options to pass onto the pager.
  *   - element: The numeric ID of the pager
  *   - fragment: The url fragment to append onto pager links, includes '#'.
+ * @param string|null $content_model
+ *   A content model to filter children by. Use NULL for all content models.
  *
  * @return array
  *   A Drupal select table form element.
  */
-function islandora_basic_collection_get_children_select_table_form_element(AbstractObject $object, array $pager_options) {
+function islandora_basic_collection_get_children_select_table_form_element(AbstractObject $object, array $pager_options, $content_model = NULL) {
   // Assumes all results are returned although the function description
   // states otherwise.
   $limit = 10;
   $page = pager_find_page($pager_options['element']);
-  list($count, $results) = islandora_basic_collection_get_member_objects($object, $page, $limit, 'manage');
+  list($count, $results) = islandora_basic_collection_get_member_objects($object, $page, $limit, 'manage', $content_model);
   $page = pager_default_initialize($count, $limit, $pager_options['element']);
   $rows = array();
   foreach ($results as $result) {
@@ -124,8 +126,14 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   // Theme pager doesn't support url fragments in D7 so we insert manually.
   $pager = theme('pager', array('quantity' => 10, 'element' => $pager_options['element']));
   $pattern = '/href="([^"]+)"/';
-  $replace = 'href="\1' . $pager_options['fragment'] . '"';
+  $replace = $content_model ? 'href="\1' . "&content_model={$content_model}{$pager_options['fragment']}" . '"' : 'href="\1' . $pager_options['fragment'] . '"';
   $pager = preg_replace($pattern, $replace, $pager);
+  // Keep the AJAX path out of the pager.
+  if ($content_model && islandora_object_load($content_model)) {
+    $pattern = '/system\/ajax/';
+    $replace = "islandora/object/{$object->id}/manage/collection";
+    $pager = preg_replace($pattern, $replace, $pager);
+  }
   return array(
     '#type' => 'tableselect',
     '#header' => array(
@@ -264,4 +272,37 @@ EOQ;
     ));
   }
   drupal_json_output($return);
+}
+
+/**
+ * Queries a collection for its configured content models.
+ *
+ * @param AbstractObject $collection
+ *   The collection to query.
+ *
+ * @return array
+ *   An array of content models.
+ */
+function islandora_basic_collection_get_child_content_models(AbstractObject $collection) {
+  $model_query = islandora_basic_collection_get_query_info(array(
+    'object' => $collection,
+    'page_size' => -1,
+    'page_number' => 0,
+    'vars' => '?model',
+    'order_by' => FALSE,
+  ));
+  $models = (array) $collection->repository->ri->query($model_query['query'], $model_query['type']);
+  $model_array = array();
+  foreach ($models as $model) {
+    $model_pid = $model['model']['value'];
+    if ($model_pid === 'fedora-system:FedoraObject-3.0') {
+      continue;
+    }
+    $cmodel = islandora_object_load($model_pid);
+    $model_array[$model_pid] = array(
+      'pid' => $model_pid,
+      'label' => $cmodel->label,
+    );
+  }
+  return $model_array;
 }
