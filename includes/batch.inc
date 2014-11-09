@@ -487,11 +487,13 @@ function islandora_basic_collection_share_all_children_batch_operation(AbstractO
  *   be generated.
  * @param AbstractObject $collection
  *   The collection we are generating derivatives for.
+ * @param string $content_model
+ *   The content model to use in the case of a call to 'regenerate all'.
  *
  * @return array
  *   A Drupal batch array.
  */
-function islandora_basic_collection_regenerate_derivatives_batch($children, $dsids, AbstractObject $collection) {
+function islandora_basic_collection_regenerate_derivatives_batch($children, $dsids, AbstractObject $collection, $content_model) {
   $batch = array(
     'finished' => 'islandora_basic_collection_derivative_regeneration_batch_finished',
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
@@ -523,7 +525,7 @@ function islandora_basic_collection_regenerate_derivatives_batch($children, $dsi
       'operations' => array(
         array(
           'islandora_basic_collection_regenerate_all_derivatives_batch_operation',
-          array($dsids, $collection),
+          array($dsids, $collection, $content_model),
         ),
       ),
     );
@@ -571,12 +573,14 @@ function islandora_basic_collection_regenerate_derivatives_batch_operation($chil
  *   The DSIDs to regenerate derivatives for.
  * @param AbstractObject $collection
  *   The collection we are regenerating child derivatives in.
+ * @param string $content_model
+ *   The content model to regenerate all derivatives for.
  * @param array $context
  *   The batch context.
  */
-function islandora_basic_collection_regenerate_all_derivatives_batch_operation(array $dsids, AbstractObject $collection, &$context) {
+function islandora_basic_collection_regenerate_all_derivatives_batch_operation(array $dsids, AbstractObject $collection, $content_model, &$context) {
   module_load_include('inc', 'islandora', 'includes/derivatives');
-  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 10, 'manage');
+  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 10, 'manage', $content_model);
   $context['sandbox']['page']++;
   if ($results) {
     list ($count, $members) = $results;
@@ -599,8 +603,9 @@ function islandora_basic_collection_regenerate_all_derivatives_batch_operation(a
   }
 
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
-  $context['message'] = t('Regenerated selected derivatives for @current_num children in @source.', array(
+  $context['message'] = t('Regenerated selected derivatives for @current_num @cmodel children in @source.', array(
     '@current_num' => $context['sandbox']['current'],
+    '@cmodel' => $content_model,
     '@source' => $collection->label,
   ));
 }
@@ -614,11 +619,13 @@ function islandora_basic_collection_regenerate_all_derivatives_batch_operation(a
  *   The metadata mapping strategy to use when regenerating derivatives.
  * @param AbstractObject $collection
  *   The collection to perform batch operations on.
+ * @param string $content_model
+ *   The content model to regenerate for if regenerating all metadata.
  *
  * @return array
  *   A Drupal batch array.
  */
-function islandora_basic_collection_regenerate_metadata_batch($children, $mapping, AbstractObject $collection) {
+function islandora_basic_collection_regenerate_metadata_batch($children, $mapping, AbstractObject $collection, $content_model) {
   $batch = array(
     'finished' => 'islandora_basic_collection_derivative_regeneration_batch_finished',
     'progress_message' => t('Time elapsed: @elapsed <br/>Estimated time remaining @estimate.'),
@@ -650,7 +657,7 @@ function islandora_basic_collection_regenerate_metadata_batch($children, $mappin
       'operations' => array(
         array(
           'islandora_basic_collection_regenerate_all_metadata_batch_operation',
-          array($mapping, $collection),
+          array($mapping, $collection, $content_model),
         ),
       ),
     );
@@ -692,11 +699,13 @@ function islandora_basic_collection_regenerate_metadata_batch_operation($child, 
  *   The mapping strategy to use.
  * @param AbstractObject $collection
  *   The collection we are regenerating all metadata for.
+ * @param string $content_model
+ *   The content model to regenerate all metadata for.
  * @param array $context
  *   The batch context.
  */
-function islandora_basic_collection_regenerate_all_metadata_batch_operation($mapping, $collection, &$context) {
-  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 10, 'manage');
+function islandora_basic_collection_regenerate_all_metadata_batch_operation($mapping, $collection, $content_model, &$context) {
+  $results = islandora_basic_collection_get_member_objects($collection, $context['sandbox']['page'], 10, 'manage', $content_model);
   $context['sandbox']['page']++;
   if ($results) {
     list ($count, $members) = $results;
@@ -714,8 +723,9 @@ function islandora_basic_collection_regenerate_all_metadata_batch_operation($map
   }
 
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
-  $context['message'] = t('Regenerated DC metadata for @current_num children in @source.', array(
+  $context['message'] = t('Regenerated DC metadata for @current_num @cmodel children in @source.', array(
     '@current_num' => $context['sandbox']['current'],
+    '@cmodel' => $content_model,
     '@source' => $collection->label,
   ));
 }

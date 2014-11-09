@@ -660,7 +660,7 @@ function islandora_basic_collection_regenerate_derivatives_form_submit(array $fo
     $children = array_keys(array_filter($form_state['values']['children']));
   }
   module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
-  $batch = islandora_basic_collection_regenerate_derivatives_batch($children, array_keys(array_filter($form_state['values']['dsids'])), $collection);
+  $batch = islandora_basic_collection_regenerate_derivatives_batch($children, array_keys(array_filter($form_state['values']['dsids'])), $collection, $form_state['values']['content_model']);
   batch_set($batch);
 }
 
@@ -812,6 +812,6 @@ function islandora_basic_collection_regenerate_metadata_form_submit(array $form,
     $children = array_keys(array_filter($form_state['values']['children']));
   }
   module_load_include('inc', 'islandora_basic_collection', 'includes/batch');
-  $batch = islandora_basic_collection_regenerate_metadata_batch($children, $form_state['values']['mapping'], $collection);
+  $batch = islandora_basic_collection_regenerate_metadata_batch($children, $form_state['values']['mapping'], $collection, $form_state['values']['content_model']);
   batch_set($batch);
 }
