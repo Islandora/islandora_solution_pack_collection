@@ -445,7 +445,7 @@ function islandora_basic_collection_delete_children_form(array $form, array &$fo
                 )),
     'description' => array(
       '#type' => 'item',
-      '#markup' => t('Are you sure you want to delete the selected objects?<br/>This action cannot be undone.'),
+      '#markup' => t('Objects belonging only to this collection will be purged. If an object is a member of multiple collections, only its relationship to this collection will be removed. Are you sure you want to purge the selected objects?<br/>This action cannot be undone.'),
     ),
     'submit' => array(
       '#type' => 'submit',
