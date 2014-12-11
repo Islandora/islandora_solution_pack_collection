@@ -67,7 +67,7 @@ function islandora_basic_collection_object_count_callback() {
   }
   $total_collection_count = count($collections);
 
-  $title_phrase = variable_get('islandora_basic_collection_object_count_listing_phrase', t('!objects Items in !collections Collections'));
+  $title_phrase = variable_get('islandora_basic_collection_object_count_listing_phrase', '!objects Items in !collections Collections');
 
   drupal_json_output(format_string($title_phrase, array(
     '!objects' => $total_object_count,
