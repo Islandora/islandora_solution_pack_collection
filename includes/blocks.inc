@@ -12,6 +12,37 @@
  */
 function islandora_basic_collection_object_count_listing_content() {
   $block = array();
+  $id = drupal_html_id('islandora_basic_collection_object_count_block_count');
+  $block['counts'] = array(
+    '#attached' => array(
+      'js' => array(
+        drupal_get_path('module', 'islandora_basic_collection') . '/js/collection-block-count.js',
+        array(
+          'type' => 'setting',
+          'data' => array(
+            'islandora_basic_collection' => array(
+              'count_block' => array(
+                'id' => $id,
+                'callback' => url('islandora/collection/count_ajax'),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+    '#prefix' => "<span id='$id'>",
+    '#suffix' => '</span>',
+    '#markup' => variable_get('islandora_basic_collection_object_count_listing_placeholder', 'Counting items in collections...'),
+  );
+  return $block;
+}
+
+/**
+ * AJAX callback to get info about the count of objects and collections.
+ *
+ * Outputs a JSON string to the buffer.
+ */
+function islandora_basic_collection_object_count_callback() {
   $tuque = islandora_get_tuque_connection();
   $objects_query_array = islandora_basic_collection_get_query_info(array(
     'object' => islandora_object_load(variable_get('islandora_repository_pid', 'islandora:root')),
@@ -36,15 +67,12 @@ function islandora_basic_collection_object_count_listing_content() {
   }
   $total_collection_count = count($collections);
 
-  $title_phrase = variable_get('islandora_basic_collection_object_count_listing_block_phrase', t('!objects Items in !collections Collections'));
+  $title_phrase = variable_get('islandora_basic_collection_object_count_listing_phrase', '!objects Items in !collections Collections');
 
-  $block['counts'] = array(
-    '#markup' => format_string($title_phrase, array(
-      '!objects' => $total_object_count,
-      '!collections' => $total_collection_count,
-    )),
-  );
-  return drupal_render($block);
+  drupal_json_output(format_string($title_phrase, array(
+    '!objects' => $total_object_count,
+    '!collections' => $total_collection_count,
+  )));
 }
 
 /**

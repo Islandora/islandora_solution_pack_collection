@@ -69,6 +69,13 @@ function islandora_basic_collection_menu() {
     ),
     'islandora/object/%islandora_object/manage/collection/ingest' => $ingest_object_menu_item,
     'islandora/object/%islandora_object/manage/overview/ingest' => $ingest_object_menu_item,
+    'islandora/collection/count_ajax' => array(
+      'title' => 'AJAX callback to get count',
+      'page callback' => 'islandora_basic_collection_object_count_callback',
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/blocks.inc',
+    ),
   );
 }
 
@@ -799,6 +806,12 @@ function islandora_basic_collection_block_configure($delta = '') {
       '#description' => t('For the number of objects use !objects, for the number of container objects use !collections.'),
       '#default_value' => variable_get('islandora_basic_collection_object_count_listing_phrase', '!objects Items in !collections Collections'),
     );
+    $block['islandora_basic_collection_title_placeholder'] = array(
+      '#type' => 'textfield',
+      '#title' => t('AJAX Placeholder'),
+      '#description' => t('Placeholder to output, to be replaced by phrase populated by AJAX.'),
+      '#default_value' => variable_get('islandora_basic_collection_object_count_listing_placeholder', 'Counting items in collections...'),
+    );
     module_load_include('inc', 'islandora', 'includes/utilities');
     $formatted_models = array();
     $models = islandora_get_content_models();
@@ -879,6 +892,7 @@ function islandora_basic_collection_block_save($delta = '', $edit = array()) {
   if ($delta == 'collection_object_count') {
     variable_set('islandora_basic_collection_object_count_listing_content_models_to_restrict', $edit['content_models']);
     variable_set('islandora_basic_collection_object_count_listing_phrase', $edit['islandora_basic_collection_title_phrase']);
+    variable_set('islandora_basic_collection_object_count_listing_placeholder', $edit['islandora_basic_collection_title_placeholder']);
   }
   if ($delta == 'collection_listing') {
     variable_set('islandora_basic_collection_listing_block_links_to_render', $edit['islandora_basic_collection_links_to_render']);
