@@ -30,6 +30,7 @@ function islandora_basic_collection_uninstall() {
     'islandora_basic_collection_listing_block_content_models_to_restrict',
     'islandora_basic_collection_object_count_listing_content_models_to_restrict',
     'islandora_basic_collection_object_count_listing_phrase',
+    'islandora_basic_collection_object_count_listing_placeholder',
   );
   array_walk($variables, 'variable_del');
 }
