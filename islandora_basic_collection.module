@@ -69,6 +69,13 @@ function islandora_basic_collection_menu() {
     ),
     'islandora/object/%islandora_object/manage/collection/ingest' => $ingest_object_menu_item,
     'islandora/object/%islandora_object/manage/overview/ingest' => $ingest_object_menu_item,
+    'islandora/collection/count_ajax' => array(
+      'title' => 'AJAX callback to get count',
+      'page callback' => 'islandora_basic_collection_object_count_callback',
+      'access callback' => TRUE,
+      'type' => MENU_CALLBACK,
+      'file' => 'includes/blocks.inc',
+    ),
   );
 }
 
