@@ -237,7 +237,7 @@ function islandora_basic_collection_islandora_xml_form_builder_forms() {
   return array(
     'Collection MODS form' => array(
       'form_file' => "$module_path/xml/islandora_basic_collection_form_mods.xml",
-    )
+    ),
   );
 }
 
