@@ -22,10 +22,20 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    * @see IslandoraWebTestCase::deleteRootTestCollection()
    */
   public function createTestCollection($label, $models, $pid = '') {
+    // If there is no logged in user, create one so that this collection auto-
+    // purges itself.
+    $user = FALSE;
+    if (!$this->loggedInUser) {
+      $user = $this->drupalCreateUser(array_keys(module_invoke_all('permission')));
+      $this->drupalLogin($user);
+    }
+
+    // Set up the object and ingest it.
     $properties = array(
       'label' => $label,
       'pid' => $pid,
       'models' => 'islandora:collectionCModel',
+      'parent' => 'islandora:root',
     );
     $policy = CollectionPolicy::emptyPolicy();
     foreach ((array) $models as $model) {
@@ -46,6 +56,13 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
       ),
     );
     $object = $this->ingestConstructedObject($properties, $datastreams);
+
+    // If we had to create a user, get rid of it.
+    if ($user !== FALSE) {
+      $this->drupalLogout();
+    }
+
+    // Assert that the object ingested correctly.
     $pid = $object == FALSE ? 'N/A' : $object->id;
     $this->assertFalse($pid === 'N/A', "Ingested collection object (PID: $pid)");
   }
