@@ -8,7 +8,7 @@
 class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
 
   /**
-   * Randomly generates a child collection in the top-level collection.
+   * Adds a child collection with the given params to the top-level collection.
    *
    * Use in lieu of throwing test objects into a standard collection.
    *
@@ -22,29 +22,49 @@ class IslandoraCollectionWebTestCase extends IslandoraWebTestCase {
    * @see IslandoraWebTestCase::deleteRootTestCollection()
    */
   public function createTestCollection($label, $models, $pid = '') {
-    $this->drupalGet('islandora');
-    $root = $this->url;
-    $path = $root . '/manage/overview/ingest';
-    if (!isset($pid)) {
-      $pid_suffix = randomName(16);
-      $pid = 'islandora:' . $pid_suffix;
+    // If there is no logged in user, create one so that this collection auto-
+    // purges itself.
+    $user = FALSE;
+    if (!$this->loggedInUser) {
+      $user = $this->drupalCreateUser(array_keys(module_invoke_all('permission')));
+      $this->drupalLogin($user);
     }
-    $edit = array(
+
+    // Set up the object and ingest it.
+    $properties = array(
       'label' => $label,
       'pid' => $pid,
-      'inherit_policy' => FALSE,
+      'models' => 'islandora:collectionCModel',
+      'parent' => 'islandora:root',
     );
+    $policy = CollectionPolicy::emptyPolicy();
+    foreach ((array) $models as $model) {
+      $policy->addContentModel($model, 'New Object', 'islandora:1');
+    }
+    $datastreams = array(
+      array(
+        'dsid' => 'COLLECTION_POLICY',
+        'string' => $policy->getXML(),
+        'control_group' => 'X',
+        'mimetype' => 'text/xml',
+      ),
+      array(
+        'dsid' => 'TN',
+        'path' => drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png',
+        'control_group' => 'M',
+        'mimetype' => 'image/png',
+      ),
+    );
+    $object = $this->ingestConstructedObject($properties, $datastreams);
 
-    // Figure out enabling content models.
-    $models = (array) $models;
-    foreach ($models as $model) {
-      $edit['content_models[' . $model . ']'] = TRUE;
+    // If we had to create a user, get rid of it.
+    if ($user !== FALSE) {
+      $this->drupalLogout();
     }
 
-    $this->drupalPost($path, $edit, t('Ingest'));
-    $object = islandora_object_load($pid);
-    $model_list = implode(',', $models);
-    $this->assertTrue(is_object($object), t('Created collection %label using the content model(s) %model_list', array('%label' => $label, '%model_list' => $model_list)), 'Islandora');
+    // Assert that the object ingested correctly.
+    $pid = $object == FALSE ? 'N/A' : $object->id;
+    $this->assertFalse($pid === 'N/A', "Ingested collection object (PID: $pid)");
   }
 
   /**

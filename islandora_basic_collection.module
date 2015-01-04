@@ -230,6 +230,36 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
 }
 
 /**
+ * Implements hook_islandora_xml_form_builder_forms().
+ */
+function islandora_basic_collection_islandora_xml_form_builder_forms() {
+  $module_path = drupal_get_path('module', 'islandora_basic_collection');
+  return array(
+    'Collection MODS form' => array(
+      'form_file' => "$module_path/xml/islandora_basic_collection_form_mods.xml",
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_xml_form_builder_form_associations().
+ */
+function islandora_basic_collection_islandora_xml_form_builder_form_associations() {
+  return array(
+    'islandora_basic_collection_mods_form' => array(
+      'content_model' => 'islandora:collectionCModel',
+      'form_name' => 'Collection MODS form',
+      'dsid' => 'MODS',
+      'title_field' => array(
+        'titleInfo', 'title',
+      ),
+      'transform' => 'mods_to_dc.xsl',
+      'template' => FALSE,
+    ),
+  );
+}
+
+/**
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_overview_object(AbstractObject $object) {
