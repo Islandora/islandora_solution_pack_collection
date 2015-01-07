@@ -77,7 +77,7 @@ function islandora_basic_collection_object_count_callback() {
   $cid = islandora_basic_collection_get_object_count_block_cache_id();
 
   if ($value = cache_get($cid, 'cache')) {
-    $text = $value->data;
+    $substitutions = $value->data;
   }
   else {
     $tuque = islandora_get_tuque_connection();
@@ -104,15 +104,15 @@ function islandora_basic_collection_object_count_callback() {
     }
     $total_collection_count = count($collections);
 
-    $title_phrase = variable_get('islandora_basic_collection_object_count_listing_phrase', '!objects Items in !collections Collections');
-
-    $text = format_string($title_phrase, array(
+    $substitutions = array(
       '!objects' => $total_object_count,
       '!collections' => $total_collection_count,
-    ));
-    cache_set($cid, $text, 'cache');
+    );
+    cache_set($cid, $substitutions, 'cache');
   }
 
+  $title_phrase = variable_get('islandora_basic_collection_object_count_listing_phrase', '!objects Items in !collections Collections');
+  $text = format_string($title_phrase, $substitutions);
   drupal_json_output($text);
 }
 
