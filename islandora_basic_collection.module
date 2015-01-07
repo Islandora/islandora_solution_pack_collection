@@ -816,7 +816,7 @@ function islandora_basic_collection_islandora_collectioncmodel_islandora_object_
 function islandora_basic_collection_block_info() {
   $blocks['collection_object_count'] = array(
     'info' => t('Islandora Collection Object Count Listing'),
-    'cache' => DRUPAL_CACHE_PER_ROLE,
+    'cache' => DRUPAL_CACHE_PER_USER,
   );
   $blocks['collection_listing'] = array(
     'info' => t('Islandora Collection Listing'),
