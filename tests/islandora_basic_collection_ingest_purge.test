@@ -29,6 +29,7 @@ class IslandoraBasicCollectionIngestTestCase extends IslandoraCollectionWebTestC
     parent::setUp(array(
       'islandora',
       'islandora_basic_collection',
+      'xml_form_builder',
     ));
   }
 
@@ -36,12 +37,18 @@ class IslandoraBasicCollectionIngestTestCase extends IslandoraCollectionWebTestC
    * Creates an administrative user and attempts to ingest a test image.
    */
   public function testIngestPurgeBasicCollection() {
+    // Log in.
     $user = $this->drupalCreateUser(array_keys(module_invoke_all('permission')));
     $this->drupalLogin($user);
+
+    // Add a collection.
     $label = $this->randomName(16);
-    $suffix = $this->randomName(16);
-    $collectionpid = 'islandora:' . $suffix;
-    $this->createTestCollection($label, 'islandora:collectionCModel', $collectionpid);
-    $this->deleteTestCollection($collectionpid);
+    $pid = 'islandora:' . $this->randomName();
+    $this->drupalPost('islandora/object/islandora:root/manage/overview/ingest', array('pid' => $pid), 'Next');
+    $this->drupalPost(NULL, array('titleInfo[title]' => $label), 'Ingest');
+
+    // Check if we made a collection correctly.
+    $object = islandora_object_load($pid);
+    $this->assertTrue($object, "Collection '$pid' was created.", 'Islandora');
   }
 }

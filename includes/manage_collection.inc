@@ -120,13 +120,6 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
   $default_namespace = islandora_get_namespace($policy_content_models['islandora:collectionCModel']['namespace']);
   return array(
     '#action' => request_uri() . '#create-child-collection',
-    'label' => array(
-      '#type' => 'textfield',
-      '#title' => t('Collection Label'),
-      '#description' => t('Human-readable name for this collection.'),
-      '#required' => TRUE,
-      '#size' => 25,
-    ),
     'pid' => array(
       '#type' => 'textfield',
       '#title' => t('Collection PID'),
@@ -195,7 +188,6 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
   if (!empty($form_state['values']['pid'])) {
     $new_collection->id = $form_state['values']['pid'];
   }
-  $new_collection->label = $form_state['values']['label'];
 
   // Add COLLECTION_POLICY datastream.
   $parent_collection = islandora_object_load($form_state['islandora']['shared_storage']['parent']);

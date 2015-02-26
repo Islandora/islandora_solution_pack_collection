@@ -230,6 +230,36 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
 }
 
 /**
+ * Implements hook_islandora_xml_form_builder_forms().
+ */
+function islandora_basic_collection_islandora_xml_form_builder_forms() {
+  $module_path = drupal_get_path('module', 'islandora_basic_collection');
+  return array(
+    'Collection MODS form' => array(
+      'form_file' => "$module_path/xml/islandora_basic_collection_form_mods.xml",
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_xml_form_builder_form_associations().
+ */
+function islandora_basic_collection_islandora_xml_form_builder_form_associations() {
+  return array(
+    'islandora_basic_collection_mods_form' => array(
+      'content_model' => 'islandora:collectionCModel',
+      'form_name' => 'Collection MODS form',
+      'dsid' => 'MODS',
+      'title_field' => array(
+        'titleInfo', 'title',
+      ),
+      'transform' => 'mods_to_dc.xsl',
+      'template' => FALSE,
+    ),
+  );
+}
+
+/**
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_overview_object(AbstractObject $object) {
@@ -786,7 +816,7 @@ function islandora_basic_collection_islandora_collectioncmodel_islandora_object_
 function islandora_basic_collection_block_info() {
   $blocks['collection_object_count'] = array(
     'info' => t('Islandora Collection Object Count Listing'),
-    'cache' => DRUPAL_NO_CACHE,
+    'cache' => DRUPAL_CACHE_PER_USER,
   );
   $blocks['collection_listing'] = array(
     'info' => t('Islandora Collection Listing'),
@@ -991,4 +1021,52 @@ EOQ;
       $filters[] = implode(' && ', $models_to_filter);
     }
   }
+}
+
+/**
+ * Implements hook_islandora_object_ingested().
+ */
+function islandora_basic_collection_islandora_object_ingested() {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/blocks');
+  islandora_basic_collection_clear_object_count_cache();
+}
+
+/**
+ * Implements hook_islandora_object_modified().
+ */
+function islandora_basic_collection_islandora_object_modified() {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/blocks');
+  islandora_basic_collection_clear_object_count_cache();
+}
+
+/**
+ * Implements hook_islandora_object_purged().
+ */
+function islandora_basic_collection_islandora_object_purged() {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/blocks');
+  islandora_basic_collection_clear_object_count_cache();
+}
+
+/**
+ * Implements hook_islandora_datastream_ingested().
+ */
+function islandora_basic_collection_islandora_datastream_ingested() {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/blocks');
+  islandora_basic_collection_clear_object_count_cache();
+}
+
+/**
+ * Implements hook_islandora_datastream_modified().
+ */
+function islandora_basic_collection_islandora_datastream_modified() {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/blocks');
+  islandora_basic_collection_clear_object_count_cache();
+}
+
+/**
+ * Implements hook_islandora_datastream_purged().
+ */
+function islandora_basic_collection_islandora_datastream_purged() {
+  module_load_include('inc', 'islandora_basic_collection', 'includes/blocks');
+  islandora_basic_collection_clear_object_count_cache();
 }
