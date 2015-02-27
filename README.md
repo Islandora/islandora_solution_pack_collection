@@ -2,7 +2,8 @@
 
 ## Introduction
 
-This repository contains the collection solution pack. This module is required for islandora to have collection functionality.
+Adds all required Fedora objects to allow for the creation of collections and the management of collections and child objects.
+This module is required for islandora to have collection functionality.
 
 ## Requirements
 
