@@ -140,41 +140,6 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
 }
 
 /**
- * Gets a list of all immediate child PIDs.
- *
- * @param AbstractObject $object
- *   The collection object.
- * @param string $type
- *   Limit the child PID's to those of the given content model.
- *
- * @return array
- *   The list of child PIDs.
- */
-function islandora_basic_collection_get_child_pids(AbstractObject $object, $type = NULL) {
-  module_load_include('inc', 'islandora', 'includes/utilities');
-  $message = islandora_deprecated('7.x-1.2', 'Code should be made to page over all objects to avoid potential memory issues with large collections.');
-  trigger_error(filter_xss($message), E_USER_DEPRECATED);
-
-  $params = array(
-    'object' => $object,
-    'page_size' => -1,
-  );
-
-  if (isset($type)) {
-    $params['model'] = "<info:fedora/$type>";
-  }
-
-  $map_results = function($o) {
-    return $o['object']['value'];
-  };
-
-  $query_info = islandora_basic_collection_get_query_info($params);
-  $results = $object->repository->ri->query($query_info['query'], $query_info['type']);
-
-  return array_map($map_results, $results);
-}
-
-/**
  * Gets a list of all parent pids.
  *
  * @param AbstractObject $object
