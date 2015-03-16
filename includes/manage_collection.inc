@@ -308,7 +308,7 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
 function islandora_basic_collection_share_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
   $fragment = '#share-children';
-  $return_array = array(
+  return array(
     '#action' => request_uri() . $fragment,
     'collection' => array(
       '#title' => t('Share members with collection'),
@@ -329,7 +329,6 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
       '#value' => t('Share All Objects'),
     ),
   );
-  return $return_array;
 }
 
 /**
@@ -371,7 +370,7 @@ function islandora_basic_collection_share_children_form_submit(array $form, arra
 function islandora_basic_collection_migrate_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
   $fragment = '#migrate-children';
-  $return_array = array(
+  return array(
     '#action' => request_uri() . $fragment,
     'collection' => array(
       '#title' => t('Migrate members to collection'),
@@ -392,7 +391,6 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#value' => t('Migrate All Objects'),
     ),
   );
-  return $return_array;
 }
 
 /**
@@ -432,7 +430,7 @@ function islandora_basic_collection_migrate_children_form_submit(array $form, ar
  */
 function islandora_basic_collection_delete_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
-  $return_array = array(
+  return array(
     '#action' => request_uri() . '#delete-children',
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
                   'element' => islandora_basic_collection_get_current_pager_index(),
@@ -447,7 +445,6 @@ function islandora_basic_collection_delete_children_form(array $form, array &$fo
       '#value' => t('Delete selected objects'),
     ),
   );
-  return $return_array;
 }
 
 /**
