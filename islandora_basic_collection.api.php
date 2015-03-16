@@ -82,6 +82,14 @@ function hook_islandora_basic_collection_get_query_filters() {
 /**
  * Hook into the manage object page.
  *
+ * Because it's impossible to know the index of pagers on elements before the
+ * hook runs on any particular site, a pager index is provided in the form
+ * state at $form_state['build_info']['args'][1]. When using the pager index,
+ * be sure to increment it by however many times it was used before returning
+ * the form to drupal_get_form() below. It's extremely important to make use
+ * of this pager index, as without it, you could have overlap on the pagers
+ * you're generating.
+ *
  * @param array $form_state
  *   Current form state.
  * @param AbstractObject $object

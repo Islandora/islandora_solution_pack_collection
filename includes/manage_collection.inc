@@ -29,7 +29,8 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
   $data = islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK,
     $object->models, array(
       $return_form,
-      $object)
+      $object,
+      0)
   );
   $data['manage_collection_object']['#type'] = 'vertical_tabs';
   return $data;
@@ -46,7 +47,7 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
  * @return array
  *   Returning the built form.
  */
-function islandora_basic_collection_islandora_basic_collection_build_manage_object(array $form_state, AbstractObject $object) {
+function islandora_basic_collection_islandora_basic_collection_build_manage_object(array $form_state, AbstractObject $object, $pager_index) {
   // Defines accessible elements.
   $access = array(
     'policy_management' => islandora_object_access(ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY, $object),
@@ -57,7 +58,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
   // Build forms for only the accessible elements.
   foreach ($access as $element => $accessible) {
     $form = "islandora_basic_collection_{$element}_form";
-    $forms[$element] = $accessible ? drupal_get_form($form, $object) : NULL;
+    $forms[$element] = $accessible ? drupal_get_form($form, $object, $pager_index) : NULL;
   }
   $form_state['manage_collection_object']['policy_management'] = array(
     '#id' => 'policy-management',
@@ -307,7 +308,7 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
 function islandora_basic_collection_share_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
   $fragment = '#share-children';
-  return array(
+  $return_array = array(
     '#action' => request_uri() . $fragment,
     'collection' => array(
       '#title' => t('Share members with collection'),
@@ -316,7 +317,7 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 0,
+                  'element' => $form_state['build_info']['args'][1],
                   'fragment' => $fragment,
                 )),
     'submit' => array(
@@ -328,6 +329,8 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
       '#value' => t('Share All Objects'),
     ),
   );
+  $form_state['build_info']['args'][1]++;
+  return $return_array;
 }
 
 /**
@@ -369,7 +372,7 @@ function islandora_basic_collection_share_children_form_submit(array $form, arra
 function islandora_basic_collection_migrate_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
   $fragment = '#migrate-children';
-  return array(
+  $return_array = array(
     '#action' => request_uri() . $fragment,
     'collection' => array(
       '#title' => t('Migrate members to collection'),
@@ -378,7 +381,7 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 1,
+                  'element' => $form_state['build_info']['args'][1],
                   'fragment' => $fragment,
                 )),
     'submit' => array(
@@ -390,6 +393,8 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#value' => t('Migrate All Objects'),
     ),
   );
+  $form_state['build_info']['args'][1]++;
+  return $return_array;
 }
 
 /**
@@ -429,10 +434,10 @@ function islandora_basic_collection_migrate_children_form_submit(array $form, ar
  */
 function islandora_basic_collection_delete_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
-  return array(
+  $return_array = array(
     '#action' => request_uri() . '#delete-children',
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 2,
+                  'element' => $form_state['build_info']['args'][1],
                   'fragment' => '#delete-children',
                 )),
     'description' => array(
@@ -444,6 +449,8 @@ function islandora_basic_collection_delete_children_form(array $form, array &$fo
       '#value' => t('Delete selected objects'),
     ),
   );
+  $form_state['build_info']['args'][1]++;
+  return $return_array;
 }
 
 /**
