@@ -30,7 +30,8 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
     $object->models, array(
       $return_form,
       $object)
-  );
+    );
+  cache_clear_all('islandora_basic_collection_current_pager_index', 'cache');
   $data['manage_collection_object']['#type'] = 'vertical_tabs';
   return $data;
 }
@@ -316,7 +317,7 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 0,
+                  'element' => islandora_basic_collection_get_current_pager_index(),
                   'fragment' => $fragment,
                 )),
     'submit' => array(
@@ -378,7 +379,7 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 1,
+                  'element' => islandora_basic_collection_get_current_pager_index(),
                   'fragment' => $fragment,
                 )),
     'submit' => array(
@@ -432,7 +433,7 @@ function islandora_basic_collection_delete_children_form(array $form, array &$fo
   return array(
     '#action' => request_uri() . '#delete-children',
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-                  'element' => 2,
+                  'element' => islandora_basic_collection_get_current_pager_index(),
                   'fragment' => '#delete-children',
                 )),
     'description' => array(
@@ -459,4 +460,19 @@ function islandora_basic_collection_delete_children_form_submit(array $form, arr
   $children = array_keys(array_filter($form_state['values']['children']));
   $batch = islandora_basic_collection_delete_children_batch($collection, $children);
   batch_set($batch);
+}
+
+/**
+ * Gets the current pager index for use with paged elements on forms.
+ *
+ * Also increments the pager for the next use.
+ *
+ * @return int
+ *   The current pager.
+ */
+function islandora_basic_collection_get_current_pager_index() {
+  $index = cache_get('islandora_basic_collection_current_pager_index');
+  $index = $index ? $index->data : 0;
+  cache_set('islandora_basic_collection_current_pager_index', $index + 1);
+  return $index;
 }
