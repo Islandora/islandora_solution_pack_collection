@@ -46,6 +46,8 @@ EOT;
   public function __construct($xml) {
     $this->xml = new DOMDocument();
     $this->xml->loadXML($xml);
+    $this->xml->preserveWhiteSpace = FALSE;
+    $this->xml->formatOutput = TRUE;
     $path = drupal_get_path('module', 'islandora_basic_collection');
     if (!$this->xml->schemaValidate("$path/xml/collection_policy.xsd")) {
       throw new InvalidArgumentException('The given collection policy is not valid.');
