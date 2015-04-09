@@ -45,6 +45,8 @@ EOT;
    */
   public function __construct($xml) {
     $this->xml = new DOMDocument();
+    $this->xml->preserveWhiteSpace = FALSE;
+    $this->xml->formatOutput = TRUE;
     $this->xml->loadXML($xml);
     $path = drupal_get_path('module', 'islandora_basic_collection');
     if (!$this->xml->schemaValidate("$path/xml/collection_policy.xsd")) {
