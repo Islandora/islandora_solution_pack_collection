@@ -130,3 +130,56 @@ function hook_islandora_basic_collection_build_manage_object($form_state, $objec
  */
 function hook_islandora_basic_collection_query_alter(array &$params) {
 }
+
+/**
+ * Describe "backends" which might be selected between.
+ *
+ * We have a number of different mechanisms which might be used to generate
+ * lists of PIDs belonging to given collections, so let us roll an interface
+ * so we can talk to them in a consistent manner.
+ *
+ * @return array
+ *   Should return an associative array mapping unique (module-prefixed,
+ *   preferably) keys to associative arrays containing:
+ *   - title: A human-readable title for the backend.
+ *   - callable: A PHP callable to call for this backend, implementing
+ *     callback_islandora_basic_collection_query_backends().
+ *   - file: An optional file to load before attempting to call the callable.
+ */
+function hook_islandora_basic_collection_query_backends() {
+  $a_callable = function ($object, $page, $limit) {
+    // Do something to get the total number of objects and this page return
+    // them.
+    return array($total, $pids);
+  };
+  return array(
+    'awesome_backend' => array(
+      'title' => t('Awesome Backend'),
+      'callable' => $a_callable,
+    ),
+  );
+}
+
+/**
+ * Generate a total count and paged list of PIDs.
+ *
+ * Callback for hook_islandora_basic_collection_query_backends().
+ *
+ * @param AbstractObject $object
+ *   A collection object for which to obtain members.
+ * @param int $page
+ *   The page of PIDs for which to query.
+ * @param int $limit
+ *   The number of PIDs for which to query.
+ *
+ * @return array
+ *   An array containing:
+ *   - An integer representing the total number of objects in the collection.
+ *   - An array containing up to $limit strings, representing object PIDs
+ *     belonging to the given collection.
+ */
+function callback_islandora_basic_collection_query_backends(AbstractObject $object, $page, $limit) {
+  // Do something to get the total number of objects and this page return
+  // them.
+  return array($total, $pids);
+}

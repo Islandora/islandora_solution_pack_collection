@@ -17,6 +17,10 @@
  *   The Drupal form definition.
  */
 function islandora_basic_collection_admin(array $form, array &$form_state) {
+  $backend_options = module_invoke_all('islandora_basic_collection_query_backends');
+  $map_to_title = function ($backend) {
+    return $backend['title'];
+  };
   $form = array(
     'islandora_basic_collection_page_size' => array(
       '#type' => 'textfield',
@@ -44,6 +48,12 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
         'list' => t('List'),
         'grid' => t('Grid'),
       ),
+    ),
+    'islandora_basic_collection_display_backend' => array(
+      '#type' => 'radios',
+      '#title' => t('Display Generation'),
+      '#options' => array_map($map_to_title, $backend_options),
+      '#default_value' => variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND),
     ),
   );
   return system_settings_form($form);
