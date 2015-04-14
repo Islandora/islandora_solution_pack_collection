@@ -10,6 +10,8 @@ define('ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION', 'create child colle
 define('ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY', 'manage collection policy');
 define('ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
 
+const ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND = 'islandora_basic_collection_legacy_sparql';
+
 /**
  * Implements hook_menu().
  */
@@ -225,8 +227,59 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_view_object(AbstractObject $object) {
-  $output = theme('islandora_basic_collection_wrapper', array('islandora_object' => $object));
-  return array('Collection View' => $output);
+  $backend = variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND);
+  $backends = module_invoke_all('islandora_basic_collection_query_backends');
+  if ($backend === ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND || !isset($backends[$backend])) {
+    $output = theme('islandora_basic_collection_wrapper', array('islandora_object' => $object));
+    return array('Collection View' => $output);
+  }
+  else {
+    $limit = ((empty($_GET['pagesize'])) ?
+      variable_get('islandora_basic_collection_page_size', '10') :
+      $_GET['pagesize']);
+    $pager_element = 0;
+    $passed_page = pager_find_page($pager_element);
+    if (isset($backends[$backend]['file'])) {
+      require_once $backends[$backend]['file'];
+    }
+    list($total, $pids) = call_user_func($backends[$backend]['callable'], $object, $passed_page, $limit);
+    $page = pager_default_initialize($total, $limit, $pager_element);
+    if ($page < $passed_page) {
+      // If we were somehow on a page past the end, let us go to the last page
+      // of results.
+      list($total, $pids) = call_user_func($backends[$backend]['callable'], $object, $page, $limit);
+    }
+
+    return array(
+      'islandora_basic_collection_display' => array(
+        '#type' => 'markup',
+        '#theme' => 'islandora_objects_subset',
+        '#objects' => $pids,
+        '#total' => $total,
+        '#pager_element' => $pager_element,
+      ),
+    );
+  }
+}
+
+/**
+ * Implements hook_islandora_basic_collection_query_backends().
+ */
+function islandora_basic_collection_islandora_basic_collection_query_backends() {
+  $module_path = drupal_get_path('module', 'islandora_basic_collection');
+  return array(
+    ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND => array(
+      // XXX: "callable" not required, since this one is the original/legacy
+      // case which gets handled as it used to (inline in our implementation of
+      // hook_islandora_collectionCModel_islandora_view_object()).
+      'title' => t('SPARQL (Legacy)'),
+    ),
+    'islandora_basic_collection_sparql_query_backend' => array(
+      'title' => t('SPARQL'),
+      'callable' => 'islandora_basic_collection_display_query_sparql',
+      'file' => "$module_path/includes/utilities.inc",
+    ),
+  );
 }
 
 /**
