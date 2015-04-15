@@ -256,6 +256,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
         '#theme' => 'islandora_objects_subset',
         '#objects' => $pids,
         '#total' => $total,
+        '#limit' => $limit,
         '#pager_element' => $pager_element,
       ),
     );
