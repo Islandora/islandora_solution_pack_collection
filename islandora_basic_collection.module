@@ -258,6 +258,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
         '#total' => $total,
         '#limit' => $limit,
         '#pager_element' => $pager_element,
+        '#display' => variable_get('islandora_basic_collection_default_view', 'grid'),
       ),
     );
   }
