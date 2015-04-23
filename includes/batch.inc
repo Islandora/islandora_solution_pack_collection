@@ -193,12 +193,15 @@ function islandora_basic_collection_delete_all_children_batch_operation(Abstract
       }
     }
 
-    $context['sandbox']['current'] += $count;
+    $member_count = count($members);
+    $context['sandbox']['current'] += $member_count;
 
-    if ($count === 0) {
+    if ($member_count === 0) {
+      // We did not find any objects this pass... We are done.
       $context['finished'] = 1;
     }
     else {
+      // Update our progress.
       $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total_count'];
     }
   }
