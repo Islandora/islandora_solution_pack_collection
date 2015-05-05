@@ -217,7 +217,7 @@ SELECT ?pid ?label
 WHERE {
   ?pid <fedora-model:label> ?label ;
        <fedora-model:hasModel> <info:fedora/islandora:collectionCModel> .
-  FILTER(regex(?label, '$search_value') || regex(str(?pid), '$search_value' ))
+  FILTER(regex(?label, '$search_value', 'i') || regex(str(?pid), '$search_value', 'i'))
 }
 EOQ;
   $results = $tuque->repository->ri->sparqlQuery($sparql_query);
