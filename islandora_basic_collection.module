@@ -722,7 +722,7 @@ function islandora_basic_collection_form_islandora_repository_admin_alter(&$form
     '#type' => 'checkbox',
     '#title' => t('UUID PID Generation'),
     '#default_value' => variable_get('islandora_basic_collection_generate_uuid', FALSE),
-    '#description' => t('Generate Fedora object PIDs with v4 UUIDs.'),
+    '#description' => t('Generate Fedora object PIDs with v4 UUIDs. Only applies during standard ingest process.'),
   );
 }
 
