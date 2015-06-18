@@ -10,7 +10,7 @@
 
 <div class="islandora-basic-collection-wrapper">
   <?php if (!empty($dc_array['dc:description']['value'])): ?>
-    <p><?php print $dc_array['dc:description']['value']; ?></p>
+    <p><?php print nl2br($dc_array['dc:description']['value']); ?></p>
     <hr />
   <?php endif; ?>
   <div class="islandora-basic-collection clearfix">
