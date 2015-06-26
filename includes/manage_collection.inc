@@ -262,11 +262,20 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     'table' => array(
       '#tree' => TRUE,
       '#header' => array(
-        array(
-        'class' => array('select-all')),
-        'pid' => array('data' => t('PID'), 'class' => "collection_policy_pid"),
-        'prompt' => array('data' =>t('Prompt'), 'class' => "collection_policy_prompt"),
-        'namespace' => array('data' =>t('Namespace'), 'class' => "collection_policy_namespace"),
+        'class' => array('select-all'),
+        'pid' => array(
+          'data' => t('PID'),
+          'class' => "collection_policy_pid",
+        ),
+
+        'prompt' => array(
+          'data' => t('Prompt'),
+          'class' => "collection_policy_prompt",
+        ),
+        'namespace' => array(
+          'data' => t('Namespace'),
+          'class' => "collection_policy_namespace",
+        ),
       ),
       '#theme' => 'islandora_basic_collection_policy_management_table',
       'rows' => $rows,
