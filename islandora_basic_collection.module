@@ -744,7 +744,7 @@ function islandora_basic_collection_islandora_ingest_steps(array &$form_state) {
       'islandora_basic_collection_select_content_model' => array(
         'type' => 'form',
         'form_id' => 'islandora_basic_collection_select_content_model_form',
-        'args' => array($step_storage['models']),
+        'args' => array($shared_storage['parent']),
         'weight' => -50,
         'module' => 'islandora_basic_collection',
         'file' => 'includes/ingest.form.inc',
