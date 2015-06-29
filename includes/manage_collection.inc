@@ -26,9 +26,10 @@ function islandora_basic_collection_manage_object(AbstractObject $object) {
   $return_form = array(
     'manage_collection_object' => array(),
   );
-  $data = islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK, $object->models, array(
-    $return_form,
-    $object)
+  $data = islandora_invoke_hook_list(ISLANDORA_BASIC_COLLECTION_BUILD_MANAGE_OBJECT_HOOK,
+    $object->models, array(
+      $return_form,
+      $object)
   );
   $data['manage_collection_object']['#type'] = 'vertical_tabs';
   return $data;
@@ -205,6 +206,7 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
   $policy_datastream->setContentFromString($collection_policy);
   $policy_datastream->label = 'Collection policy';
   $new_collection->ingestDatastream($policy_datastream);
+
 }
 
 /**
@@ -221,8 +223,6 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
  *   The Drupal form definition.
  */
 function islandora_basic_collection_policy_management_form(array $form, array &$form_state, AbstractObject $object) {
-  $path = drupal_get_path('module', 'islandora_basic_collection');
-  drupal_add_css("$path/css/collection_policy_table.css");
   module_load_include('inc', 'islandora', 'includes/utilities');
   $form_state['collection'] = $object;
   $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
@@ -235,11 +235,6 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     $content_model_in_policy = isset($policy_content_models[$pid]);
     $namespace = $content_model_in_policy ? $policy_content_models[$pid]['namespace'] : $default_namespace;
     $namespace_element = islandora_basic_collection_get_namespace_form_element($namespace);
-    $prompt_element = array(
-      '#type' => 'textfield',
-      '#size' => 15,
-      '#default_value' => isset($policy_content_models[$pid]) ? $policy_content_models[$pid]['name'] : $content_model['label'],
-    );
     unset($namespace_element['#title'], $namespace_element['#description']);
     $rows[$pid] = array(
       'selected' => array(
@@ -249,7 +244,6 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
       'title' => array(
         '#markup' => l(t('@label (@pid)', array('@label' => $label, '@pid' => $pid)), "islandora/object/{$pid}"),
       ),
-      'prompt' => $prompt_element,
       'namespace' => $namespace_element,
     );
   }
@@ -262,20 +256,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     'table' => array(
       '#tree' => TRUE,
       '#header' => array(
-        'class' => array('select-all'),
-        'pid' => array(
-          'data' => t('PID'),
-          'class' => "collection_policy_pid",
-        ),
-
-        'prompt' => array(
-          'data' => t('Prompt'),
-          'class' => "collection_policy_prompt",
-        ),
-        'namespace' => array(
-          'data' => t('Namespace'),
-          'class' => "collection_policy_namespace",
-        ),
+        array('class' => array('select-all')), t('PID'), 'Namespace',
       ),
       '#theme' => 'islandora_basic_collection_policy_management_table',
       'rows' => $rows,
@@ -304,7 +285,7 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
   $policy = CollectionPolicy::emptyPolicy();
   foreach ($selected as $pid => $properties) {
     $content_model = islandora_object_load($pid);
-    $policy->addContentModel($pid, $properties['prompt'], $properties['namespace']);
+    $policy->addContentModel($pid, $content_model->label, $properties['namespace']);
   }
   $collection['COLLECTION_POLICY']->content = $policy->getXML();
   drupal_set_message(t('Updated collection policy'));
@@ -335,9 +316,9 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 0,
-      'fragment' => $fragment,
-    )),
+                  'element' => 0,
+                  'fragment' => $fragment,
+                )),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Share selected objects'),
@@ -397,9 +378,9 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 1,
-      'fragment' => $fragment,
-    )),
+                  'element' => 1,
+                  'fragment' => $fragment,
+                )),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Migrate selected objects'),
@@ -451,9 +432,9 @@ function islandora_basic_collection_delete_children_form(array $form, array &$fo
   return array(
     '#action' => request_uri() . '#delete-children',
     'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 2,
-      'fragment' => '#delete-children',
-    )),
+                  'element' => 2,
+                  'fragment' => '#delete-children',
+                )),
     'description' => array(
       '#type' => 'item',
       '#markup' => t('Objects belonging only to this collection will be purged. If an object is a member of multiple collections, only its relationship to this collection will be removed. Are you sure you want to purge the selected objects?<br/>This action cannot be undone.'),
