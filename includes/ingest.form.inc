@@ -28,7 +28,7 @@ function islandora_basic_collection_ingest_action(AbstractObject $collection) {
 /**
  * Generates an ingest configuration from the given collection object.
  *
- * @see islandora_ingest_form
+ * @see islandora_ingest_form()
  *
  * @param AbstractObject $collection
  *   A collection object to generate the configuration from.
@@ -75,11 +75,21 @@ function islandora_basic_collection_get_ingest_configuration(AbstractObject $col
  *   The Drupal form definition.
  */
 function islandora_basic_collection_select_content_model_form(array $form, array &$form_state, array $models) {
+  module_load_include('inc', 'islandora', 'includes/ingest.form');
   $options = array();
-  foreach ($models as $model) {
-    $object = islandora_object_load($model);
-    $options[$model] = $object->label;
+  $steps = islandora_ingest_form_get_shared_storage($form_state);
+  $parent_pid = $steps['parent'];
+
+  $collection = islandora_object_load($parent_pid);
+  $policy = new CollectionPolicy($collection['COLLECTION_POLICY']->content);
+  $cmodels = $policy->getContentModels();
+  foreach ($models as $pid) {
+    $object = islandora_object_load($pid);
+    if ($object) {
+      $options[$pid] = isset($cmodels[$pid]['name']) ? $cmodels[$pid]['name'] : $object->label;
+    }
   }
+
   $model = isset($form_state['values']['models']) ? $form_state['values']['models'] : key($options);
   $shared_storage = &islandora_ingest_form_get_shared_storage($form_state);
   $shared_storage['models'] = array($model);

@@ -182,9 +182,10 @@ function theme_islandora_basic_collection_policy_management_table(array $variabl
     $row_element = $row_elements[$key];
     foreach (element_children($row_element) as $key) {
       $column_element = $row_element[$key];
+      $class = "collection_policy_table_${key}";
       $columns[] = array(
         'data' => drupal_render($column_element),
-        'class' => isset($cell_element['#attributes']['class']) ? $column_element['#attributes']['class'] : NULL,
+        'class' => isset($cell_element['#attributes']['class']) ? $column_element['#attributes']['class'] : $class,
       );
     }
     $rows[] = $columns;
