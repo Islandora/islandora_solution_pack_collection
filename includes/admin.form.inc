@@ -1,4 +1,4 @@
-<?php
+\<?php
 
 /**
  * @file
@@ -55,6 +55,14 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
       '#options' => array_map($map_to_title, $backend_options),
       '#default_value' => variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND),
     ),
+
+    'islandora_basic_collection_display_generation' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Completely Disable Default Collection Display Generation'),
+      '#default_value' => variable_get('islandora_basic_collection_disable_display_generation', FALSE),
+    ),
+
+
   );
   return system_settings_form($form);
 }
