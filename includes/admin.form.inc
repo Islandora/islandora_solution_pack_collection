@@ -56,10 +56,11 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
       '#default_value' => variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND),
     ),
 
-    'islandora_basic_collection_display_generation' => array(
+    'islandora_basic_collection_disable_display_generation' => array(
       '#type' => 'checkbox',
-      '#title' => t('Completely Disable Default Collection Display Generation'),
+      '#title' => t('Completely disable default collection display generation.'),
       '#default_value' => variable_get('islandora_basic_collection_disable_display_generation', FALSE),
+      '#description' => t("Disabling display generation allows for alternate collection displays to be used. "),
     ),
 
 
