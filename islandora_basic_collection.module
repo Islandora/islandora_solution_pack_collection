@@ -243,7 +243,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
   }
   else {
     $limit = ((empty($_GET['pagesize'])) ?
-      variable_get('islandora_basic_collection_page_size', '10') :
+      variable_get('islandora_basic_collection_page_size', '12') :
       $_GET['pagesize']);
     $pager_element = 0;
     $passed_page = pager_find_page($pager_element);
