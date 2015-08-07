@@ -25,7 +25,7 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
     'islandora_basic_collection_page_size' => array(
       '#type' => 'textfield',
       '#title' => t('Default collection objects per page'),
-      '#default_value' => variable_get('islandora_basic_collection_page_size', '10'),
+      '#default_value' => variable_get('islandora_basic_collection_page_size', '12'),
       '#description' => t('The default number of objects to show in a collection view.'),
     ),
     'islandora_basic_collection_disable_collection_policy_delete' => array(
