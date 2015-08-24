@@ -55,6 +55,17 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
       '#options' => array_map($map_to_title, $backend_options),
       '#default_value' => variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND),
     ),
+    // Metadata display.
+    'metadata_display_fieldset' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Metadata display'),
+      'islandora_collection_metadata_display' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Display object metadata'),
+        '#description' => t('Display object metadata below the collection display.'),
+        '#default_value' => variable_get('islandora_collection_metadata_display', FALSE),
+      ),
+    ),
   );
   return system_settings_form($form);
 }
