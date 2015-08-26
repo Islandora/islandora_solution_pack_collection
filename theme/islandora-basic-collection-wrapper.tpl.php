@@ -9,7 +9,7 @@
 ?>
 
 <div class="islandora-basic-collection-wrapper">
-  <?php if (!empty($dc_array['dc:description']['value'])): ?>
+  <?php if (!$display_metadata && !empty($dc_array['dc:description']['value'])): ?>
     <p><?php print nl2br($dc_array['dc:description']['value']); ?></p>
     <hr />
   <?php endif; ?>
@@ -27,4 +27,20 @@
     <?php print $collection_content; ?>
     <?php print $collection_pager; ?>
   </div>
+  <?php if ($display_metadata): ?>
+    <div class="islandora-collection-metadata">
+      <?php print $description; ?>
+      <?php if ($parent_collections): ?>
+        <div>
+          <h2><?php print t('In collections'); ?></h2>
+          <ul>
+            <?php foreach ($parent_collections as $collection): ?>
+              <li><?php print l($collection->label, "islandora/object/{$collection->id}"); ?></li>
+            <?php endforeach; ?>
+          </ul>
+        </div>
+      <?php endif; ?>
+      <?php print $metadata; ?>
+    </div>
+  <?php endif; ?>
 </div>

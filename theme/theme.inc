@@ -29,7 +29,15 @@ function template_preprocess_islandora_basic_collection_wrapper(&$variables) {
   $variables['islandora_dublin_core'] = isset($dc_object) ? $dc_object : NULL;
   $variables['dc_array'] = isset($dc_object) ? $dc_object->asArray() : array();
   $variables['islandora_object_label'] = $islandora_object->label;
-
+  $variables['display_metadata'] = variable_get('islandora_collection_metadata_display', FALSE);
+  if ($variables['display_metadata']) {
+    drupal_add_js('misc/form.js');
+    drupal_add_js('misc/collapse.js');
+    module_load_include('inc', 'islandora', 'includes/metadata');
+    $variables['parent_collections'] = islandora_get_parents_from_rels_ext($islandora_object);
+    $variables['metadata'] = islandora_retrieve_metadata_markup($islandora_object);
+    $variables['description'] = islandora_retrieve_description_markup($islandora_object);
+  }
   list($total_count, $results) = islandora_basic_collection_get_member_objects($islandora_object, $page_number, $page_size);
 
   pager_default_initialize($total_count, $page_size);
