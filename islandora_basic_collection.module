@@ -281,12 +281,30 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
       $to_return['wrapper']['description'] = array(
         '#type' => 'markup',
         '#markup' => islandora_retrieve_description_markup($object),
-        '#weight' => 200,
       );
+      $parent_collections = islandora_get_parents_from_rels_ext($object);
+      if (!empty($parent_collections)) {
+        $to_return['wrapper']['collections'] = array(
+          '#theme_wrappers' => array('container'),
+        );
+        $to_return['wrapper']['collections']['heading'] = array(
+          '#markup' => t('<h2>In collections</h2>'),
+        );
+        $to_return['wrapper']['collections']['list'] = array(
+          '#prefix' => '<ul>',
+          '#suffix' => '</ul>',
+        );
+        foreach ($parent_collections as $parent) {
+          $to_return['wrapper']['collections']['list'][] = array(
+            '#markup' => l($parent->label, "islandora/object/{$parent->id}"),
+            '#prefix' => '<li>',
+            '#suffix' => '</li>',
+          );
+        }
+      }
       $to_return['wrapper']['metadata'] = array(
         '#type' => 'markup',
         '#markup' => islandora_retrieve_metadata_markup($object),
-        '#weight' => 201,
       );
     }
     return $to_return;
