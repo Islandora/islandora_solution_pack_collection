@@ -19,8 +19,8 @@ function template_preprocess_islandora_basic_collection_wrapper(&$variables) {
   $page_number = (empty($_GET['page'])) ? 0 : $_GET['page'];
   $page_size = (empty($_GET['pagesize'])) ? variable_get('islandora_basic_collection_page_size', '12') : $_GET['pagesize'];
   $islandora_object = $variables['islandora_object'];
-  $variables['islandora_dublin_core'] = isset($dc_object) ? $dc_object : NULL;
-  $variables['dc_array'] = isset($dc_object) ? $dc_object->asArray() : array();
+  $variables['islandora_dublin_core'] = $dc_object;
+  $variables['dc_array'] = $dc_object->asArray();
   $variables['islandora_object_label'] = $islandora_object->label;
   $variables['display_metadata'] = variable_get('islandora_collection_metadata_display', FALSE);
   if ($variables['display_metadata']) {
