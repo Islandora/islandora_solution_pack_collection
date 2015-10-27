@@ -668,12 +668,17 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
 function islandora_basic_collection_get_collections() {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $tuque = islandora_get_tuque_connection();
-  $query = 'select $object $label from <#ri> where (
-            $object <info:fedora/fedora-system:def/model#hasModel> <info:fedora/islandora:collectionCModel> and
-            $object <fedora-model:label> $label and
-            $object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)
-            order by $label';
-  $results = $tuque->repository->ri->itqlQuery($query, 'unlimited');
+  $query = <<<EOQ
+SELECT ?object ?label
+FROM <#ri>
+WHERE {
+  ?object <fedora-model:hasModel> <info:fedora/islandora:collectionCModel> ;
+          <fedora-model:label> ?label ;
+          <fedora-model:state> <fedora-model:Active> .
+}
+ORDER BY ?label
+EOQ;
+  $results = $tuque->repository->ri->sparqlQuery($query, 'unlimited');
   $collections = array();
   foreach ($results as $result) {
     $pid = $result['object']['value'];
