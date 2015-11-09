@@ -257,7 +257,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
       list($total, $pids) = call_user_func($backends[$backend]['callable'], $object, $page, $limit);
     }
 
-    return array(
+    $to_return = array(
       'islandora_basic_collection_display' => array(
         '#type' => 'markup',
         '#theme' => 'islandora_objects_subset',
@@ -268,6 +268,53 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
         '#display' => variable_get('islandora_basic_collection_default_view', 'grid'),
       ),
     );
+    if (variable_get('islandora_collection_metadata_display', FALSE)) {
+      module_load_include('inc', 'islandora', 'includes/metadata');
+      $to_return['wrapper'] = array(
+        '#type' => 'item',
+        '#theme_wrappers' => array('container'),
+        '#attached' => array(
+          'js' => array(
+            'misc/form.js',
+            'misc/collapse.js',
+          ),
+        ),
+        '#attributes' => array(
+          'class' => array(
+            'islandora-collection-metadata',
+          ),
+        ),
+      );
+      $to_return['wrapper']['description'] = array(
+        '#type' => 'markup',
+        '#markup' => islandora_retrieve_description_markup($object),
+      );
+      $parent_collections = islandora_get_parents_from_rels_ext($object);
+      if (!empty($parent_collections)) {
+        $to_return['wrapper']['collections'] = array(
+          '#theme_wrappers' => array('container'),
+        );
+        $to_return['wrapper']['collections']['heading'] = array(
+          '#markup' => t('<h2>In collections</h2>'),
+        );
+        $to_return['wrapper']['collections']['list'] = array(
+          '#prefix' => '<ul>',
+          '#suffix' => '</ul>',
+        );
+        foreach ($parent_collections as $parent) {
+          $to_return['wrapper']['collections']['list'][] = array(
+            '#markup' => l($parent->label, "islandora/object/{$parent->id}"),
+            '#prefix' => '<li>',
+            '#suffix' => '</li>',
+          );
+        }
+      }
+      $to_return['wrapper']['metadata'] = array(
+        '#type' => 'markup',
+        '#markup' => islandora_retrieve_metadata_markup($object),
+      );
+    }
+    return $to_return;
   }
 }
 
@@ -628,12 +675,17 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
 function islandora_basic_collection_get_collections() {
   module_load_include('inc', 'islandora', 'includes/utilities');
   $tuque = islandora_get_tuque_connection();
-  $query = 'select $object $label from <#ri> where (
-            $object <info:fedora/fedora-system:def/model#hasModel> <info:fedora/islandora:collectionCModel> and
-            $object <fedora-model:label> $label and
-            $object <fedora-model:state> <info:fedora/fedora-system:def/model#Active>)
-            order by $label';
-  $results = $tuque->repository->ri->itqlQuery($query, 'unlimited');
+  $query = <<<EOQ
+SELECT ?object ?label
+FROM <#ri>
+WHERE {
+  ?object <fedora-model:hasModel> <info:fedora/islandora:collectionCModel> ;
+          <fedora-model:label> ?label ;
+          <fedora-model:state> <fedora-model:Active> .
+}
+ORDER BY ?label
+EOQ;
+  $results = $tuque->repository->ri->sparqlQuery($query, 'unlimited');
   $collections = array();
   foreach ($results as $result) {
     $pid = $result['object']['value'];
@@ -694,7 +746,7 @@ function islandora_basic_collection_form_islandora_object_properties_form_alter(
 function islandora_basic_collection_form_islandora_delete_object_form_alter(array &$form, array &$form_state) {
   $object = $form_state['object'];
   if (in_array('islandora:collectionCModel', $object->models)) {
-    $form['description']['#markup'] = t('This will remove the collection object and all its child objects. Child objects currently shared with other collections will not be deleted. This action cannot be undone.');
+    $form['description']['#markup'] = t('This will remove the collection object and all its child objects. If child objects are collection objects, their children will not be deleted, and will become orphaned. Child objects currently shared with other collections will not be deleted. This action cannot be undone.');
     $form['#submit'] = array('islandora_basic_collection_islandora_delete_object_form_delete_children_submit');
   }
 }
@@ -729,7 +781,7 @@ function islandora_basic_collection_form_islandora_repository_admin_alter(&$form
     '#type' => 'checkbox',
     '#title' => t('UUID PID Generation'),
     '#default_value' => variable_get('islandora_basic_collection_generate_uuid', FALSE),
-    '#description' => t('Generate Fedora object PIDs with v4 UUIDs. Only applies during standard ingest process.'),
+    '#description' => t('Generate Fedora object PIDs with v4 UUIDs.'),
   );
 }
 
