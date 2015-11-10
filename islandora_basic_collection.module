@@ -231,7 +231,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
   /* completely disable view of object */
   $disable = variable_get('islandora_basic_collection_disable_display_generation', FALSE);
   if ($disable) {
-    return array();
+    return array( 'Collection View' => '');
   }
 
   $backend = variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND);
