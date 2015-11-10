@@ -23,7 +23,7 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
   };
 
   $form = array(
-    // Display options
+    // Display options.
     'display_generation_fieldset' => array(
       '#type' => 'fieldset',
       '#title' => t('Display Generation'),

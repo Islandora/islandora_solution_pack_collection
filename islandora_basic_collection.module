@@ -231,8 +231,9 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
   /* completely disable view of object */
   $disable = variable_get('islandora_basic_collection_disable_display_generation', FALSE);
   if ($disable) {
-    $to_return = array( 'Collection View' => '');
-  } else {
+    $to_return = array('Collection View' => '');
+  }
+  else {
 
     $backend = variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND);
     $backends = module_invoke_all('islandora_basic_collection_query_backends');
@@ -270,7 +271,6 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
       );
     }
   }
-
 
   if (variable_get('islandora_collection_metadata_display', FALSE)) {
     module_load_include('inc', 'islandora', 'includes/metadata');
