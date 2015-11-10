@@ -1,4 +1,4 @@
-xdx<?php
+<?php
 
 /**
  * @file
@@ -21,7 +21,9 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
   $map_to_title = function ($backend) {
     return $backend['title'];
   };
+
   $form = array(
+    // Display options
     'display_generation_fieldset' => array(
       '#type' => 'fieldset',
       '#title' => t('Display Generation'),
@@ -58,37 +60,32 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
           '#options' => array_map($map_to_title, $backend_options),
           '#default_value' => variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND),
         ),
-
       ),
-
+    ),
+    'islandora_basic_collection_disable_display_generation' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Completely disable default collection display generation.'),
+      '#default_value' => variable_get('islandora_basic_collection_disable_display_generation', FALSE),
+      '#description' => t("Disabling display generation allows for alternate collection displays to be used."),
     ),
 
-        'islandora_basic_collection_disable_display_generation' => array(
-          '#type' => 'checkbox',
-          '#title' => t('Completely disable default collection display generation.'),
-          '#default_value' => variable_get('islandora_basic_collection_disable_display_generation', FALSE),
-          '#description' => t("Disabling display generation allows for alternate collection displays to be used."),
-        ),
-        'islandora_basic_collection_disable_collection_policy_delete' => array(
-          '#type' => 'checkbox',
-          '#title' => t('Disable deleting the collection policy'),
-          '#default_value' => variable_get('islandora_basic_collection_disable_collection_policy_delete', TRUE),
-          '#description' => t("Disables the 'delete' link for the COLLECTION_POLICY datastream."),
-        ),
-
-
-      // Metadata display.
-      'metadata_display_fieldset' => array(
-        '#type' => 'fieldset',
-        '#title' => t('Metadata display'),
-        'islandora_collection_metadata_display' => array(
-          '#type' => 'checkbox',
-          '#title' => t('Display object metadata'),
-          '#description' => t('Display object metadata below the collection display.'),
-          '#default_value' => variable_get('islandora_collection_metadata_display', FALSE),
-        ),
+    'islandora_basic_collection_disable_collection_policy_delete' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Disable deleting the collection policy'),
+      '#default_value' => variable_get('islandora_basic_collection_disable_collection_policy_delete', TRUE),
+      '#description' => t("Disables the 'delete' link for the COLLECTION_POLICY datastream."),
+    ),
+    // Metadata display.
+    'metadata_display_fieldset' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Metadata display'),
+      'islandora_collection_metadata_display' => array(
+        '#type' => 'checkbox',
+        '#title' => t('Display object metadata'),
+        '#description' => t('Display object metadata below the collection display.'),
+        '#default_value' => variable_get('islandora_collection_metadata_display', FALSE),
       ),
-
+    ),
   );
-    return system_settings_form($form);
-    }
+  return system_settings_form($form);
+}
