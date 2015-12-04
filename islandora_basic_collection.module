@@ -227,89 +227,100 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_view_object(AbstractObject $object) {
-  $backend = variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND);
-  $backends = module_invoke_all('islandora_basic_collection_query_backends');
-  if ($backend === ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND || !isset($backends[$backend])) {
-    $output = theme('islandora_basic_collection_wrapper', array('islandora_object' => $object));
-    return array('Collection View' => $output);
+
+  /* completely disable view of object */
+  $disable = variable_get('islandora_basic_collection_disable_display_generation', FALSE);
+  if ($disable) {
+    $to_return = array('Collection View' => '');
   }
   else {
-    $limit = ((empty($_GET['pagesize'])) ?
-      variable_get('islandora_basic_collection_page_size', '12') :
-      $_GET['pagesize']);
-    $pager_element = 0;
-    $passed_page = pager_find_page($pager_element);
-    if (isset($backends[$backend]['file'])) {
-      require_once $backends[$backend]['file'];
-    }
-    list($total, $pids) = call_user_func($backends[$backend]['callable'], $object, $passed_page, $limit);
-    $page = pager_default_initialize($total, $limit, $pager_element);
-    if ($page < $passed_page) {
-      // If we were somehow on a page past the end, let us go to the last page
-      // of results.
-      list($total, $pids) = call_user_func($backends[$backend]['callable'], $object, $page, $limit);
-    }
 
-    $to_return = array(
-      'islandora_basic_collection_display' => array(
-        '#type' => 'markup',
-        '#theme' => 'islandora_objects_subset',
-        '#objects' => $pids,
-        '#total' => $total,
-        '#limit' => $limit,
-        '#pager_element' => $pager_element,
-        '#display' => variable_get('islandora_basic_collection_default_view', 'grid'),
+    $backend = variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND);
+    $backends = module_invoke_all('islandora_basic_collection_query_backends');
+    if ($backend === ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND || !isset($backends[$backend])) {
+      $output = theme('islandora_basic_collection_wrapper', array('islandora_object' => $object));
+      return array('Collection View' => $output);
+    }
+    else {
+      $limit = ((empty($_GET['pagesize'])) ?
+               variable_get('islandora_basic_collection_page_size', '12') :
+               $_GET['pagesize']);
+      $pager_element = 0;
+      $passed_page = pager_find_page($pager_element);
+      if (isset($backends[$backend]['file'])) {
+        require_once $backends[$backend]['file'];
+      }
+      list($total, $pids) = call_user_func($backends[$backend]['callable'], $object, $passed_page, $limit);
+      $page = pager_default_initialize($total, $limit, $pager_element);
+      if ($page < $passed_page) {
+        // If we were somehow on a page past the end, let us go to the last page
+        // of results.
+        list($total, $pids) = call_user_func($backends[$backend]['callable'], $object, $page, $limit);
+      }
+
+      $to_return = array(
+        'islandora_basic_collection_display' => array(
+          '#type' => 'markup',
+          '#theme' => 'islandora_objects_subset',
+          '#objects' => $pids,
+          '#total' => $total,
+          '#limit' => $limit,
+          '#pager_element' => $pager_element,
+          '#display' => variable_get('islandora_basic_collection_default_view', 'grid'),
+        ),
+      );
+    }
+  }
+
+  if (variable_get('islandora_collection_metadata_display', FALSE)) {
+    module_load_include('inc', 'islandora', 'includes/metadata');
+    $to_return['wrapper'] = array(
+      '#type' => 'item',
+      '#theme_wrappers' => array('container'),
+      '#attached' => array(
+        'js' => array(
+          'misc/form.js',
+          'misc/collapse.js',
+        ),
+      ),
+      '#attributes' => array(
+        'class' => array(
+          'islandora-collection-metadata',
+        ),
       ),
     );
-    if (variable_get('islandora_collection_metadata_display', FALSE)) {
-      module_load_include('inc', 'islandora', 'includes/metadata');
-      $to_return['wrapper'] = array(
-        '#type' => 'item',
+    $to_return['wrapper']['description'] = array(
+      '#type' => 'markup',
+      '#markup' => islandora_retrieve_description_markup($object),
+    );
+    $parent_collections = islandora_get_parents_from_rels_ext($object);
+    if (!empty($parent_collections)) {
+      $to_return['wrapper']['collections'] = array(
         '#theme_wrappers' => array('container'),
-        '#attached' => array(
-          'js' => array(
-            'misc/form.js',
-            'misc/collapse.js',
-          ),
-        ),
-        '#attributes' => array(
-          'class' => array(
-            'islandora-collection-metadata',
-          ),
-        ),
       );
-      $to_return['wrapper']['description'] = array(
-        '#type' => 'markup',
-        '#markup' => islandora_retrieve_description_markup($object),
+      $to_return['wrapper']['collections']['heading'] = array(
+        '#markup' => t('<h2>In collections</h2>'),
       );
-      $parent_collections = islandora_get_parents_from_rels_ext($object);
-      if (!empty($parent_collections)) {
-        $to_return['wrapper']['collections'] = array(
-          '#theme_wrappers' => array('container'),
+      $to_return['wrapper']['collections']['list'] = array(
+        '#prefix' => '<ul>',
+        '#suffix' => '</ul>',
+      );
+      foreach ($parent_collections as $parent) {
+        $to_return['wrapper']['collections']['list'][] = array(
+          '#markup' => l($parent->label, "islandora/object/{$parent->id}"),
+          '#prefix' => '<li>',
+          '#suffix' => '</li>',
         );
-        $to_return['wrapper']['collections']['heading'] = array(
-          '#markup' => t('<h2>In collections</h2>'),
-        );
-        $to_return['wrapper']['collections']['list'] = array(
-          '#prefix' => '<ul>',
-          '#suffix' => '</ul>',
-        );
-        foreach ($parent_collections as $parent) {
-          $to_return['wrapper']['collections']['list'][] = array(
-            '#markup' => l($parent->label, "islandora/object/{$parent->id}"),
-            '#prefix' => '<li>',
-            '#suffix' => '</li>',
-          );
-        }
       }
-      $to_return['wrapper']['metadata'] = array(
-        '#type' => 'markup',
-        '#markup' => islandora_retrieve_metadata_markup($object),
-      );
     }
-    return $to_return;
+    $to_return['wrapper']['metadata'] = array(
+      '#type' => 'markup',
+      '#markup' => islandora_retrieve_metadata_markup($object),
+    );
   }
+  return $to_return;
 }
+
 
 /**
  * Implements hook_islandora_basic_collection_query_backends().

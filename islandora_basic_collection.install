@@ -2,7 +2,7 @@
 
 /**
  * @file
- * This file contains all install functions
+ * This file contains all install functions.
  */
 
 /**
@@ -32,6 +32,7 @@ function islandora_basic_collection_uninstall() {
     'islandora_basic_collection_object_count_listing_phrase',
     'islandora_basic_collection_object_count_listing_placeholder',
     'islandora_basic_collection_display_backend',
+    'islandora_basic_collection_disable_display_generation',
   );
   array_walk($variables, 'variable_del');
 }

@@ -21,39 +21,59 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
   $map_to_title = function ($backend) {
     return $backend['title'];
   };
+
   $form = array(
-    'islandora_basic_collection_page_size' => array(
-      '#type' => 'textfield',
-      '#title' => t('Default collection objects per page'),
-      '#default_value' => variable_get('islandora_basic_collection_page_size', '12'),
-      '#description' => t('The default number of objects to show in a collection view.'),
+    // Display options.
+    'display_generation_fieldset' => array(
+      '#type' => 'fieldset',
+      '#title' => t('Display Generation'),
+      '#states' => array(
+        'invisible' => array(
+          ':input[name="islandora_basic_collection_disable_display_generation"]' => array('checked' => TRUE),
+        ),
+      ),
+      'islandora_collection_display' => array(
+        'islandora_basic_collection_page_size' => array(
+          '#type' => 'textfield',
+          '#title' => t('Default collection objects per page'),
+          '#default_value' => variable_get('islandora_basic_collection_page_size', '12'),
+          '#description' => t('The default number of objects to show in a collection view.'),
+        ),
+        'islandora_basic_collection_disable_count_object' => array(
+          '#type' => 'checkbox',
+          '#title' => t('Disable object count query in collection view'),
+          '#default_value' => variable_get('islandora_basic_collection_disable_count_object', FALSE),
+          '#description' => t("Disabling the object count query can improve performance when viewing large collections"),
+        ),
+        'islandora_basic_collection_default_view' => array(
+          '#type' => 'select',
+          '#title' => t('Default collection view style.'),
+          '#default_value' => variable_get('islandora_basic_collection_default_view', 'grid'),
+          '#options' => array(
+            'list' => t('List'),
+            'grid' => t('Grid'),
+          ),
+        ),
+        'islandora_basic_collection_display_backend' => array(
+          '#type' => 'radios',
+          '#title' => t('Display Generation'),
+          '#options' => array_map($map_to_title, $backend_options),
+          '#default_value' => variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND),
+        ),
+      ),
     ),
+    'islandora_basic_collection_disable_display_generation' => array(
+      '#type' => 'checkbox',
+      '#title' => t('Completely disable default collection display generation.'),
+      '#default_value' => variable_get('islandora_basic_collection_disable_display_generation', FALSE),
+      '#description' => t("Disabling display generation allows for alternate collection displays to be used."),
+    ),
+
     'islandora_basic_collection_disable_collection_policy_delete' => array(
       '#type' => 'checkbox',
       '#title' => t('Disable deleting the collection policy'),
       '#default_value' => variable_get('islandora_basic_collection_disable_collection_policy_delete', TRUE),
       '#description' => t("Disables the 'delete' link for the COLLECTION_POLICY datastream."),
-    ),
-    'islandora_basic_collection_disable_count_object' => array(
-      '#type' => 'checkbox',
-      '#title' => t('Disable object count query in collection view'),
-      '#default_value' => variable_get('islandora_basic_collection_disable_count_object', FALSE),
-      '#description' => t("Disabling the object count query can improve performance when viewing large collections"),
-    ),
-    'islandora_basic_collection_default_view' => array(
-      '#type' => 'select',
-      '#title' => t('Default collection view style.'),
-      '#default_value' => variable_get('islandora_basic_collection_default_view', 'grid'),
-      '#options' => array(
-        'list' => t('List'),
-        'grid' => t('Grid'),
-      ),
-    ),
-    'islandora_basic_collection_display_backend' => array(
-      '#type' => 'radios',
-      '#title' => t('Display Generation'),
-      '#options' => array_map($map_to_title, $backend_options),
-      '#default_value' => variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND),
     ),
     // Metadata display.
     'metadata_display_fieldset' => array(
