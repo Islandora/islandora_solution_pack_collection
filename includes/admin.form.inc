@@ -68,7 +68,14 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
       '#default_value' => variable_get('islandora_basic_collection_disable_display_generation', FALSE),
       '#description' => t("Disabling display generation allows for alternate collection displays to be used."),
     ),
-
+    'islandora_basic_collection_admin_page_size' => array(
+      '#type' => 'textfield',
+      '#title' => t('Objects per page during collection management'),
+      '#default_value' => variable_get('islandora_basic_collection_admin_page_size', '10'),
+      '#description' => t('The number of child objects to show per page in the migrate/share/delete interface.'),
+      '#element_validate' => array('element_validate_integer_positive'),
+      '#required' => TRUE,
+    ),
     'islandora_basic_collection_disable_collection_policy_delete' => array(
       '#type' => 'checkbox',
       '#title' => t('Disable deleting the collection policy'),
