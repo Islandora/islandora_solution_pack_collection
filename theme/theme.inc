@@ -161,7 +161,7 @@ function template_preprocess_islandora_basic_collection(&$variables) {
     }
     else {
       $image_path = drupal_get_path('module', 'islandora');
-      $thumbnail_img = theme('image', array('path' => "$image_path/images/folder.png", 'path' => $title));
+      $thumbnail_img = theme('image', array('path' => "$image_path/images/folder.png", 'alt' => $title));
     }
     $associated_objects_array[$pid]['thumbnail'] = $thumbnail_img;
     $associated_objects_array[$pid]['title_link'] = l($title, $object_url, array('html' => TRUE, 'attributes' => array('title' => $title)));
