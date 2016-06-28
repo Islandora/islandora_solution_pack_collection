@@ -389,9 +389,6 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
     'fedora-system:FedoraObject-3.0',
   );
   $disable_count = variable_get('islandora_basic_collection_disable_count_object', FALSE);
-  if (!$disable_count) {
-    $total = 0;
-  }
   foreach ($models as $model) {
     $model_pid = $model['model']['value'];
     if (in_array($model_pid, $ignore_models)) {
