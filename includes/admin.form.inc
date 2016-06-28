@@ -41,9 +41,9 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
         ),
         'islandora_basic_collection_disable_count_object' => array(
           '#type' => 'checkbox',
-          '#title' => t('Disable object count query in collection view'),
+          '#title' => t('Disable object count query in collection overview'),
           '#default_value' => variable_get('islandora_basic_collection_disable_count_object', FALSE),
-          '#description' => t("Disabling the object count query can improve performance when viewing large collections"),
+          '#description' => t("Disabling the object count query can improve performance when loading the overview for large collections."),
         ),
         'islandora_basic_collection_default_view' => array(
           '#type' => 'select',
