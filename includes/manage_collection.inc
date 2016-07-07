@@ -208,6 +208,21 @@ function islandora_basic_collection_create_child_collection_form_submit(array $f
 }
 
 /**
+ * Undo setting the content model
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_basic_collection_create_child_collection_form_undo_submit(&$form, &$form_state) {
+  $object = $form_state['islandora']['objects'][0];
+  if (isset($object['COLLECTION_POLICY'])) {
+    $object->purgeDatastream('COLLECTION_POLICY');
+  }
+}
+
+/**
  * Define collection policy management form.
  *
  * @param array $form
