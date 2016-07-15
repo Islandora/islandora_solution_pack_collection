@@ -107,7 +107,7 @@ function islandora_basic_collection_islandora_basic_collection_build_manage_obje
 function islandora_basic_collection_create_child_collection_form(array $form, array &$form_state) {
   module_load_include('inc', 'islandora', 'includes/utilities');
 
-  // if the form has step_storage values set, use them instead of the defaults
+  // If the form has step_storage values set, use them instead of the defaults.
   $step_storage = &islandora_ingest_form_get_step_storage($form_state, 'islandora_basic_collection');
   $form_values = isset($step_storage['values']) ? $step_storage['values'] : NULL;
 
@@ -117,17 +117,13 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
     drupal_set_message(t('You do not have permissions to create collections.'), 'error');
     drupal_goto('islandora/object/' . $parent_object->id);
   }
-
   $policy = new CollectionPolicy($parent_object['COLLECTION_POLICY']->content);
   $policy_content_models = $policy->getContentModels();
   $content_models = islandora_get_content_models();
   $form_state['content_models'] = $content_models;
   $default_namespace = islandora_get_namespace($policy_content_models['islandora:collectionCModel']['namespace']);
   $the_namespace = isset($form_values['namespace']) ? $form_values['namespace'] : $default_namespace;
-
-  $content_models_values = isset($form_values['content_models'])
-    ? array_filter($form_values['content_models'])
-    : array();
+  $content_models_values = isset($form_values['content_models']) ? array_filter($form_values['content_models']) : array();
 
   return array(
     '#action' => request_uri() . '#create-child-collection',
