@@ -317,16 +317,16 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
   $fragment = '#share-children';
   return array(
     '#action' => request_uri() . $fragment,
+    'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
+      'element' => 0,
+      'fragment' => $fragment,
+    )),
     'collection' => array(
       '#title' => t('Share members with collection'),
       '#description' => t("Members can be shared with any number of collections."),
       '#type' => 'select',
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
-    'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 0,
-      'fragment' => $fragment,
-    )),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Share selected objects'),
@@ -379,16 +379,16 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
   $fragment = '#migrate-children';
   return array(
     '#action' => request_uri() . $fragment,
+    'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
+      'element' => 1,
+      'fragment' => $fragment,
+    )),
     'collection' => array(
       '#title' => t('Migrate members to collection'),
       '#description' => t('Removes members from their current collection (%label) and adds them to the selected collection.', array('%label' => $object->label)),
       '#type' => 'select',
       '#options' => islandora_basic_collection_get_other_collections_as_form_options($object),
     ),
-    'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 1,
-      'fragment' => $fragment,
-    )),
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Migrate selected objects'),
