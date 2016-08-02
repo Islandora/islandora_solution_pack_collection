@@ -220,6 +220,10 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
       'file' => 'theme/theme.inc',
       'render element' => 'table',
     ),
+    'islandora_basic_collection_metadata_table_drag_components' => array(
+      'render element' => 'element',
+      'file' => 'theme/theme.inc',
+    ),
   );
 }
 
@@ -243,8 +247,8 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
     }
     else {
       $limit = ((empty($_GET['pagesize'])) ?
-               variable_get('islandora_basic_collection_page_size', '12') :
-               $_GET['pagesize']);
+        variable_get('islandora_basic_collection_page_size', '12') :
+        $_GET['pagesize']);
       $pager_element = 0;
       $passed_page = pager_find_page($pager_element);
       if (isset($backends[$backend]['file'])) {
@@ -267,60 +271,104 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
           '#limit' => $limit,
           '#pager_element' => $pager_element,
           '#display' => variable_get('islandora_basic_collection_default_view', 'grid'),
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array(
+              'islandora-solr-collection-display',
+            ),
+          ),
         ),
       );
     }
   }
 
+  // Add collection description metadata.
   if (variable_get('islandora_collection_metadata_display', FALSE)) {
     module_load_include('inc', 'islandora', 'includes/metadata');
-    $to_return['wrapper'] = array(
-      '#type' => 'item',
+
+    $to_return['description'] = array(
+      '#type' => 'markup',
       '#theme_wrappers' => array('container'),
-      '#attached' => array(
-        'js' => array(
-          'misc/form.js',
-          'misc/collapse.js',
-        ),
-      ),
       '#attributes' => array(
         'class' => array(
           'islandora-collection-metadata',
+          'islandora-collection-metadata-description',
         ),
       ),
-    );
-    $to_return['wrapper']['description'] = array(
-      '#type' => 'markup',
       '#markup' => islandora_retrieve_description_markup($object),
     );
+
+    // Add parent collections.
     $parent_collections = islandora_get_parents_from_rels_ext($object);
     if (!empty($parent_collections)) {
-      $to_return['wrapper']['collections'] = array(
+      $to_return['collections'] = array(
         '#theme_wrappers' => array('container'),
+        '#attributes' => array(
+          'class' => array(
+            'islandora-collection-metadata-in-collections',
+            'islandora-collection-metadata',
+          ),
+        ),
       );
-      $to_return['wrapper']['collections']['heading'] = array(
+      $to_return['collections']['heading'] = array(
         '#markup' => t('<h2>In collections</h2>'),
       );
-      $to_return['wrapper']['collections']['list'] = array(
+      $to_return['collections']['list'] = array(
         '#prefix' => '<ul>',
         '#suffix' => '</ul>',
       );
       foreach ($parent_collections as $parent) {
-        $to_return['wrapper']['collections']['list'][] = array(
+        $to_return['collections']['list'][] = array(
           '#markup' => l($parent->label, "islandora/object/{$parent->id}"),
           '#prefix' => '<li>',
           '#suffix' => '</li>',
         );
       }
     }
+
+    // Preserve the 'wrapper' wrapper for legacy support.
+    $to_return['wrapper'] = array(
+      '#type' => 'item',
+      '#theme_wrappers' => array('container'),
+      '#attributes' => array(
+        'class' => array(
+          'islandora-collection-metadata',
+          'islandora-collection-metadata-markup',
+        ),
+      ),
+    );
+
+    // Add the metadata fieldset markup.
     $to_return['wrapper']['metadata'] = array(
       '#type' => 'markup',
+      '#attached' => array(
+        'js' => array(
+          'misc/form.js',
+          'misc/collapse.js',
+        ),
+      ),
       '#markup' => islandora_retrieve_metadata_markup($object),
     );
   }
   return $to_return;
 }
 
+/**
+ * Implements hook_islandora_view_object_alter().
+ */
+function islandora_basic_collection_islandora_collectionCModel_islandora_view_object_alter(&$object, &$rendered) {
+  // Get the weight order from our configuration page.
+  $weight_config = variable_get('metadata_info_table_drag_attributes', "");
+  if (isset($weight_config)) {
+    foreach ($weight_config as $key => $value) {
+      $rendered[$key]['#weight']
+        = $weight_config[$key]['weight'];
+      if ($weight_config[$key]['omit'] > 0) {
+        $rendered[$key]['#attributes']['class'][] = 'element-invisible';
+      }
+    }
+  }
+}
 
 /**
  * Implements hook_islandora_basic_collection_query_backends().

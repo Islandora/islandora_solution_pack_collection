@@ -94,5 +94,78 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
       ),
     ),
   );
+
+  // Define the elements that appear on a collection objects display page.
+  // The key's match up with the form elements array keys.
+  $page_content = array(
+    'description' => array(
+      'name' => "Description",
+      'description' => "An objects description field",
+    ),
+    'collections' => array(
+      'name' => "In Collection",
+      'description' => "Indicates which collections this object belongs to",
+    ),
+    'wrapper' => array(
+      'name' => "Fieldset Metadata",
+      'description' => "An objects metadata collection set",
+    ),
+    'islandora_basic_collection_display' => array(
+      'name' => "Object Content",
+      'description' => "Main object page content, such as configured viewers",
+    ),
+  );
+
+  $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'] = array(
+    '#prefix' => '<div id="curve-attributes">',
+    '#suffix' => '</div>',
+    '#theme_wrappers' => array('fieldset'),
+    '#tree' => TRUE,
+    '#title' => t("Page content placement"),
+    '#theme' => 'islandora_basic_collection_metadata_table_drag_components',
+    '#description' => t('Use the table below to determine the rendering order of page and metadata content.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="islandora_basic_collection_display_backend"]' => array('value' => 'islandora_solr_query_backend'),
+        ':input[name="islandora_collection_metadata_display"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  $weights = variable_get('metadata_info_table_drag_attributes', "");
+
+  foreach ($page_content as $key => $data) {
+    $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['#weight']
+      = (isset($weights[$key]['weight'])) ? $weights[$key]['weight'] : 0;
+    $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['label'] = array(
+      '#type' => 'item',
+      '#markup' => $data['name'],
+    );
+    $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['textfield'] = array(
+      '#type' => 'item',
+      '#markup' => t("@description", array("@description" => $data['description'])),
+    );
+    $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['weight'] = array(
+      '#type' => 'textfield',
+      '#default_value' => (isset($weights[$key]['weight'])) ? $weights[$key]['weight'] : 0,
+      '#size' => 3,
+      '#attributes' => array(
+        'class' => array(
+          'item-row-weight',
+        ),
+      ),
+    );
+    $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['omit'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => (isset($weights[$key]['omit'])) ? $weights[$key]['omit'] : 0,
+      '#attributes' => array(
+        'class' => array(
+          'item-row-weight',
+        ),
+        'title' => t('Hide the selected element from display, marking it as an invisible element in the DOM.'),
+      ),
+    );
+  }
+
   return system_settings_form($form);
 }

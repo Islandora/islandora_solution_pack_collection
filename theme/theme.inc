@@ -84,6 +84,38 @@ function template_preprocess_islandora_basic_collection_wrapper(&$variables) {
 }
 
 /**
+ * Implements hook_theme().
+ */
+function theme_islandora_basic_collection_metadata_table_drag_components($vars) {
+  $element = $vars['element'];
+  drupal_add_tabledrag('islandora_basic_collection_meta_page_element_table', 'order', 'sibling', 'item-row-weight');
+
+  $header = array(
+    'label' => t('Attribute'),
+    'textfield' => t('Description'),
+    'weight' => t('Weight'),
+    'omit' => t('Hide from display'),
+  );
+
+  $rows = array();
+  foreach (element_children($element) as $key) {
+    $row = array();
+    $row['data'] = array();
+    foreach ($header as $fieldname => $title) {
+      $row['data'][] = drupal_render($element[$key][$fieldname]);
+      $row['class'] = array('draggable');
+    }
+    $rows[] = $row;
+  }
+
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array('id' => 'islandora_basic_collection_meta_page_element_table'),
+  ));
+}
+
+/**
  * Implements template_preprocess_HOOK().
  */
 function template_preprocess_islandora_basic_collection(&$variables) {
