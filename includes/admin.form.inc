@@ -132,7 +132,7 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
     ),
   );
 
-  $weights = variable_get('metadata_info_table_drag_attributes', "");
+  $weights = variable_get('metadata_info_table_drag_attributes', NULL);
 
   foreach ($page_content as $key => $data) {
     $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['#weight']
