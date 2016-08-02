@@ -136,7 +136,7 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
 
   foreach ($page_content as $key => $data) {
     $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['#weight']
-      = (isset($weights[$key]['weight'])) ? $weights[$key]['weight'] : 0;
+      = (!is_null($weights[$key]['weight'])) ? $weights[$key]['weight'] : 0;
     $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['label'] = array(
       '#type' => 'item',
       '#markup' => $data['name'],
@@ -147,7 +147,7 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
     );
     $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['weight'] = array(
       '#type' => 'textfield',
-      '#default_value' => (isset($weights[$key]['weight'])) ? $weights[$key]['weight'] : 0,
+      '#default_value' => (!is_null($weights[$key]['weight'])) ? $weights[$key]['weight'] : 0,
       '#size' => 3,
       '#attributes' => array(
         'class' => array(
@@ -157,7 +157,7 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
     );
     $form['metadata_display_fieldset']['metadata_info_table_drag_attributes'][$key]['omit'] = array(
       '#type' => 'checkbox',
-      '#default_value' => (isset($weights[$key]['omit'])) ? $weights[$key]['omit'] : 0,
+      '#default_value' => (!is_null($weights[$key]['omit'])) ? $weights[$key]['omit'] : 0,
       '#attributes' => array(
         'class' => array(
           'item-row-weight',

@@ -361,10 +361,11 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
   $weight_config = variable_get('metadata_info_table_drag_attributes', "");
   if (isset($weight_config)) {
     foreach ($weight_config as $key => $value) {
-      $rendered[$key]['#weight']
-        = $weight_config[$key]['weight'];
-      if ($weight_config[$key]['omit'] > 0) {
-        $rendered[$key]['#attributes']['class'][] = 'element-invisible';
+      if (isset($rendered[$key])) {
+        $rendered[$key]['#weight'] = $weight_config[$key]['weight'];
+        if ($weight_config[$key]['omit'] > 0) {
+          $rendered[$key]['#attributes']['class'][] = 'element-invisible';
+        }
       }
     }
   }
