@@ -358,13 +358,13 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_view_object_alter(&$object, &$rendered) {
   // Get the weight order from our configuration page.
-  $weight_config = variable_get('metadata_info_table_drag_attributes', NULL);
+  $weight_config = variable_get('islandora_basic_collection_metadata_info_table_drag_attributes', NULL);
   if (!is_null($weight_config)) {
     foreach ($weight_config as $key => $value) {
       if (isset($rendered[$key])) {
         $rendered[$key]['#weight'] = $weight_config[$key]['weight'];
         if ($weight_config[$key]['omit'] > 0) {
-          $rendered[$key]['#attributes']['class'][] = 'element-invisible';
+          unset($rendered[$key]);
         }
       }
     }

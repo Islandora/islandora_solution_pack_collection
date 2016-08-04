@@ -84,11 +84,22 @@ function template_preprocess_islandora_basic_collection_wrapper(&$variables) {
 }
 
 /**
- * Implements hook_theme().
+ * Returns HTML for the metadata_table_drag_components weight table.
+ *
+ * @param array $vars
+ *   An associative array containing:
+ *   - element: Table element array.
+ *   - theme_hook_original: Initial theme hook.
+ *
+ * @return string
+ *   Themed table html.
+ *
+ * @ingroup themeable
  */
 function theme_islandora_basic_collection_metadata_table_drag_components($vars) {
   $element = $vars['element'];
-  drupal_add_tabledrag('islandora_basic_collection_meta_page_element_table', 'order', 'sibling', 'item-row-weight');
+  $clean_id = drupal_html_id('islandora_basic_collection_meta_page_element_table');
+  drupal_add_tabledrag($clean_id, 'order', 'sibling', 'item-row-weight');
 
   $header = array(
     'label' => t('Attribute'),
@@ -111,7 +122,7 @@ function theme_islandora_basic_collection_metadata_table_drag_components($vars) 
   return theme('table', array(
     'header' => $header,
     'rows' => $rows,
-    'attributes' => array('id' => 'islandora_basic_collection_meta_page_element_table'),
+    'attributes' => array('id' => $clean_id),
   ));
 }
 
