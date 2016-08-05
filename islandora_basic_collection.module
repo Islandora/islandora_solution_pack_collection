@@ -300,6 +300,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
     $parent_collections = islandora_get_parents_from_rels_ext($object);
     if (!empty($parent_collections)) {
       $to_return['collections'] = array(
+        '#type' => 'markup',
         '#theme_wrappers' => array('container'),
         '#attributes' => array(
           'class' => array(
