@@ -124,28 +124,34 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
     '#description' => t('Use the table below to determine the rendering order of page and metadata content.'),
     '#states' => array(
       'visible' => array(
-        ':input[name="islandora_basic_collection_display_backend"]' => array('value' => 'islandora_solr_query_backend'),
+        ':input[name="islandora_basic_collection_display_backend"]' => array('!value' => ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND),
         ':input[name="islandora_collection_metadata_display"]' => array('checked' => TRUE),
       ),
     ),
   );
 
-  $weights = variable_get('islandora_basic_collection_metadata_info_table_drag_attributes', NULL);
+  $config = variable_get('islandora_basic_collection_metadata_info_table_drag_attributes', array());
 
   foreach ($page_content as $key => $data) {
-    $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key]['#weight']
-      = (!is_null($weights[$key]['weight'])) ? $weights[$key]['weight'] : 0;
-    $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key]['label'] = array(
+    $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key] = array();
+    $element =& $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key];
+    $config[$key] += array(
+      'weight' => 0,
+      'omit' => 0,
+    );
+
+    $element['#weight'] = $config[$key]['weight'];
+    $element['label'] = array(
       '#type' => 'item',
       '#markup' => $data['name'],
     );
-    $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key]['textfield'] = array(
+    $element['textfield'] = array(
       '#type' => 'item',
       '#markup' => $data['description'],
     );
-    $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key]['weight'] = array(
+    $element['weight'] = array(
       '#type' => 'textfield',
-      '#default_value' => (!is_null($weights[$key]['weight'])) ? $weights[$key]['weight'] : 0,
+      '#default_value' => $element['#weight'],
       '#size' => 3,
       '#attributes' => array(
         'class' => array(
@@ -153,9 +159,9 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
         ),
       ),
     );
-    $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key]['omit'] = array(
+    $element['omit'] = array(
       '#type' => 'checkbox',
-      '#default_value' => (!is_null($weights[$key]['omit'])) ? $weights[$key]['omit'] : 0,
+      '#default_value' => $config[$key]['omit'],
       '#attributes' => array(
         'class' => array(
           'item-row-weight',
