@@ -231,14 +231,12 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_view_object(AbstractObject $object) {
-
   /* completely disable view of object */
   $disable = variable_get('islandora_basic_collection_disable_display_generation', FALSE);
   if ($disable) {
     $to_return = array('Collection View' => '');
   }
   else {
-
     $backend = variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND);
     $backends = module_invoke_all('islandora_basic_collection_query_backends');
     if ($backend === ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND || !isset($backends[$backend])) {
@@ -350,25 +348,18 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
       '#markup' => islandora_retrieve_metadata_markup($object),
     );
   }
-  return $to_return;
-}
 
-/**
- * Implements hook_islandora_view_object_alter().
- */
-function islandora_basic_collection_islandora_collectionCModel_islandora_view_object_alter(&$object, &$rendered) {
-  // Get the weight order from our configuration page.
-  $weight_config = variable_get('islandora_basic_collection_metadata_info_table_drag_attributes', NULL);
-  if (!is_null($weight_config)) {
-    foreach ($weight_config as $key => $value) {
-      if (isset($rendered[$key])) {
-        $rendered[$key]['#weight'] = $weight_config[$key]['weight'];
-        if ($weight_config[$key]['omit'] > 0) {
-          unset($rendered[$key]);
-        }
-      }
+  foreach (variable_get('islandora_basic_collection_metadata_info_table_drag_attributes', array()) as $key => $config) {
+    if ($config['omit']) {
+      unset($to_return[$key]);
     }
+    if (!isset($to_return[$key])) {
+      continue;
+    }
+    $to_return[$key]['#weight'] = $config['weight'];
   }
+
+  return $to_return;
 }
 
 /**
