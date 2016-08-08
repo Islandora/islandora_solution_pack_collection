@@ -135,6 +135,9 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
   foreach ($page_content as $key => $data) {
     $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key] = array();
     $element =& $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key];
+    if (!isset($config[$key])) {
+      $config[$key] = array();
+    }
     $config[$key] += array(
       'weight' => 0,
       'omit' => 0,
