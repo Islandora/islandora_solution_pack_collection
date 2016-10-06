@@ -257,7 +257,12 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
   module_load_include('inc', 'islandora', 'includes/utilities');
   drupal_add_css(drupal_get_path('module', 'islandora_basic_collection') . "/css/collection_policy_table.css");
   $form_state['collection'] = $object;
-  $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
+  if (isset($object['COLLECTION_POLICY'])) {
+    $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
+  }
+  else {
+    $policy = CollectionPolicy::emptyPolicy()->getXML();
+  }
   $policy_content_models = $policy->getContentModels();
   $content_models = islandora_get_content_models();
   $default_namespace = drupal_substr($object->id, 0, strpos($object->id, ":"));
@@ -328,7 +333,16 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
     $content_model = islandora_object_load($pid);
     $policy->addContentModel($pid, $properties['prompt'], $properties['namespace']);
   }
-  $collection['COLLECTION_POLICY']->content = $policy->getXML();
+  if (!isset($collection['COLLECTION_POLICY'])) {
+    $cp_ds = $collection->constructDatastream('COLLECTION_POLICY', 'M');
+    $cp_ds->mimetype = 'application/xml';
+    $cp_ds->label = 'Collection Policy';
+    $cp_ds->setContentFromString($policy->getXML());
+    $collection->ingestDatastream($cp_ds);
+  }
+  else {
+    $collection['COLLECTION_POLICY']->setContentFromString($policy->getXML());
+  }
   drupal_set_message(t('Updated collection policy'));
 }
 
