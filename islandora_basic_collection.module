@@ -737,6 +737,11 @@ EOQ;
  * Implements hook_islandora_undeletable_datastreams().
  */
 function islandora_basic_collection_islandora_undeletable_datastreams($models) {
+  if (in_array('islandora:collectionCModel', $models)) {
+    if (variable_get('islandora_basic_collection_disable_collection_policy_delete', TRUE)) {
+      return array('COLLECTION_POLICY');
+    }
+  }
 }
 
 /**
