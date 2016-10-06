@@ -261,7 +261,7 @@ function islandora_basic_collection_policy_management_form(array $form, array &$
     $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
   }
   else {
-    $policy = CollectionPolicy::emptyPolicy()->getXML();
+    $policy = CollectionPolicy::emptyPolicy();
   }
   $policy_content_models = $policy->getContentModels();
   $content_models = islandora_get_content_models();
