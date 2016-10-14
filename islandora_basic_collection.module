@@ -897,14 +897,11 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
   $result = NULL;
 
   $collection_models = islandora_basic_collection_get_collection_content_models();
-  $is_a_collection = (
-    (count(array_intersect($collection_models, $object->models)) > 0) &&
-    isset($object['COLLECTION_POLICY'])
-  );
+  $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
 
   if (in_array($op, array_keys(islandora_basic_collection_permission()))) {
     if ($is_a_collection) {
-      if ($op == ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION) {
+      if ($op == ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION && isset($object['COLLECTION_POLICY'])) {
         $result = islandora_object_access(ISLANDORA_INGEST, $object, $user) && islandora_datastream_access(ISLANDORA_VIEW_OBJECTS, $object['COLLECTION_POLICY'], $user);
         if ($result) {
           $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
@@ -913,7 +910,12 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
         }
       }
       elseif ($op == ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY) {
-        $result = islandora_datastream_access(ISLANDORA_METADATA_EDIT, $object['COLLECTION_POLICY'], $user);
+        if (isset($object['COLLECTION_POLICY'])) {
+          $result = islandora_datastream_access(ISLANDORA_METADATA_EDIT, $object['COLLECTION_POLICY'], $user);
+        }
+        else {
+          $result = islandora_object_access(ISLANDORA_ADD_DS, $object, $user);
+        }
       }
       elseif ($op == ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS) {
         // Not sure how much sense this makes... Check that we can modify the
