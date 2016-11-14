@@ -220,6 +220,10 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
       'file' => 'theme/theme.inc',
       'render element' => 'table',
     ),
+    'islandora_basic_collection_metadata_table_drag_components' => array(
+      'render element' => 'element',
+      'file' => 'theme/theme.inc',
+    ),
   );
 }
 
@@ -227,14 +231,12 @@ function islandora_basic_collection_theme($existing, $type, $theme, $path) {
  * Implements hook_CMODEL_PID_islandora_view_object().
  */
 function islandora_basic_collection_islandora_collectionCModel_islandora_view_object(AbstractObject $object) {
-
   /* completely disable view of object */
   $disable = variable_get('islandora_basic_collection_disable_display_generation', FALSE);
   if ($disable) {
     $to_return = array('Collection View' => '');
   }
   else {
-
     $backend = variable_get('islandora_basic_collection_display_backend', ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND);
     $backends = module_invoke_all('islandora_basic_collection_query_backends');
     if ($backend === ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND || !isset($backends[$backend])) {
@@ -243,8 +245,8 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
     }
     else {
       $limit = ((empty($_GET['pagesize'])) ?
-               variable_get('islandora_basic_collection_page_size', '12') :
-               $_GET['pagesize']);
+        variable_get('islandora_basic_collection_page_size', '12') :
+        $_GET['pagesize']);
       $pager_element = 0;
       $passed_page = pager_find_page($pager_element);
       if (isset($backends[$backend]['file'])) {
@@ -267,60 +269,99 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_view_ob
           '#limit' => $limit,
           '#pager_element' => $pager_element,
           '#display' => variable_get('islandora_basic_collection_default_view', 'grid'),
+          '#theme_wrappers' => array('container'),
+          '#attributes' => array(
+            'class' => array(
+              'islandora-solr-collection-display',
+            ),
+          ),
         ),
       );
     }
   }
 
+  // Add collection description metadata.
   if (variable_get('islandora_collection_metadata_display', FALSE)) {
     module_load_include('inc', 'islandora', 'includes/metadata');
-    $to_return['wrapper'] = array(
-      '#type' => 'item',
+
+    $to_return['description'] = array(
+      '#type' => 'markup',
       '#theme_wrappers' => array('container'),
-      '#attached' => array(
-        'js' => array(
-          'misc/form.js',
-          'misc/collapse.js',
-        ),
-      ),
       '#attributes' => array(
         'class' => array(
           'islandora-collection-metadata',
+          'islandora-collection-metadata-description',
         ),
       ),
-    );
-    $to_return['wrapper']['description'] = array(
-      '#type' => 'markup',
       '#markup' => islandora_retrieve_description_markup($object),
     );
+
+    // Add parent collections.
     $parent_collections = islandora_get_parents_from_rels_ext($object);
     if (!empty($parent_collections)) {
-      $to_return['wrapper']['collections'] = array(
+      $to_return['collections'] = array(
+        '#type' => 'markup',
         '#theme_wrappers' => array('container'),
+        '#attributes' => array(
+          'class' => array(
+            'islandora-collection-metadata-in-collections',
+            'islandora-collection-metadata',
+          ),
+        ),
       );
-      $to_return['wrapper']['collections']['heading'] = array(
+      $to_return['collections']['heading'] = array(
         '#markup' => t('<h2>In collections</h2>'),
       );
-      $to_return['wrapper']['collections']['list'] = array(
+      $to_return['collections']['list'] = array(
         '#prefix' => '<ul>',
         '#suffix' => '</ul>',
       );
       foreach ($parent_collections as $parent) {
-        $to_return['wrapper']['collections']['list'][] = array(
+        $to_return['collections']['list'][] = array(
           '#markup' => l($parent->label, "islandora/object/{$parent->id}"),
           '#prefix' => '<li>',
           '#suffix' => '</li>',
         );
       }
     }
+
+    // Preserve the 'wrapper' wrapper for legacy support.
+    $to_return['wrapper'] = array(
+      '#type' => 'item',
+      '#theme_wrappers' => array('container'),
+      '#attributes' => array(
+        'class' => array(
+          'islandora-collection-metadata',
+          'islandora-collection-metadata-markup',
+        ),
+      ),
+    );
+
+    // Add the metadata fieldset markup.
     $to_return['wrapper']['metadata'] = array(
       '#type' => 'markup',
+      '#attached' => array(
+        'js' => array(
+          'misc/form.js',
+          'misc/collapse.js',
+        ),
+      ),
       '#markup' => islandora_retrieve_metadata_markup($object),
     );
   }
+
+  foreach (variable_get('islandora_basic_collection_metadata_info_table_drag_attributes', array()) as $key => $config) {
+    if ($config['omit']) {
+      unset($to_return[$key]);
+    }
+    if (!isset($to_return[$key])) {
+      continue;
+    }
+    $to_return[$key]['#weight'] = $config['weight'];
+  }
+
   return $to_return;
 }
-
 
 /**
  * Implements hook_islandora_basic_collection_query_backends().
@@ -388,6 +429,7 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
   $ignore_models = array(
     'fedora-system:FedoraObject-3.0',
   );
+  $disable_count = variable_get('islandora_basic_collection_disable_count_object', FALSE);
   foreach ($models as $model) {
     $model_pid = $model['model']['value'];
     if (in_array($model_pid, $ignore_models)) {
@@ -401,39 +443,27 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
       'model' => "<info:fedora/$model_pid>",
     ));
     $model_object = islandora_object_load($model_pid);
-    if (variable_get('islandora_basic_collection_disable_count_object', FALSE)) {
-      $rows[$model_pid] = array(
-        ($model_object ?
-            l($model_object->label, "islandora/object/{$model_object->id}") :
-            $model_pid),
-      );
-    }
-    else {
-      $rows[$model_pid] = array(
-        ($model_object ?
-            l($model_object->label, "islandora/object/{$model_object->id}") :
-            $model_pid),
-        $object->repository->ri->countQuery($model_count_query['query'], $model_count_query['type']),
-      );
+    $rows[$model_pid] = array(
+      $model_object ? l($model_object->label, "islandora/object/{$model_object->id}") : $model_pid,
+    );
+    if (!$disable_count) {
+      $rows[$model_pid][] = $object->repository->ri->countQuery($model_count_query['query'], $model_count_query['type']);
     }
   }
 
-  list($total_count, $all_results) = islandora_basic_collection_get_member_objects($object, 0, 0);
-
   $content = array(
-    'total' => array('#markup' => t('Total members: %total', array('%total' => $total_count))),
     'table' => array(
       '#theme' => 'table',
       '#header' => array(
         'type' => array('data' => t('Type')),
-        'count' => array('data' => t('Count')),
       ),
       '#rows' => $rows,
       '#empty' => t('Collection is empty.')),
   );
-  if (variable_get('islandora_basic_collection_disable_count_object', FALSE)) {
-    unset($content['total']);
-    unset($content['table']['#header']['count']);
+  if (!$disable_count) {
+    list($total_count, $all_results) = islandora_basic_collection_get_member_objects($object, 0, 0);
+    $content['total'] = array('#markup' => t('Total members: %total', array('%total' => $total_count)));
+    $content['table']['#header']['count'] = array('data' => t('Count'));
   }
   return array(
     'collection' => drupal_render($content),
@@ -624,7 +654,7 @@ function islandora_basic_collection_get_member_objects(AbstractObject $object, $
   }
   $query_array = islandora_basic_collection_get_query_info($params, $type);
   try {
-    $count = variable_get('islandora_basic_collection_disable_count_object', FALSE) ? 0 : $object->repository->ri->countQuery($query_array['query'], $query_array['type']);
+    $count = $object->repository->ri->countQuery($query_array['query'], $query_array['type']);
     $is_itql = strcasecmp('itql', $query_array['type']) === 0;
 
     if ($is_itql && ($page_number > 0 || $page_size >= 0)) {
@@ -867,14 +897,11 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
   $result = NULL;
 
   $collection_models = islandora_basic_collection_get_collection_content_models();
-  $is_a_collection = (
-    (count(array_intersect($collection_models, $object->models)) > 0) &&
-    isset($object['COLLECTION_POLICY'])
-  );
+  $is_a_collection = count(array_intersect($collection_models, $object->models)) > 0;
 
   if (in_array($op, array_keys(islandora_basic_collection_permission()))) {
     if ($is_a_collection) {
-      if ($op == ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION) {
+      if ($op == ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION && isset($object['COLLECTION_POLICY'])) {
         $result = islandora_object_access(ISLANDORA_INGEST, $object, $user) && islandora_datastream_access(ISLANDORA_VIEW_OBJECTS, $object['COLLECTION_POLICY'], $user);
         if ($result) {
           $policy = new CollectionPolicy($object['COLLECTION_POLICY']->content);
@@ -883,7 +910,12 @@ function islandora_basic_collection_islandora_object_access($op, $object, $user)
         }
       }
       elseif ($op == ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY) {
-        $result = islandora_datastream_access(ISLANDORA_METADATA_EDIT, $object['COLLECTION_POLICY'], $user);
+        if (isset($object['COLLECTION_POLICY'])) {
+          $result = islandora_datastream_access(ISLANDORA_METADATA_EDIT, $object['COLLECTION_POLICY'], $user);
+        }
+        else {
+          $result = islandora_object_access(ISLANDORA_ADD_DS, $object, $user);
+        }
       }
       elseif ($op == ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS) {
         // Not sure how much sense this makes... Check that we can modify the

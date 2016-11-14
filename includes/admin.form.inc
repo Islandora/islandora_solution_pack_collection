@@ -41,9 +41,9 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
         ),
         'islandora_basic_collection_disable_count_object' => array(
           '#type' => 'checkbox',
-          '#title' => t('Disable object count query in collection view'),
+          '#title' => t('Disable object count query in collection overview'),
           '#default_value' => variable_get('islandora_basic_collection_disable_count_object', FALSE),
-          '#description' => t("Disabling the object count query can improve performance when viewing large collections"),
+          '#description' => t("Disabling the object count query can improve performance when loading the overview for large collections."),
         ),
         'islandora_basic_collection_default_view' => array(
           '#type' => 'select',
@@ -94,5 +94,85 @@ function islandora_basic_collection_admin(array $form, array &$form_state) {
       ),
     ),
   );
+
+  // Define the elements that appear on a collection objects display page.
+  // The key's match up with the form elements array keys.
+  $page_content = array(
+    'description' => array(
+      'name' => t("Description"),
+      'description' => t("An objects description field"),
+    ),
+    'collections' => array(
+      'name' => t("In Collection"),
+      'description' => t("Indicates which collections this object belongs to"),
+    ),
+    'wrapper' => array(
+      'name' => t("Fieldset Metadata"),
+      'description' => t("An objects metadata collection set"),
+    ),
+    'islandora_basic_collection_display' => array(
+      'name' => t("Object Content"),
+      'description' => t("Main object page content, such as configured viewers"),
+    ),
+  );
+
+  $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'] = array(
+    '#theme_wrappers' => array('fieldset'),
+    '#tree' => TRUE,
+    '#title' => t("Page content placement"),
+    '#theme' => 'islandora_basic_collection_metadata_table_drag_components',
+    '#description' => t('Use the table below to determine the rendering order of page and metadata content.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="islandora_basic_collection_display_backend"]' => array('!value' => ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND),
+        ':input[name="islandora_collection_metadata_display"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  $config = variable_get('islandora_basic_collection_metadata_info_table_drag_attributes', array());
+
+  foreach ($page_content as $key => $data) {
+    $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key] = array();
+    $element =& $form['metadata_display_fieldset']['islandora_basic_collection_metadata_info_table_drag_attributes'][$key];
+    if (!isset($config[$key])) {
+      $config[$key] = array();
+    }
+    $config[$key] += array(
+      'weight' => 0,
+      'omit' => 0,
+    );
+
+    $element['#weight'] = $config[$key]['weight'];
+    $element['label'] = array(
+      '#type' => 'item',
+      '#markup' => $data['name'],
+    );
+    $element['textfield'] = array(
+      '#type' => 'item',
+      '#markup' => $data['description'],
+    );
+    $element['weight'] = array(
+      '#type' => 'textfield',
+      '#default_value' => $element['#weight'],
+      '#size' => 3,
+      '#attributes' => array(
+        'class' => array(
+          'item-row-weight',
+        ),
+      ),
+    );
+    $element['omit'] = array(
+      '#type' => 'checkbox',
+      '#default_value' => $config[$key]['omit'],
+      '#attributes' => array(
+        'class' => array(
+          'item-row-weight',
+        ),
+        'title' => t('Hide the selected element from display, marking it as an invisible element in the DOM.'),
+      ),
+    );
+  }
+
   return system_settings_form($form);
 }

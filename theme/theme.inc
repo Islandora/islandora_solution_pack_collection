@@ -84,6 +84,49 @@ function template_preprocess_islandora_basic_collection_wrapper(&$variables) {
 }
 
 /**
+ * Returns HTML for the metadata_table_drag_components weight table.
+ *
+ * @param array $vars
+ *   An associative array containing:
+ *   - element: Table element array.
+ *   - theme_hook_original: Initial theme hook.
+ *
+ * @return string
+ *   Themed table html.
+ *
+ * @ingroup themeable
+ */
+function theme_islandora_basic_collection_metadata_table_drag_components($vars) {
+  $element = $vars['element'];
+  $clean_id = drupal_html_id('islandora_basic_collection_meta_page_element_table');
+  drupal_add_tabledrag($clean_id, 'order', 'sibling', 'item-row-weight');
+
+  $header = array(
+    'label' => t('Attribute'),
+    'textfield' => t('Description'),
+    'weight' => t('Weight'),
+    'omit' => t('Hide from display'),
+  );
+
+  $rows = array();
+  foreach (element_children($element) as $key) {
+    $row = array();
+    $row['data'] = array();
+    foreach ($header as $fieldname => $title) {
+      $row['data'][] = drupal_render($element[$key][$fieldname]);
+      $row['class'] = array('draggable');
+    }
+    $rows[] = $row;
+  }
+
+  return theme('table', array(
+    'header' => $header,
+    'rows' => $rows,
+    'attributes' => array('id' => $clean_id),
+  ));
+}
+
+/**
  * Implements template_preprocess_HOOK().
  */
 function template_preprocess_islandora_basic_collection(&$variables) {
@@ -157,11 +200,11 @@ function template_preprocess_islandora_basic_collection(&$variables) {
     $associated_objects_array[$pid]['title'] = $title;
     $associated_objects_array[$pid]['class'] = drupal_strtolower(preg_replace('/[^A-Za-z0-9]/', '-', $pid));
     if (isset($fc_object['TN']) && islandora_datastream_access(ISLANDORA_VIEW_OBJECTS, $fc_object['TN'])) {
-      $thumbnail_img = theme('image', array('path' => "$object_url/datastream/TN/view"));
+      $thumbnail_img = theme('image', array('path' => "$object_url/datastream/TN/view", 'alt' => $title));
     }
     else {
       $image_path = drupal_get_path('module', 'islandora');
-      $thumbnail_img = theme('image', array('path' => "$image_path/images/folder.png"));
+      $thumbnail_img = theme('image', array('path' => "$image_path/images/folder.png", 'alt' => $title));
     }
     $associated_objects_array[$pid]['thumbnail'] = $thumbnail_img;
     $associated_objects_array[$pid]['title_link'] = l($title, $object_url, array('html' => TRUE, 'attributes' => array('title' => $title)));
