@@ -558,25 +558,19 @@ function islandora_basic_collection_delete_children_form_submit(array $form, arr
 function islandora_basic_collection_validate_form(array $form_state) {
   $new_collection = $form_state['values']['collection'];
   $clicked_button = end($form_state['clicked_button']['#parents']);
-  $get_pid = function($o) {
-    if (isset($o['object']['value'])) {
-      return $o['object']['value'];
-    }
-    else {
-      return '';
-    }
-  };
 
   if ($clicked_button == 'submit_all') {
-    $collection = $form_state['collection'];
-    $page = 0;
-    do {
-      list($count, $results) = islandora_basic_collection_get_member_objects($collection, $page, 10, 'manage');
-      $results = array_map($get_pid, $results);
-      if (array_intersect($results, array($new_collection))) {
-        return FALSE;
-      }
-    } while (($page++ * 10) + 10 < $count);
+    $source_collection = $form_state['collection'];
+    $query = <<<EOT
+PREFIX fedora-rels-ext: <info:fedora/fedora-system:def/relations-external#>
+SELECT ?object WHERE {
+?object fedora-rels-ext:isMemberOfCollection <info:fedora/{$source_collection}> .
+FILTER (sameTerm(?object, <info:fedora/{$new_collection}>))
+}
+EOT;
+    $connection = islandora_get_tuque_connection();
+    $num_results = $connection->repository->ri->countQuery($query, 'sparql');
+    return ($num_results <= 0);
   }
   else {
     $children = array_keys(array_filter($form_state['values']['children']));
