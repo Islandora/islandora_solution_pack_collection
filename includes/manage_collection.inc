@@ -386,6 +386,46 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
 }
 
 /**
+ * Form validation for share children form.
+ *
+ * @param array $form
+ *    The Drupal form definition.
+ * @param array $form_state
+ *    The Drupal form state.
+ */
+function islandora_basic_collection_share_children_form_validate(array $form, array &$form_state) {
+  $new_collection = $form_state['values']['collection'];
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  $get_pid = function($o) {
+    if (isset($o['object']['value'])) {
+      return $o['object']['value'];
+    }
+    else {
+      return '';
+    }
+  };
+
+  if ($clicked_button == 'submit_all') {
+    $collection = $form_state['collection'];
+    $page = 0;
+    do {
+      list($count, $results) = islandora_basic_collection_get_member_objects($collection, $page, 10, 'manage');
+      $results = array_map($get_pid, $results);
+      if (array_intersect($results, array($new_collection))) {
+        form_set_error('collection', t("You cannot share a collection with itself."));
+        break;
+      }
+    } while (($page++ * 10) + 10 < $count);
+  }
+  else {
+    $children = array_keys(array_filter($form_state['values']['children']));
+    if (array_intersect($children, array($new_collection))) {
+      form_set_error('collection', t("You cannot share a collection with itself."));
+    }
+  }
+}
+
+/**
  * Submit handler for the share children form.
  *
  * @param array $form
@@ -445,6 +485,46 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#value' => t('Migrate All Objects'),
     ),
   );
+}
+
+/**
+ * Form validation for migrate children form.
+ *
+ * @param array $form
+ *    The Drupal form definition.
+ * @param array $form_state
+ *    The Drupal form state.
+ */
+function islandora_basic_collection_migrate_children_form_validate(array $form, array &$form_state) {
+  $new_collection = $form_state['values']['collection'];
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+  $get_pid = function($o) {
+    if (isset($o['object']['value'])) {
+      return $o['object']['value'];
+    }
+    else {
+      return '';
+    }
+  };
+
+  if ($clicked_button == 'submit_all') {
+    $collection = $form_state['collection'];
+    $page = 0;
+    do {
+      list($count, $results) = islandora_basic_collection_get_member_objects($collection, $page, 10, 'manage');
+      $results = array_map($get_pid, $results);
+      if (array_intersect($results, array($new_collection))) {
+        form_set_error('collection', t("You cannot migrate a collection into itself."));
+        break;
+      }
+    } while (($page++ * 10) + 10 < $count);
+  }
+  else {
+    $children = array_keys(array_filter($form_state['values']['children']));
+    if (array_intersect($children, array($new_collection))) {
+      form_set_error('collection', t("You cannot migrate a collection into itself."));
+    }
+  }
 }
 
 /**
