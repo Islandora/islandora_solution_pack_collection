@@ -389,9 +389,9 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
  * Form validation for share children form.
  *
  * @param array $form
- *    The Drupal form definition.
+ *   The Drupal form definition.
  * @param array $form_state
- *    The Drupal form state.
+ *   The Drupal form state.
  */
 function islandora_basic_collection_share_children_form_validate(array $form, array &$form_state) {
   if (!islandora_basic_collection_validate_form($form_state)) {
@@ -465,9 +465,9 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
  * Form validation for migrate children form.
  *
  * @param array $form
- *    The Drupal form definition.
+ *   The Drupal form definition.
  * @param array $form_state
- *    The Drupal form state.
+ *   The Drupal form state.
  */
 function islandora_basic_collection_migrate_children_form_validate(array $form, array &$form_state) {
   if (!islandora_basic_collection_validate_form($form_state)) {
@@ -550,10 +550,10 @@ function islandora_basic_collection_delete_children_form_submit(array $form, arr
  * Ensures you don't share/migrate a collection into itself.
  *
  * @param array $form_state
- *    The Drupal form state.
+ *   The Drupal form state.
  *
  * @return bool
- *    Whether the form is valid or not.
+ *   Whether the form is valid or not.
  */
 function islandora_basic_collection_validate_form(array $form_state) {
   $new_collection = $form_state['values']['collection'];
