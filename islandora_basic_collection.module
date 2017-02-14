@@ -384,9 +384,9 @@ function islandora_basic_collection_islandora_basic_collection_query_backends() 
 }
 
 /**
- * Implements hook_islandora_xml_form_builder_forms().
+ * Implements hook_xml_form_builder_forms().
  */
-function islandora_basic_collection_islandora_xml_form_builder_forms() {
+function islandora_basic_collection_xml_form_builder_forms() {
   $module_path = drupal_get_path('module', 'islandora_basic_collection');
   return array(
     'Collection MODS form' => array(
@@ -396,9 +396,9 @@ function islandora_basic_collection_islandora_xml_form_builder_forms() {
 }
 
 /**
- * Implements hook_islandora_xml_form_builder_form_associations().
+ * Implements hook_xml_form_builder_form_associations().
  */
-function islandora_basic_collection_islandora_xml_form_builder_form_associations() {
+function islandora_basic_collection_xml_form_builder_form_associations() {
   return array(
     'islandora_basic_collection_mods_form' => array(
       'content_model' => 'islandora:collectionCModel',
