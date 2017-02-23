@@ -386,6 +386,20 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
 }
 
 /**
+ * Form validation for share children form.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_basic_collection_share_children_form_validate(array $form, array &$form_state) {
+  if (!islandora_basic_collection_validate_form($form_state)) {
+    form_set_error('collection', t("You cannot share a collection with itself."));
+  }
+}
+
+/**
  * Submit handler for the share children form.
  *
  * @param array $form
@@ -445,6 +459,20 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
       '#value' => t('Migrate All Objects'),
     ),
   );
+}
+
+/**
+ * Form validation for migrate children form.
+ *
+ * @param array $form
+ *   The Drupal form definition.
+ * @param array $form_state
+ *   The Drupal form state.
+ */
+function islandora_basic_collection_migrate_children_form_validate(array $form, array &$form_state) {
+  if (!islandora_basic_collection_validate_form($form_state)) {
+    form_set_error('collection', t("You cannot migrate a collection into itself."));
+  }
 }
 
 /**
@@ -514,4 +542,41 @@ function islandora_basic_collection_delete_children_form_submit(array $form, arr
   $children = array_keys(array_filter($form_state['values']['children']));
   $batch = islandora_basic_collection_delete_children_batch($collection, $children);
   batch_set($batch);
+}
+
+/**
+ * Common form validation for share/migrate members.
+ *
+ * Ensures you don't share/migrate a collection into itself.
+ *
+ * @param array $form_state
+ *   The Drupal form state.
+ *
+ * @return bool
+ *   Whether the form is valid or not.
+ */
+function islandora_basic_collection_validate_form(array $form_state) {
+  $new_collection = $form_state['values']['collection'];
+  $clicked_button = end($form_state['clicked_button']['#parents']);
+
+  if ($clicked_button == 'submit_all') {
+    $source_collection = $form_state['collection'];
+    $query = <<<EOT
+PREFIX fedora-rels-ext: <info:fedora/fedora-system:def/relations-external#>
+SELECT ?object WHERE {
+?object fedora-rels-ext:isMemberOfCollection <info:fedora/{$source_collection}> .
+FILTER (sameTerm(?object, <info:fedora/{$new_collection}>))
+}
+EOT;
+    $connection = islandora_get_tuque_connection();
+    $num_results = $connection->repository->ri->countQuery($query, 'sparql');
+    return ($num_results <= 0);
+  }
+  else {
+    $children = array_keys(array_filter($form_state['values']['children']));
+    if (array_intersect($children, array($new_collection))) {
+      return FALSE;
+    }
+  }
+  return TRUE;
 }
