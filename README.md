@@ -39,7 +39,6 @@ Having problems or solved a problem? Check out the Islandora google groups for a
 Current maintainers:
 
 * [William Panting](https://github.com/willtp87)
-* [Alan Stanley](https://github.com/ajstanley)
 
 ## Development
 
