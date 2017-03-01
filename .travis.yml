@@ -37,6 +37,6 @@ script:
   - $ISLANDORA_DIR/tests/scripts/line_endings.sh sites/all/modules/islandora_solution_pack_collection
   - drush coder-review --reviews=production,security,style,i18n,potx,sniffer islandora_basic_collection
   - phpcpd --names *.module,*.inc,*.test sites/all/modules/islandora_solution_pack_collection
-  - drush test-run --uri=http://localhost:8081 "Islandora Basic Collection"
+  - php scripts/run-tests.sh --php `phpenv which php` --url http://localhost:8081 --verbose "Islandora Basic Collection"
 notifications:
   irc: "irc.freenode.org#islandora"
