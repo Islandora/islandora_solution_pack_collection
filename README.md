@@ -26,7 +26,7 @@ Set the default number of collection objects per page, view style, and configura
 
 ## Documentation
 
-Further documentation for this module is available at [our wiki](https://wiki.duraspace.org/display/ISLANDORA/Basic+Collection+Solution+Pack).
+Further documentation for this module is available at [our wiki](https://wiki.duraspace.org/display/ISLANDORA/Collection+Solution+Pack).
 
 ## Troubleshooting/Issues
 
