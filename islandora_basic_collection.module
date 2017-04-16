@@ -600,6 +600,34 @@ function islandora_basic_collection_form_islandora_delete_object_form_alter(arra
 }
 
 /**
+ * Implements hook_islandora_xml_form_builder_forms().
+ */
+function islandora_basic_collection_islandora_xml_form_builder_forms() {
+  $module_path = drupal_get_path('module', 'islandora_basic_collection');
+  return array(
+    'Collection MODS form' => array(
+      'form_file' => "$module_path/xml/islandora_basic_collection_form_mods.xml",
+    ),
+  );
+}
+
+/**
+ * Implements hook_islandora_content_model_forms_form_associations().
+ */
+function islandora_basic_collection_islandora_content_model_forms_form_associations() {
+  return array(
+    'islandora_basic_collection_mods_form' => array(
+      'content_model' => 'islandora:collectionCModel',
+      'form_name' => 'Collection MODS form',
+      'dsid' => 'MODS',
+      'title_field' => array('titleInfo', 'title'),
+      'transform' => 'mods_to_dc.xsl',
+      'template' => FALSE,
+    ),
+  );
+}
+
+/**
  * Delete all the child objects related to the collection object being deleted.
  *
  * @param array $form
