@@ -14,6 +14,7 @@
     <hr />
   <?php endif; ?>
   <div class="islandora-basic-collection clearfix">
+    <?php print theme('islandora_solr_search_return_link'); ?>
     <span class="islandora-basic-collection-display-switch">
       <ul class="links inline">
         <?php foreach ($view_links as $link): ?>
