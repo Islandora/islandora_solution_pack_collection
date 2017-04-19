@@ -258,3 +258,25 @@ function islandora_basic_collection_append_fragment_to_pager_url($pager, $fragme
   $pager = preg_replace($pattern, $replace, $pager);
   return $pager;
 }
+
+/**
+ * Wrapper function to call islandora_basic_collection_remove_from_collection() and then 
+ * redirect to the islandora/object/%islandora_object/manage page.
+ * see islandora_basic_collection_remove_from_collection for details on parameters
+ * 
+ * @param AbstractObject $member
+ * @param AbstractObject $collection
+ * 
+ */
+function islandora_basic_collection_remove_from_collection_wrapper(AbstractObject $member, AbstractObject $collection) {
+  islandora_basic_collection_remove_from_collection($member, $collection);
+  // check to see that the object was removed from the collection -- set the message and redirect 
+  $results = $member->relationships->get(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
+  if (empty($results)) {
+    drupal_set_message("'".$member->id.t("' has been removed from '").$collection->id."'.");
+  } else {
+    drupal_set_message(t("There was a problem removing '".$member->id.t("' from '").$collection->id."'."));
+  }
+  drupal_goto("islandora/object/{$member->id}/manage");
+}
+

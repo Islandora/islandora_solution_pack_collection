@@ -9,6 +9,7 @@
 define('ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION', 'create child collection');
 define('ISLANDORA_BASIC_COLLECTION_MANAGE_COLLECTION_POLICY', 'manage collection policy');
 define('ISLANDORA_BASIC_COLLECTION_MIGRATE_COLLECTION_MEMBERS', 'migrate collection members');
+define('ISLANDORA_BASIC_COLLECTION_REMOVE_FROM_COLLECTION', 'remove object from collection');
 
 const ISLANDORA_BASIC_COLLECTION_LEGACY_BACKEND = 'islandora_basic_collection_legacy_sparql';
 
@@ -78,6 +79,14 @@ function islandora_basic_collection_menu() {
       'type' => MENU_CALLBACK,
       'file' => 'includes/blocks.inc',
     ),
+    'islandora/object/%islandora_object/manage/removeAsParent/%islandora_object' => array(
+      'title' => 'Remove this parent Object',
+      'page callback' => 'islandora_basic_collection_remove_from_collection_wrapper',
+      'page arguments' => array(2, 5), 
+     'type' => MENU_CALLBACK,
+      'file' => 'includes/utilities.inc',
+      'access arguments' => array(ISLANDORA_BASIC_COLLECTION_REMOVE_FROM_COLLECTION),
+    ),     
   );
 }
 
@@ -476,17 +485,20 @@ function islandora_basic_collection_islandora_collectionCModel_islandora_overvie
 function islandora_basic_collection_islandora_overview_object(AbstractObject $object) {
   module_load_include('inc', 'islandora_basic_collection', 'includes/utilities');
   if (!in_array('islandora:collectionCModel', $object->models)) {
-    $map_to_row = function($o) {
-      $o = islandora_object_load($o);
-      return ($o ?
-        array(l($o->label, "islandora/object/{$o->id}")) :
-        FALSE);
-    };
     $pids = islandora_basic_collection_get_parent_pids($object);
-    $rows = array_map($map_to_row, $pids);
+    $rows = array();
+    $hasRemovePerm = user_access(ISLANDORA_BASIC_COLLECTION_REMOVE_FROM_COLLECTION);
+    foreach ($pids as $pid) {
+      $parentObject = islandora_object_load($pid);
+      if ($parentObject) {
+        $rows[] = array(
+            l($parentObject->label, "islandora/object/{$parentObject->id}"),
+            (($hasRemovePerm) ? l(t('remove'), "islandora/object/{$object->id}/manage/removeAsParent/{$parentObject->id}") : NULL) );
+      }
+    }
     $rows = array_filter($rows);
     $table = theme('table', array(
-               'header' => array(t('Parent Collections')),
+               'header' => array(t('Parent Collections'), (($hasRemovePerm) ? t('Operations') : NULL) ),
                'rows' => $rows,
                'empty' => t('No parent collections')));
     return array('collection' => $table);
@@ -761,6 +773,10 @@ function islandora_basic_collection_permission() {
       'title' => t('Migrate collection members'),
       'description' => t('Move objects from one collection to another.'),
     ),
+    ISLANDORA_BASIC_COLLECTION_REMOVE_FROM_COLLECTION => array(
+      'title' => t('Remove object from collection'),
+      'description' => t('Remove an object from a collection.'),
+    ),   
   );
 }
 
