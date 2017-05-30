@@ -951,13 +951,14 @@ function islandora_basic_collection_islandora_collectioncmodel_islandora_ingest_
  * Implements hook_CMODEL_PID_islandora_object_ingested().
  */
 function islandora_basic_collection_islandora_collectioncmodel_islandora_object_ingested(AbstractObject $fedora_object) {
-
-  // Add TN datastream.
-  $thumbnail_datastream = $fedora_object->constructDatastream('TN');
-  $thumbnail_datastream->setContentFromFile(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png', FALSE);
-  $thumbnail_datastream->label = 'Thumbnail';
-  $thumbnail_datastream->mimetype = 'image/png';
-  $fedora_object->ingestDatastream($thumbnail_datastream);
+  if (!isset($fedora_object['TN'])) {
+    // Add TN datastream.
+    $thumbnail_datastream = $fedora_object->constructDatastream('TN');
+    $thumbnail_datastream->setContentFromFile(drupal_get_path('module', 'islandora_basic_collection') . '/images/folder.png', FALSE);
+    $thumbnail_datastream->label = 'Thumbnail';
+    $thumbnail_datastream->mimetype = 'image/png';
+    $fedora_object->ingestDatastream($thumbnail_datastream);
+  }
 }
 
 /**
