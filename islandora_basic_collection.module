@@ -726,7 +726,7 @@ EOQ;
     if (islandora_namespace_accessible($pid)) {
       $collections[$pid] = array(
         'pid' => $pid,
-        'label' => $result['label']['value'],
+        'label' => $result['label']['value'] . " (" . $pid . ")",
       );
     }
   }

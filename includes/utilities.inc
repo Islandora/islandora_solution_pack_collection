@@ -102,6 +102,7 @@ function islandora_basic_collection_get_children_select_table_form_element(Abstr
   foreach ($results as $result) {
     $pid = $result['object']['value'];
     $label = empty($result['title']['value']) ? t('Untitled') : filter_xss($result['title']['value']);
+    $label = $label . " (" . $pid . ")";
     $owner = empty($result['owner']['value']) ? t('Unowned') : filter_xss($result['owner']['value']);
     $date_modified = empty($result['date_modified']['value']) ? t('Unknown') : filter_xss($result['date_modified']['value']);
     $rows[$pid] = array(
