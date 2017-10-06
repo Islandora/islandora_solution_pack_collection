@@ -394,6 +394,9 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
  *   The Drupal form state.
  */
 function islandora_basic_collection_share_children_form_validate(array $form, array &$form_state) {
+  if (empty(array_filter($form_state['values']['children']))) {
+    form_set_error('children', t('No children available to share.'));
+  }
   if (!islandora_basic_collection_validate_form($form_state)) {
     form_set_error('collection', t("You cannot share a collection with itself."));
   }
@@ -470,6 +473,9 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
  *   The Drupal form state.
  */
 function islandora_basic_collection_migrate_children_form_validate(array $form, array &$form_state) {
+  if (empty(array_filter($form_state['values']['children']))) {
+    form_set_error('children', t('No children available to migrate.'));
+  }
   if (!islandora_basic_collection_validate_form($form_state)) {
     form_set_error('collection', t("You cannot migrate a collection into itself."));
   }
