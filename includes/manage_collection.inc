@@ -113,7 +113,7 @@ function islandora_basic_collection_create_child_collection_form(array $form, ar
 
   $parent_object = islandora_object_load($form_state['islandora']['shared_storage']['parent']);
   // Permissions handling.
-  if (!user_access(ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION)) {
+  if (!islandora_object_access(ISLANDORA_BASIC_COLLECTION_CREATE_CHILD_COLLECTION, $parent_object)) {
     drupal_set_message(t('You do not have permissions to create collections.'), 'error');
     drupal_goto('islandora/object/' . $parent_object->id);
   }
