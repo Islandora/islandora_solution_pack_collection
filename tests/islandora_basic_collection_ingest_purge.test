@@ -29,7 +29,6 @@ class IslandoraBasicCollectionIngestTestCase extends IslandoraCollectionWebTestC
     parent::setUp(array(
       'islandora',
       'islandora_basic_collection',
-      'xml_form_builder',
     ));
   }
 
@@ -42,10 +41,8 @@ class IslandoraBasicCollectionIngestTestCase extends IslandoraCollectionWebTestC
     $this->drupalLogin($user);
 
     // Add a collection.
-    $label = $this->randomName(16);
     $pid = 'islandora:' . $this->randomName();
-    $this->drupalPost('islandora/object/islandora:root/manage/overview/ingest', array('pid' => $pid), 'Next');
-    $this->drupalPost(NULL, array('titleInfo[title]' => $label), 'Ingest');
+    $this->drupalPost('islandora/object/islandora:root/manage/overview/ingest', array('pid' => $pid), 'Ingest');
 
     // Check if we made a collection correctly.
     $object = islandora_object_load($pid);
