@@ -12,7 +12,7 @@ This module requires the following modules/libraries:
 * [Islandora](https://github.com/islandora/islandora)
 * [Tuque](https://github.com/islandora/tuque)
 
-**NOTE**: The collection solution pack requires that the [resource index](https://wiki.duraspace.org/display/FEDORA37/Resource+Index) is enabled in Fedora, as it does all of its queries using the resource index.  
+**NOTE**: The collection solution pack either requires that the [resource index](https://wiki.duraspace.org/display/FEDORA37/Resource+Index) is enabled in Fedora or you have the [Islandora Solr](https://github.com/islandora/islandora_solr_search) module installed to perform its queries.
 
 ## Installation
 
@@ -22,7 +22,13 @@ Install as usual, see [this](https://drupal.org/documentation/install/modules-th
 
 Set the default number of collection objects per page, view style, and configuration options in Administration » Islandora » Core Collection (admin/islandora/basic_collection).
 
-![Configuration](https://camo.githubusercontent.com/958f89366034b33cba99001504146f8f3496bac9/687474703a2f2f692e696d6775722e636f6d2f563570777430612e706e67)
+![Configuration screen 1](https://user-images.githubusercontent.com/2857697/39012304-aefb387a-43d9-11e8-8077-9146dcff2ef5.jpg)
+
+**Display Generation** allows you to select one of the hookable backends for generating the list of objects in a collection. 
+
+_Note_: **Solr** option only appears if you have the [Islandora Solr](https://github.com/islandora/islandora_solr_search) module installed.
+
+![Configuration screen 2](https://user-images.githubusercontent.com/2857697/39012313-b1262678-43d9-11e8-988b-f62c0fb0d5b5.jpg)
 
 ## Documentation
 
