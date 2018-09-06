@@ -394,7 +394,7 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
  *   The Drupal form state.
  */
 function islandora_basic_collection_share_children_form_validate(array $form, array &$form_state) {
-  $children = array_filter($form_state['values']['children']);
+  $children = $form_state['values']['children'];
   if (empty($children)) {
     form_set_error('children', t('No children available to share.'));
   }
@@ -474,7 +474,7 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
  *   The Drupal form state.
  */
 function islandora_basic_collection_migrate_children_form_validate(array $form, array &$form_state) {
-  $children = array_filter($form_state['values']['children']);
+  $children = $form_state['values']['children'];
   if (empty($children)) {
     form_set_error('children', t('No children available to migrate.'));
   }
