@@ -362,12 +362,14 @@ function islandora_basic_collection_policy_management_form_submit(array $form, a
 function islandora_basic_collection_share_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
   $fragment = '#share-children';
+  $children = islandora_basic_collection_get_children_select_table_form_element($object, array(
+    'element' => 0,
+    'fragment' => $fragment,
+  ));
+  $collection_is_empty = (!isset($children['#options']) || empty($children['#options']));
   return array(
     '#action' => request_uri() . $fragment,
-    'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 0,
-      'fragment' => $fragment,
-    )),
+    'children' => $children,
     'collection' => array(
       '#title' => t('Share members with collection'),
       '#description' => t("Members can be shared with any number of collections."),
@@ -377,10 +379,13 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Share selected objects'),
+      '#disabled' => $collection_is_empty,
+
     ),
     'submit_all' => array(
       '#type' => 'submit',
       '#value' => t('Share All Objects'),
+      '#disabled' => $collection_is_empty,
     ),
   );
 }
@@ -394,8 +399,7 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
  *   The Drupal form state.
  */
 function islandora_basic_collection_share_children_form_validate(array $form, array &$form_state) {
-  $children = array_filter($form_state['values']['children']);
-  if (empty($children)) {
+  if (empty($form_state['values']['children'])) {
     form_set_error('children', t('No children available to share.'));
   }
   if (!islandora_basic_collection_validate_form($form_state)) {
@@ -442,12 +446,14 @@ function islandora_basic_collection_share_children_form_submit(array $form, arra
 function islandora_basic_collection_migrate_children_form(array $form, array &$form_state, AbstractObject $object) {
   $form_state['collection'] = $object;
   $fragment = '#migrate-children';
+  $children = islandora_basic_collection_get_children_select_table_form_element($object, array(
+    'element' => 1,
+    'fragment' => $fragment,
+  ));
+  $collection_is_empty = (!isset($children['#options']) || empty($children['#options']));
   return array(
     '#action' => request_uri() . $fragment,
-    'children' => islandora_basic_collection_get_children_select_table_form_element($object, array(
-      'element' => 1,
-      'fragment' => $fragment,
-    )),
+    'children' => $children,
     'collection' => array(
       '#title' => t('Migrate members to collection'),
       '#description' => t('Removes members from their current collection (%label) and adds them to the selected collection.', array('%label' => $object->label)),
@@ -457,10 +463,12 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
     'submit' => array(
       '#type' => 'submit',
       '#value' => t('Migrate selected objects'),
+      '#disabled' => $collection_is_empty,
     ),
     'submit_all' => array(
       '#type' => 'submit',
       '#value' => t('Migrate All Objects'),
+      '#disabled' => $collection_is_empty,
     ),
   );
 }
@@ -474,8 +482,7 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
  *   The Drupal form state.
  */
 function islandora_basic_collection_migrate_children_form_validate(array $form, array &$form_state) {
-  $children = array_filter($form_state['values']['children']);
-  if (empty($children)) {
+  if (empty($form_state['values']['children'])) {
     form_set_error('children', t('No children available to migrate.'));
   }
   if (!islandora_basic_collection_validate_form($form_state)) {
