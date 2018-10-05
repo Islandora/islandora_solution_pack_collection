@@ -129,7 +129,7 @@ function islandora_basic_collection_share_migrate_access(AbstractObject $object)
     isset($object['COLLECTION_POLICY'])
   );
   if ($is_a_collection) {
-    if($object->id == "islandora:root") {
+    if ($object->id == "islandora:root") {
       return FALSE;
     }
   }
