@@ -198,7 +198,7 @@ function islandora_basic_collection_add_to_collection(AbstractObject $new_member
  *   The AbstractObject or string PID of the collection to remove object from.
  */
 function islandora_basic_collection_remove_from_collection(AbstractObject $member, $collection) {
-  if ($member instanceof AbstractObject) {
+  if ($collection instanceof AbstractObject) {
     $collection = $collection->id;
   }
 
