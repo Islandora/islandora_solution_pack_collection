@@ -194,12 +194,16 @@ function islandora_basic_collection_add_to_collection(AbstractObject $new_member
  *
  * @param AbstractObject $member
  *   The object to remove.
- * @param AbstractObject $collection
- *   The collection object to remove from.
+ * @param mixed $collection
+ *   The AbstractObject or string PID of the collection to remove object from.
  */
-function islandora_basic_collection_remove_from_collection(AbstractObject $member, AbstractObject $collection) {
-  $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
-  $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOf', $collection->id);
+function islandora_basic_collection_remove_from_collection(AbstractObject $member, $collection) {
+  if ($collection instanceof AbstractObject) {
+    $collection = $collection->id;
+  }
+
+  $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection);
+  $member->relationships->remove(FEDORA_RELS_EXT_URI, 'isMemberOf', $collection);
 }
 
 /**
