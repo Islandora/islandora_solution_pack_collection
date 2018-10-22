@@ -76,6 +76,11 @@ function islandora_basic_collection_migrate_item_form_submit($form, &$form_state
   $new_collection = islandora_object_load($form_state['values']['new_collection_name']);
   $current_parents = islandora_basic_collection_get_parent_pids($object);
   if ($object && $new_collection) {
+    if ($object === $new_collection) {
+      drupal_set_message(t('Migration aborted. A collection may not be a child of itself.'), 'error');
+      RETURN;
+    }
+
     foreach ($current_parents as $parents) {
       $parent = islandora_object_load($parents);
       islandora_basic_collection_remove_from_collection($object, $parent);
