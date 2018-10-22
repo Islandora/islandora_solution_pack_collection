@@ -90,7 +90,5 @@ function islandora_basic_collection_migrate_item_form_submit($form, &$form_state
                  '@object' => $object->label,
                  '@collection' => $new_collection->label));
     drupal_set_message($message);
-
   }
-
 }
