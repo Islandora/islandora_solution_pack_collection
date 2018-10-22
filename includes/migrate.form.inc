@@ -46,6 +46,7 @@ function islandora_basic_collection_migrate_item_form($form, &$form_state, $isla
 function islandora_basic_collection_migrate_item_form_validate($form, &$form_state) {
   $new_collection = islandora_object_load($form_state['values']['new_collection_name']);
   $collection_models = islandora_basic_collection_get_collection_content_models();
+  $object = islandora_object_load($form_state['basic_collection_migrate']);
   $is_a_collection = FALSE;
   if (is_object($new_collection)) {
     $is_a_collection = (
@@ -55,6 +56,9 @@ function islandora_basic_collection_migrate_item_form_validate($form, &$form_sta
   }
   if (!$is_a_collection) {
     form_set_error('new_collection_name', t('Not a valid collection'));
+  }
+  if ($object === $new_collection) {
+    form_set_error('new_collection_name', t('Collections may not be children of themselves.'));
   }
   $has_ingest_permissions = islandora_object_access(ISLANDORA_INGEST, $new_collection);
   if (!$has_ingest_permissions) {
@@ -76,11 +80,11 @@ function islandora_basic_collection_migrate_item_form_submit($form, &$form_state
   $new_collection = islandora_object_load($form_state['values']['new_collection_name']);
   $current_parents = islandora_basic_collection_get_parent_pids($object);
   if ($object && $new_collection) {
-    if ($object === $new_collection) {
+/*    if ($object === $new_collection) {
       drupal_set_message(t('Migration aborted. A collection may not be a child of itself.'), 'error');
       RETURN;
     }
-
+*/
     foreach ($current_parents as $parents) {
       $parent = islandora_object_load($parents);
       islandora_basic_collection_remove_from_collection($object, $parent);

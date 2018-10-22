@@ -45,12 +45,16 @@ function islandora_basic_collection_share_item_form($form, &$form_state, $island
 function islandora_basic_collection_share_item_form_validate($form, &$form_state) {
   $new_collection = islandora_object_load($form_state['values']['new_collection_name']);
   $collection_models = islandora_basic_collection_get_collection_content_models();
+  $object = islandora_object_load($form_state['basic_collection_share']);
   $is_a_collection = FALSE;
   if (is_object($new_collection)) {
     $is_a_collection = (
       (count(array_intersect($collection_models, $new_collection->models)) > 0) &&
       isset($new_collection['COLLECTION_POLICY'])
     );
+  }
+  if ($object === $new_collection) {
+    form_set_error('new_collection_name', t('Collections may not be children of themselves.'));
   }
   if (!$is_a_collection) {
     form_set_error('new_collection_name', t('Not a valid collection'));
@@ -75,11 +79,6 @@ function islandora_basic_collection_share_item_form_submit($form, &$form_state) 
   $new_collection = islandora_object_load($form_state['values']['new_collection_name']);
 
   if ($object && $new_collection) {
-    if ($object === $new_collection) {
-      drupal_set_message(t('Sharing aborted. A collection may not be a child of itself.'), 'error');
-      RETURN;
-    }
-
     islandora_basic_collection_add_to_collection($object, $new_collection);
     $message = t('The object @object has been added to @collection', array(
                  '@object' => $object->label,
