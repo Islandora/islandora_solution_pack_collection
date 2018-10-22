@@ -75,6 +75,11 @@ function islandora_basic_collection_share_item_form_submit($form, &$form_state) 
   $new_collection = islandora_object_load($form_state['values']['new_collection_name']);
 
   if ($object && $new_collection) {
+    if ($object === $new_collection) {
+      drupal_set_message(t('Sharing aborted. A collection may not be a child of itself.'), 'error');
+      RETURN;
+    }
+
     islandora_basic_collection_add_to_collection($object, $new_collection);
     $message = t('The object @object has been added to @collection', array(
                  '@object' => $object->label,
