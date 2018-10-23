@@ -46,15 +46,15 @@ function islandora_basic_collection_share_item_form_validate($form, &$form_state
   $new_collection = islandora_object_load($form_state['values']['new_collection_name']);
   $collection_models = islandora_basic_collection_get_collection_content_models();
   $object = islandora_object_load($form_state['basic_collection_share']);
+  if ($object->id == $new_collection->id) {
+    form_set_error('new_collection_name', t('Collections may not be children of themselves.'));
+  }
   $is_a_collection = FALSE;
   if (is_object($new_collection)) {
     $is_a_collection = (
       (count(array_intersect($collection_models, $new_collection->models)) > 0) &&
       isset($new_collection['COLLECTION_POLICY'])
     );
-  }
-  if ($object === $new_collection) {
-    form_set_error('new_collection_name', t('Collections may not be children of themselves.'));
   }
   if (!$is_a_collection) {
     form_set_error('new_collection_name', t('Not a valid collection'));
