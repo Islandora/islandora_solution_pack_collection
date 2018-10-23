@@ -79,8 +79,8 @@ function islandora_basic_collection_migrate_item_form_submit($form, &$form_state
   $new_collection = islandora_object_load($form_state['values']['new_collection_name']);
   $current_parents = islandora_basic_collection_get_parent_pids($object);
   if ($object && $new_collection) {
-    foreach ($current_parents as $parents) {
-      islandora_basic_collection_remove_from_collection($object, $parents);
+    foreach ($current_parents as $parent) {
+      islandora_basic_collection_remove_from_collection($object, $parent);
     }
     islandora_basic_collection_add_to_collection($object, $new_collection);
     $message = t('The object @object has been added to @collection', array(
