@@ -24,6 +24,7 @@ function islandora_basic_collection_menu() {
     'file' => 'includes/ingest.form.inc',
     'access callback' => 'islandora_basic_collection_ingest_access',
     'access arguments' => array(2),
+    'weight' => -1,
   );
   return array(
     'admin/islandora/solution_pack_config/basic_collection' => array(
@@ -80,6 +81,20 @@ function islandora_basic_collection_menu() {
     ),
   );
 }
+
+/**
+ * Implements hook_menu_local_tasks_alter().
+ * Reorders the collection management links to move 'Add an Object' to the top using 'weight'.
+ */
+ function islandora_basic_collection_menu_local_tasks_alter(&$data, $router_item, $root_path) {
+  if ($root_path == 'islandora/object/%/manage' && isset($data['actions']['output'])) {
+    foreach ($data['actions']['output'] as &$action) {
+      if (isset($action['#link']['weight'])) {
+        $action['#weight'] = $action['#link']['weight'];
+      }
+    }
+  }
+} 
 
 /**
  * Access callback for ingest.
