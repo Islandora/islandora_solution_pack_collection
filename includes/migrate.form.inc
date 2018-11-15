@@ -46,6 +46,9 @@ function islandora_basic_collection_migrate_item_form($form, &$form_state, $isla
 function islandora_basic_collection_migrate_item_form_validate($form, &$form_state) {
   $new_collection = islandora_object_load($form_state['values']['new_collection_name']);
   $collection_models = islandora_basic_collection_get_collection_content_models();
+  if ($form_state['values']['new_collection_name'] == $form_state['basic_collection_migrate']) {
+    form_set_error('new_collection_name', t('Collections may not be children of themselves.'));
+  }
   $is_a_collection = FALSE;
   if (is_object($new_collection)) {
     $is_a_collection = (
