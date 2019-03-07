@@ -377,7 +377,7 @@ e.g. Creator, Donor, etc.</description>
               <collapsed>FALSE</collapsed>
               <collapsible>FALSE</collapsible>
               <default_value>NULL</default_value>
-              <description>The authoritative source of your genre term.</description>
+              <description>The authoritative source of your genre term (e.g. marcgt, aat, lctgm).</description>
               <disabled>FALSE</disabled>
               <executes_submit_callback>FALSE</executes_submit_callback>
               <multiple>FALSE</multiple>
