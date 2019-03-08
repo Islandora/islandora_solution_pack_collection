@@ -316,42 +316,101 @@ e.g. Creator, Donor, etc.</description>
         </properties>
         <children/>
       </element>
-      <element name="genre">
+      <element name="genreSet">
         <properties>
-          <type>textfield</type>
+          <type>fieldset</type>
           <access>TRUE</access>
           <collapsed>FALSE</collapsed>
           <collapsible>FALSE</collapsible>
-          <description>A excellent source for genre terms is the Thesaurus for Graphic Materials from the Library of Congress &lt;/br&gt;
-http://www.loc.gov/pictures/collection/tgm/</description>
           <disabled>FALSE</disabled>
           <executes_submit_callback>FALSE</executes_submit_callback>
           <multiple>FALSE</multiple>
           <required>FALSE</required>
           <resizable>FALSE</resizable>
-          <title>Genre</title>
           <tree>TRUE</tree>
-          <actions>
-            <create>
-              <path>self::node()</path>
-              <context>parent</context>
-              <schema/>
-              <type>xml</type>
-              <prefix>NULL</prefix>
-              <value>&lt;genre authority="lctgm"&gt;%value%&lt;/genre&gt;</value>
-            </create>
-            <read>
-              <path>mods:genre</path>
-              <context>parent</context>
-            </read>
-            <update>
-              <path>self::node()</path>
-              <context>self</context>
-            </update>
-            <delete>NULL</delete>
-          </actions>
         </properties>
-        <children/>
+        <children>
+          <element name="genre">
+            <properties>
+              <type>textfield</type>
+              <access>TRUE</access>
+              <collapsed>FALSE</collapsed>
+              <collapsible>FALSE</collapsible>
+              <default_value>lctgm</default_value>
+              <description>A term that best describes the genre of the object. Terms should be taken from a controlled vocabulary such as: &lt;a href="https://www.loc.gov/standards/valuelist/marcgt.html" target="_blank"&gt;MARC Genre Terms (marcgt)&lt;/a&gt;, the &lt;a href="http://www.loc.gov/pictures/collection/tgm/" target="_blank"&gt;Thesaurus for Graphic Materials (lctgm)&lt;/a&gt;, or the &lt;a href="http://www.getty.edu/research/tools/vocabularies/aat/" target="_blank"&gt;Art and Architecture Thesaurus (aat)&lt;/a&gt;.</description>
+              <disabled>FALSE</disabled>
+              <executes_submit_callback>FALSE</executes_submit_callback>
+              <multiple>FALSE</multiple>
+              <required>FALSE</required>
+              <resizable>FALSE</resizable>
+              <title>Genre</title>
+              <tree>TRUE</tree>
+              <actions>
+                <create>
+                  <path>self::node()</path>
+                  <context>parent</context>
+                  <schema/>
+                  <type>element</type>
+                  <prefix>NULL</prefix>
+                  <value>genre</value>
+                </create>
+                <read>
+                  <path>mods:genre</path>
+                  <context>parent</context>
+                </read>
+                <update>
+                  <path>self::node()</path>
+                  <context>self</context>
+                </update>
+                <delete>
+                  <path>self::node()</path>
+                  <context>self</context>
+                </delete>
+              </actions>
+            </properties>
+            <children/>
+          </element>
+          <element name="genreAuthority">
+            <properties>
+              <type>textfield</type>
+              <access>TRUE</access>
+              <collapsed>FALSE</collapsed>
+              <collapsible>FALSE</collapsible>
+              <default_value>NULL</default_value>
+              <description>The authoritative source of your genre term (e.g. marcgt, aat, lctgm).</description>
+              <disabled>FALSE</disabled>
+              <executes_submit_callback>FALSE</executes_submit_callback>
+              <multiple>FALSE</multiple>
+              <required>FALSE</required>
+              <resizable>FALSE</resizable>
+              <title>Genre vocabulary</title>
+              <tree>TRUE</tree>
+              <actions>
+                <create>
+                  <path>self::node()/mods:genre</path>
+                  <context>parent</context>
+                  <schema/>
+                  <type>attribute</type>
+                  <prefix>NULL</prefix>
+                  <value>authority</value>
+                </create>
+                <read>
+                  <path>mods:genre/@authority</path>
+                  <context>parent</context>
+                </read>
+                <update>
+                  <path>self::node()</path>
+                  <context>self</context>
+                </update>
+                <delete>
+                  <path>self::node()</path>
+                  <context>self</context>
+                </delete>
+              </actions>
+            </properties>
+            <children/>
+          </element>
+        </children>
       </element>
       <element name="originInfo">
         <properties>
