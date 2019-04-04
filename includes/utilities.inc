@@ -183,7 +183,7 @@ function islandora_basic_collection_get_other_parents(AbstractObject $object, Ab
  *   The collection object to add to.
  */
 function islandora_basic_collection_add_to_collection(AbstractObject $new_member, AbstractObject $collection) {
-  // Alerting all modules calling hook_islandora_basic_collection_share_migrate()
+  // Create hook_islandora_basic_collection_share_migrate()
   foreach (module_implements('islandora_basic_collection_share_migrate') as $module) {
     $function = $module . '_islandora_basic_collection_share_migrate';
     $function($new_member, $collection);
