@@ -188,7 +188,8 @@ function islandora_basic_collection_add_to_collection(AbstractObject $new_member
     $new_member->relationships->add(FEDORA_RELS_EXT_URI, 'isMemberOfCollection', $collection->id);
     // Create hook_islandora_basic_collection_share_migrate().
     // Since fake:pid appears everywhere for some reason, do not trigger when this is the object.
-    if ($new_member->id != "fake:pid") {
+    module_load_include('inc', 'islandora_basic_collection', 'includes/admin.form');
+    if ($new_member->id != ISLANDORA_BASIC_COLLECTION_FAKE_PID) {
       module_invoke_all('islandora_basic_collection_share_migrate', $new_member, $collection);
     }
   }
