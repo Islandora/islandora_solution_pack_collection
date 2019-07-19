@@ -67,7 +67,7 @@ class IslandoraShareCollectionTestCase extends IslandoraCollectionWebTestCase {
       "collection" => $collection_1,
       "children[{$collection_2}]" => TRUE,
     );
-    $this->drupalPost($path, $edit, 'Share selected objects', array(), array(), 'islandora-basic-collection-share-children-form');
+    $this->drupalPost($path, $edit, 'Share Selected Objects', array(), array(), 'islandora-basic-collection-share-children-form');
 
     // First, check that Collection 2 shows up in Collection 1.
     $this->drupalGet("islandora/object/{$collection_1}");
