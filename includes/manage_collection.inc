@@ -376,7 +376,7 @@ function islandora_basic_collection_share_children_form(array $form, array &$for
     ),
     'submit' => array(
       '#type' => 'submit',
-      '#value' => t('Share selected objects'),
+      '#value' => t('Share Selected Objects'),
     ),
     'submit_all' => array(
       '#type' => 'submit',
@@ -456,7 +456,7 @@ function islandora_basic_collection_migrate_children_form(array $form, array &$f
     ),
     'submit' => array(
       '#type' => 'submit',
-      '#value' => t('Migrate selected objects'),
+      '#value' => t('Migrate Selected Objects'),
     ),
     'submit_all' => array(
       '#type' => 'submit',
