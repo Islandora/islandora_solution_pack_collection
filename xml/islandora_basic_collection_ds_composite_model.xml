@@ -1,6 +1,9 @@
 <?xml version="1.0"?>
 <dsCompositeModel xmlns="info:fedora/fedora-system:def/dsCompositeModel#">
   <!-- using this as a guide -->
+  <dsTypeModel ID="MODS" optional="true">
+    <form FORMAT_URI="http://www.loc.gov/mods/v3" MIME="application/xml"/>
+  </dsTypeModel>
   <dsTypeModel ID="DC">
     <form FORMAT_URI="http://www.openarchives.org/OAI/2.0/oai_dc/" MIME="application/xml"/>
   </dsTypeModel>
