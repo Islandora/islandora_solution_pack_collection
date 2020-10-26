@@ -99,6 +99,9 @@ function islandora_basic_collection_object_count_callback() {
 
   // Setup Solr query for collection and object counts.
   if ($count_method == "Solr") {
+    module_load_include('islandora_solr_search', 'inc', 'admin');
+    $cmodel_field = variable_get('islandora_solr_content_model_field', 'RELS_EXT_hasModel_uri_ms');
+
     $all_cmodels = islandora_get_content_models();
     $models_to_exclude = variable_get('islandora_basic_collection_object_count_listing_content_models_to_restrict', FALSE);
     $cmodels_to_count = array();
@@ -109,7 +112,7 @@ function islandora_basic_collection_object_count_callback() {
     }
 
     // Collection count Solr query.
-    $collection_query = 'RELS_EXT_hasModel_uri_s:"info:fedora/islandora:collectionCModel"';
+    $collection_query = $cmodel_field . ':"info:fedora/islandora:collectionCModel"';
     $qp = new IslandoraSolrQueryProcessor();
     $qp->buildQuery($collection_query);
     $qp->solrParams['fl'] = "PID";
@@ -128,10 +131,10 @@ function islandora_basic_collection_object_count_callback() {
     $i = 0;
     foreach ($cmodels_to_count AS $model) {
       if ($i == 0) {
-        $object_query = 'RELS_EXT_hasModel_uri_ms:"info:fedora/' . $model . '"';
+        $object_query = $cmodel_field . ':"info:fedora/' . $model . '"';
       }
       else {
-        $object_query = $object_query . ' OR RELS_EXT_hasModel_uri_ms:"info:fedora/' . $model . '"';
+        $object_query = $object_query . ' OR ' . $cmodel_field . ':"info:fedora/' . $model . '"';
       }
       $i++;
     }
