@@ -113,7 +113,7 @@ function islandora_basic_collection_object_count_callback() {
     $qp = new IslandoraSolrQueryProcessor();
     $qp->buildQuery($collection_query);
     $qp->solrParams['fl'] = "PID";
-    $qp->solrLimit = 10000000;
+    $qp->solrLimit = -1;
     $qp->executeQuery(FALSE);
     try {
       $results = $qp->islandoraSolrResult['response']['numFound'];
@@ -139,7 +139,7 @@ function islandora_basic_collection_object_count_callback() {
     $qp = new IslandoraSolrQueryProcessor();
     $qp->buildQuery($object_query);
     $qp->solrParams['fl'] = "PID";
-    $qp->solrLimit = 10000000;
+    $qp->solrLimit = -1;
     $qp->executeQuery(FALSE);
     try {
       $results = $qp->islandoraSolrResult['response']['numFound'];
