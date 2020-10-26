@@ -1019,7 +1019,7 @@ function islandora_basic_collection_block_configure($delta = '') {
         'Solr' => t('Solr'),
       ),
       '#default_value' => variable_get('islandora_basic_collection_count_method', 'SPARQL'),
-      '#description' => t('Select method for querying the number of objects and collections. Solr is recommended for larger repositories.'),
+      '#description' => t('Select method for querying the number of objects and collections. Solr is recommended for larger repositories. Respects XACML'),
     );
 
     module_load_include('inc', 'islandora', 'includes/utilities');

@@ -109,7 +109,7 @@ function islandora_basic_collection_object_count_callback() {
     }
 
     // Collection count Solr query.
-    $collection_query = "RELS_EXT_hasModel_uri_mt:collection";
+    $collection_query = 'RELS_EXT_hasModel_uri_s:"info:fedora/islandora:collectionCModel"';
     $qp = new IslandoraSolrQueryProcessor();
     $qp->buildQuery($collection_query);
     $qp->solrParams['fl'] = "PID";
@@ -128,10 +128,10 @@ function islandora_basic_collection_object_count_callback() {
     $i = 0;
     foreach ($cmodels_to_count AS $model) {
       if ($i == 0) {
-        $object_query = 'RELS_EXT_hasModel_uri_mt:"' . $model . '"';
+        $object_query = 'RELS_EXT_hasModel_uri_ms:"info:fedora/' . $model . '"';
       }
       else {
-        $object_query = $object_query . ' OR RELS_EXT_hasModel_uri_mt:"' . $model . '"';
+        $object_query = $object_query . ' OR RELS_EXT_hasModel_uri_ms:"info:fedora/' . $model . '"';
       }
       $i++;
     }
