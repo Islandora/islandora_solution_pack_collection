@@ -999,6 +999,17 @@ function islandora_basic_collection_block_info() {
  */
 function islandora_basic_collection_block_configure($delta = '') {
   if ($delta == 'collection_object_count') {
+    if (module_exists('islandora_solr')) {
+      $count_method_options = array(
+        'SPARQL' => t('SPARQL'),
+        'Solr' => t('Solr'),
+      );
+    }
+    else {
+      $count_method_options = array(
+        'SPARQL' => t('SPARQL'),
+      );
+    }
     $block['islandora_basic_collection_title_phrase'] = array(
       '#type' => 'textfield',
       '#title' => t('The sentence to appear to describe the number of objects and collections present.'),
