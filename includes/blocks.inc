@@ -156,8 +156,7 @@ function islandora_basic_collection_object_count_callback() {
     $total_object_count = $object_count;
   }
 
-  else if ($count_method == "SPARQL") {
-
+  else {
     $collection_objects = $tuque->repository->ri->sparqlQuery($collection_query_array['query'], $collection_query_array['type']);
     $total_object_count = $tuque->repository->ri->countQuery($objects_query_array['query'], $objects_query_array['type']);
 
