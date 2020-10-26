@@ -98,8 +98,7 @@ function islandora_basic_collection_object_count_callback() {
 
 
   // Setup Solr query for collection and object counts.
-  if ($count_method == "Solr") {
-    module_load_include('islandora_solr_search', 'inc', 'admin');
+  if ($count_method == "Solr" && module_exists('islandora_solr')) {
     $cmodel_field = variable_get('islandora_solr_content_model_field', 'RELS_EXT_hasModel_uri_ms');
 
     $all_cmodels = islandora_get_content_models();
