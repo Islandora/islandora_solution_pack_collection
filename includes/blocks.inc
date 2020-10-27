@@ -104,7 +104,7 @@ function islandora_basic_collection_object_count_callback() {
     $all_cmodels = islandora_get_content_models();
     $models_to_exclude = variable_get('islandora_basic_collection_object_count_listing_content_models_to_restrict', FALSE);
     $cmodels_to_count = array();
-    foreach($all_cmodels AS $cmodel) {
+    foreach ($all_cmodels AS $cmodel) {
       if ($models_to_exclude[$cmodel['pid']] != '0') {
         $cmodels_to_count[] = $cmodel['pid'];
       }
