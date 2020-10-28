@@ -121,7 +121,7 @@ function islandora_basic_collection_object_count_callback() {
       $results = $qp->islandoraSolrResult['response']['numFound'];
     }
     catch (Exception $e) {
-      watchdog_exception('Islandora Basic Collection', $e, 'Got an exception searching counting Collections.', array(), WATCHDOG_ERROR);
+      watchdog_exception('Islandora Basic Collection', $e, 'Got an exception counting Collections.', array(), WATCHDOG_ERROR);
       $results = array();
     }
     $collection_count = $results;
@@ -147,7 +147,7 @@ function islandora_basic_collection_object_count_callback() {
       $results = $qp->islandoraSolrResult['response']['numFound'];
     }
     catch (Exception $e) {
-      watchdog_exception('Islandora Basic Collection', $e, 'Got an exception searching counting Objects.', array(), WATCHDOG_ERROR);
+      watchdog_exception('Islandora Basic Collection', $e, 'Got an exception counting Objects.', array(), WATCHDOG_ERROR);
       $results = array();
     }
     $object_count = $results;
