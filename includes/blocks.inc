@@ -74,12 +74,16 @@ function islandora_basic_collection_clear_object_count_cache() {
  * Outputs a JSON string to the buffer.
  */
 function islandora_basic_collection_object_count_callback() {
+  $count_method = variable_get('islandora_basic_collection_count_method', 'SPARQL');
+
+
   $cid = islandora_basic_collection_get_object_count_block_cache_id();
 
   if ($value = cache_get($cid, 'cache')) {
     $substitutions = $value->data;
   }
   else {
+
     $tuque = islandora_get_tuque_connection();
     $objects_query_array = islandora_basic_collection_get_query_info(array(
       'object' => islandora_object_load(variable_get('islandora_repository_pid', 'islandora:root')),
@@ -87,10 +91,72 @@ function islandora_basic_collection_object_count_callback() {
       'all_objects' => TRUE,
     ));
     $collection_query_array = islandora_basic_collection_get_query_info(array(
-      'object' => islandora_object_load(variable_get('islandora_repository_pid', 'islandora:root')),
-      'collection_listing' => TRUE,
-      'all_objects' => FALSE,
-    ));
+    'object' => islandora_object_load(variable_get('islandora_repository_pid', 'islandora:root')),
+    'collection_listing' => TRUE,
+    'all_objects' => FALSE,
+  ));
+
+
+  // Setup Solr query for collection and object counts.
+  if ($count_method == "Solr" && module_exists('islandora_solr')) {
+    $cmodel_field = variable_get('islandora_solr_content_model_field', 'RELS_EXT_hasModel_uri_ms');
+
+    $all_cmodels = islandora_get_content_models();
+    $models_to_exclude = variable_get('islandora_basic_collection_object_count_listing_content_models_to_restrict', FALSE);
+    $cmodels_to_count = array();
+    foreach ($all_cmodels AS $cmodel) {
+      if ($models_to_exclude[$cmodel['pid']] != '0') {
+        $cmodels_to_count[] = $cmodel['pid'];
+      }
+    }
+
+    // Collection count Solr query.
+    $collection_query = $cmodel_field . ':"info:fedora/islandora:collectionCModel"';
+    $qp = new IslandoraSolrQueryProcessor();
+    $qp->buildQuery($collection_query);
+    $qp->solrParams['fl'] = "PID";
+    $qp->solrLimit = -1;
+    $qp->executeQuery(FALSE);
+    try {
+      $results = $qp->islandoraSolrResult['response']['numFound'];
+    }
+    catch (Exception $e) {
+      watchdog_exception('Islandora Basic Collection', $e, 'Got an exception counting Collections.', array(), WATCHDOG_ERROR);
+      $results = array();
+    }
+    $collection_count = $results;
+    // Solr query for object count.
+    $object_query = "";
+    $i = 0;
+    foreach ($cmodels_to_count AS $model) {
+      if ($i == 0) {
+        $object_query = $cmodel_field . ':"info:fedora/' . $model . '"';
+      }
+      else {
+        $object_query = $object_query . ' OR ' . $cmodel_field . ':"info:fedora/' . $model . '"';
+      }
+      $i++;
+    }
+
+    $qp = new IslandoraSolrQueryProcessor();
+    $qp->buildQuery($object_query);
+    $qp->solrParams['fl'] = "PID";
+    $qp->solrLimit = -1;
+    $qp->executeQuery(FALSE);
+    try {
+      $results = $qp->islandoraSolrResult['response']['numFound'];
+    }
+    catch (Exception $e) {
+      watchdog_exception('Islandora Basic Collection', $e, 'Got an exception counting Objects.', array(), WATCHDOG_ERROR);
+      $results = array();
+    }
+    $object_count = $results;
+
+    $total_collection_count = $collection_count;
+    $total_object_count = $object_count;
+  }
+
+  else {
     $collection_objects = $tuque->repository->ri->sparqlQuery($collection_query_array['query'], $collection_query_array['type']);
     $total_object_count = $tuque->repository->ri->countQuery($objects_query_array['query'], $objects_query_array['type']);
 
@@ -103,6 +169,8 @@ function islandora_basic_collection_object_count_callback() {
       $collections = islandora_basic_collection_filter_collection_by_cmodel($collections, array_filter($models_to_exclude));
     }
     $total_collection_count = count($collections);
+
+  }
 
     $substitutions = array(
       '!objects' => $total_object_count,

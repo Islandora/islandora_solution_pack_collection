@@ -999,6 +999,17 @@ function islandora_basic_collection_block_info() {
  */
 function islandora_basic_collection_block_configure($delta = '') {
   if ($delta == 'collection_object_count') {
+    if (module_exists('islandora_solr')) {
+      $count_method_options = array(
+        'SPARQL' => t('SPARQL'),
+        'Solr' => t('Solr'),
+      );
+    }
+    else {
+      $count_method_options = array(
+        'SPARQL' => t('SPARQL'),
+      );
+    }
     $block['islandora_basic_collection_title_phrase'] = array(
       '#type' => 'textfield',
       '#title' => t('The sentence to appear to describe the number of objects and collections present.'),
@@ -1011,6 +1022,17 @@ function islandora_basic_collection_block_configure($delta = '') {
       '#description' => t('Placeholder to output, to be replaced by phrase populated by AJAX.'),
       '#default_value' => variable_get('islandora_basic_collection_object_count_listing_placeholder', 'Counting items in collections...'),
     );
+    $block['islandora_basic_collection_count_method'] = array(
+      '#type' => 'select',
+      '#title' => 'Collection count query method',
+      '#options' => array(
+        'SPARQL' => t('SPARQL'),
+        'Solr' => t('Solr'),
+      ),
+      '#default_value' => variable_get('islandora_basic_collection_count_method', 'SPARQL'),
+      '#description' => t('Select method for querying the number of objects and collections. Solr is recommended for larger repositories. Respects XACML.'),
+    );
+
     module_load_include('inc', 'islandora', 'includes/utilities');
     $formatted_models = array();
     $models = islandora_get_content_models();
@@ -1092,6 +1114,7 @@ function islandora_basic_collection_block_save($delta = '', $edit = array()) {
     variable_set('islandora_basic_collection_object_count_listing_content_models_to_restrict', $edit['content_models']);
     variable_set('islandora_basic_collection_object_count_listing_phrase', $edit['islandora_basic_collection_title_phrase']);
     variable_set('islandora_basic_collection_object_count_listing_placeholder', $edit['islandora_basic_collection_title_placeholder']);
+    variable_set('islandora_basic_collection_count_method', $edit['islandora_basic_collection_count_method']);
   }
   if ($delta == 'collection_listing') {
     variable_set('islandora_basic_collection_listing_block_links_to_render', $edit['islandora_basic_collection_links_to_render']);
